@@ -1,0 +1,45 @@
+{
+  "name": "usd21api",
+  "version": "1.0.0",
+  "description": "API service for usd21.org",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "start:dev": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/USD21Developers/api.git"
+  },
+  "author": "Jason McNeill <jason.mcneill@usd21.org>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/USD21Developers/api/issues"
+  },
+  "homepage": "https://github.com/USD21Developers/api#readme",
+  "dependencies": {
+    "@sendgrid/mail": "^7.4.0",
+    "bcrypt": "^5.0.0",
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
+    "debug": "^4.3.1",
+    "ejs": "^3.1.5",
+    "email-validator": "^2.0.4",
+    "express": "^4.17.1",
+    "google-libphonenumber": "^3.2.15",
+    "http-errors": "^1.8.0",
+    "jsonwebtoken": "^8.5.1",
+    "moment": "^2.29.1",
+    "moment-timezone": "^0.5.32",
+    "morgan": "^1.10.0",
+    "mysql": "^2.18.1",
+    "uuid": "^8.3.1",
+    "valid-url": "^1.0.9",
+    "zxcvbn": "^4.4.2"
+  },
+  "devDependencies": {
+    "dotenv": "^8.2.0",
+    "nodemon": "^2.0.6"
+  }
+}
