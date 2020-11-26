@@ -1,10 +1,15 @@
 const express = require("express");
 const router = express.Router();
-const utils = require("./utils");
+const utils = require("./controllers_fp/utils");
 const authenticateToken = utils.authenticateToken;
 
-const helloworld = require("./controllers/helloworld");
-router.get("/helloworld", helloworld.GET);
+// REGISTRATION
+
+const register = require("./controllers_fp/register");
+router.post("/register", register.POST);
+
+/* const registerConfirm = require("./controllers/register-confirm");
+router.post("/register-confirm", registerConfirm.POST); */
 
 /* // SECURITY
 

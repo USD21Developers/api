@@ -6,7 +6,7 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const app = express();
-const routes = require("./routes/routes");
+const routes_fp = require("./routes/routes_fp");
 
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
@@ -18,7 +18,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 // routes
-app.use("/", routes);
+app.use("/fp", routes_fp);
 
 // listen
 const port = process.env.PORT || 3000;
