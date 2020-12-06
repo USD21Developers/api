@@ -47,24 +47,31 @@ exports.sendSms = (recipient, content) => {
 };
 
 exports.sendEmail = (recipient, sender, subject, body) => {
-  const sgMail = require("@sendgrid/mail");
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-  const msg = {
-    to: recipient,
-    from: sender,
-    subject: subject,
-    html: body,
-  };
   return new Promise((resolve, reject) => {
-    sgMail
-      .send(msg)
-      .then((result) => {
-        resolve(result);
-      })
-      .catch((error) => {
-        console.log(require("util").inspect(error, true, 7, true));
-        reject(error);
-      });
+    const nodemailer = require("nodemailer");
+    const transport = nodemailer.createTransport({
+      host: process.env.SMTP_SERVER,
+      port: process.env.SMTP_PORT_SSL,
+      secure: false,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PWD,
+      },
+    });
+    const message = {
+      to: recipient,
+      from: sender,
+      subject: subject,
+      html: body,
+    };
+    transport.sendMail(message, (err, info) => {
+      if (err) {
+        console.log(require("util").inspect(err, true, 7, true));
+        reject(err);
+      }
+
+      resolve(info);
+    });
   });
 };
 
