@@ -9,7 +9,31 @@ exports.POST = (req, res) => {
     lastname = "",
     fullname = "",
     email = "",
+    lang = "en",
+    emailSender = "",
+    emailSubject = "",
+    emailParagraph1 = "",
+    emailLinkText = "",
+    emailSignature = "",
   } = req.body;
+
+  let protocol;
+  let host;
+
+  switch (process.env.ENV) {
+    case "development":
+      protocol = "http:";
+      host = "localhost:5000";
+      break;
+    case "staging":
+      protocol = "https:";
+      host = "staging.firstprinciples.mobi";
+      break;
+    case "production":
+      protocol = "https:";
+      host = "firstprinciples.mobi";
+      break;
+  }
 
   // Validate
 
@@ -127,7 +151,77 @@ exports.POST = (req, res) => {
                   msgType: "error",
                 });
               }
-              // TODO: send back response, including refreshToken and accessToken
+
+              const userid = result.insertId;
+
+              const registrationToken = require("crypto")
+                .randomBytes(32)
+                .toString("hex");
+
+              const sql = `
+                INSERT INTO tokens(
+                  token,
+                  expiry,
+                  purpose,
+                  userid,
+                  createdAt
+                ) VALUES (
+                  ?,
+                  ADDTIME(utc_timestamp(), "24:0:0"),
+                  'registration',
+                  ?,
+                  utc_timestamp()
+                );
+              `;
+
+              db.query(sql, [registrationToken, userid], (err, result) => {
+                if (err) {
+                  console.log(err);
+                  return res.status(500).send({
+                    msg: "unable to insert registration token",
+                    msgType: "error",
+                    error: err,
+                  });
+                }
+
+                const confirmationUrl = `${protocol}://${host}/${lang}/subscribe/register-confirm/#${registrationToken}`;
+
+                const body = `
+                  <p>
+                    ${emailParagraph1}
+                  </p>
+                  <p style="margin: 30px 0">
+                    <strong>
+                      <big>
+                        <a href="${confirmationUrl}" style="text-decoration: underline">
+                          ${emailLinkText}
+                        </a>
+                      </big>
+                    </strong>
+                  </p>
+                  <p>${emailSignature}</p>
+                `;
+
+                const recipient = `"${fullname}" <${email}>`;
+
+                require("../../routes/controllers_fp/utils")
+                  .sendEmail(recipient, emailSender, emailSubject, body)
+                  .then((result) => {
+                    console.log(require("util").inspect(result, true, 7, true));
+                    return res.status(200).send({
+                      msg: "confirmation e-mail sent",
+                      msgType: "success",
+                      result: result,
+                    });
+                  })
+                  .catch((error) => {
+                    return res.status(500).send({
+                      msg: "confirmation e-mail could not be sent",
+                      msgType: "error",
+                      error: error,
+                    });
+                  });
+              });
             }
           );
         });
