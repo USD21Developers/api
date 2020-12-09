@@ -2,20 +2,18 @@ const emailValidator = require("email-validator");
 const db = require("../../database");
 
 exports.POST = (req, res) => {
-  const {
-    username = "",
-    password = "",
-    firstname = "",
-    lastname = "",
-    fullname = "",
-    email = "",
-    lang = "en",
-    emailSender = "",
-    emailSubject = "",
-    emailParagraph1 = "",
-    emailLinkText = "",
-    emailSignature = "",
-  } = req.body;
+  const username = req.body.username || "";
+  const password = req.body.password || "";
+  const firstname = req.body.firstname || "";
+  const lastname = req.body.lastname || "";
+  const fullname = req.body.fullname || "";
+  const email = req.body.email || "";
+  const lang = req.body.lang || "en";
+  const emailSenderText = req.body.emailSenderText || "";
+  const emailSubject = req.body.emailSubject || "";
+  const emailParagraph1 = req.body.emailParagraph1 || "";
+  const emailLinkText = req.body.emailLinkText || "";
+  const emailSignature = req.body.emailSignature || "";
 
   let protocol;
   let host;
@@ -37,19 +35,19 @@ exports.POST = (req, res) => {
 
   // Validate
 
-  if (!username)
+  if (!username.length)
     return res.status(400).send({ msg: "username missing", msgType: "error" });
 
-  if (!password)
+  if (!password.length)
     return res.status(400).send({ msg: "password missing", msgType: "error" });
 
-  if (!lastname)
+  if (!lastname.length)
     return res.status(400).send({ msg: "last name missing", msgType: "error" });
 
-  if (!fullname)
+  if (!fullname.length)
     return res.status(400).send({ msg: "full name missing", msgType: "error" });
 
-  if (!email)
+  if (!email.length)
     return res.status(400).send({ msg: "e-mail missing", msgType: "error" });
 
   if (!emailValidator.validate(email))
@@ -63,6 +61,7 @@ exports.POST = (req, res) => {
       return res.status(500).send({
         msg: "unable to query for duplicate username",
         msgType: "error",
+        error: err,
       });
     }
     if (result.length)
@@ -184,7 +183,8 @@ exports.POST = (req, res) => {
                   });
                 }
 
-                const confirmationUrl = `${protocol}://${host}/${lang}/_confirm/#${registrationToken}`;
+                // const confirmationUrl = `${protocol}://${host}/${lang}/_confirm/#${registrationToken}`;
+                const confirmationUrl = `${protocol}//${host}/${lang}/_confirm/#${registrationToken}`;
 
                 const body = `
                   <p>
@@ -204,11 +204,11 @@ exports.POST = (req, res) => {
 
                 const recipient = `"${fullname}" <${email}>`;
 
-                require("../../routes/controllers_fp/utils")
-                  .sendEmail(recipient, emailSender, emailSubject, body)
+                require("./utils")
+                  .sendEmail(recipient, emailSenderText, emailSubject, body)
                   .then((result) => {
                     console.log(require("util").inspect(result, true, 7, true));
-                    return res.status(200).send({
+                    return res.status(result[0].statusCode || 200).send({
                       msg: "confirmation e-mail sent",
                       msgType: "success",
                       result: result,

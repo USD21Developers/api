@@ -46,13 +46,14 @@ exports.sendSms = (recipient, content) => {
   });
 };
 
-exports.sendEmail = (recipient, sender, subject, body) => {
+sendEmailViaSMTP = (recipient, emailSenderText, subject, body) => {
+  const sender = `"${emailSenderText}" <no-reply-hc@usd21.org>`;
   return new Promise((resolve, reject) => {
     const nodemailer = require("nodemailer");
     const transport = nodemailer.createTransport({
       host: process.env.SMTP_SERVER,
       port: process.env.SMTP_PORT_SSL,
-      secure: false,
+      secure: true,
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PWD,
@@ -73,6 +74,41 @@ exports.sendEmail = (recipient, sender, subject, body) => {
       resolve(info);
     });
   });
+};
+
+sendEmailViaAPI = (recipient, emailSenderText, subject, body) => {
+  const sender = `${emailSenderText} <${process.env.SENDGRID_API_SENDER_EMAIL}>`;
+  const sgMail = require("@sendgrid/mail");
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  const msg = {
+    to: recipient,
+    from: sender,
+    subject: subject,
+    html: body,
+  };
+  return new Promise((resolve, reject) => {
+    sgMail
+      .send(msg)
+      .then((result) => {
+        resolve(result);
+      })
+      .catch((error) => {
+        console.log(require("util").inspect(error, true, 7, true));
+        reject(error);
+      });
+  });
+};
+
+exports.sendEmail = async (recipient, emailSenderText, subject, body) => {
+  let result;
+  console.log(body);
+  try {
+    result = await sendEmailViaSMTP(recipient, emailSenderText, subject, body);
+  } catch (err) {
+    result = await sendEmailViaAPI(recipient, emailSenderText, subject, body);
+  }
+  console.log(result);
+  return result;
 };
 
 /*
