@@ -8,8 +8,8 @@ const authenticateToken = utils.authenticateToken;
 const register = require("./controllers_fp/register");
 router.post("/register", register.POST);
 
-/* const registerConfirm = require("./controllers/register-confirm");
-router.post("/register-confirm", registerConfirm.POST); */
+const registerConfirm = require("./controllers_fp/register-confirm");
+router.post("/register-confirm", registerConfirm.POST);
 
 /* // SECURITY
 
