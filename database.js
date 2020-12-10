@@ -1,18 +1,4 @@
-const mysql = require("mysql2");
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  database: process.env.DB,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
-
-module.exports = pool;
-
-/* WHEN DEVELOPING LOCALLY ON WINDOWS, REPLACE THE ABOVE WITH THE FOLLOWING: */
-
-/* const mysql = require("mysql");
+const mysql = require("mysql");
 const util = require("util");
 const pool = mysql.createPool({
   connectionLimit: 10,
@@ -40,4 +26,4 @@ pool.getConnection((err, connection) => {
 
 pool.query = util.promisify(pool.query);
 
-module.exports = pool; */
+module.exports = pool;
