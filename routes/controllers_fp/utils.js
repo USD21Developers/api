@@ -47,7 +47,7 @@ exports.sendSms = (recipient, content) => {
 };
 
 sendEmailViaSMTP = (recipient, emailSenderText, subject, body) => {
-  const sender = `"${emailSenderText}" <no-reply-hc@usd21.org>`;
+  const sender = `"${emailSenderText}" <${process.env.SENDGRID_API_SENDER_EMAIL}>`;
   return new Promise((resolve, reject) => {
     const nodemailer = require("nodemailer");
     const transport = nodemailer.createTransport({
@@ -101,13 +101,11 @@ sendEmailViaAPI = (recipient, emailSenderText, subject, body) => {
 
 exports.sendEmail = async (recipient, emailSenderText, subject, body) => {
   let result;
-  console.log(body);
   try {
-    result = await sendEmailViaSMTP(recipient, emailSenderText, subject, body);
-  } catch (err) {
     result = await sendEmailViaAPI(recipient, emailSenderText, subject, body);
+  } catch (err) {
+    result = err;
   }
-  console.log(result);
   return result;
 };
 

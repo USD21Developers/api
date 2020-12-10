@@ -183,7 +183,6 @@ exports.POST = (req, res) => {
                   });
                 }
 
-                // const confirmationUrl = `${protocol}://${host}/${lang}/_confirm/#${registrationToken}`;
                 const confirmationUrl = `${protocol}//${host}/${lang}/_confirm/#${registrationToken}`;
 
                 const body = `
@@ -207,11 +206,9 @@ exports.POST = (req, res) => {
                 require("./utils")
                   .sendEmail(recipient, emailSenderText, emailSubject, body)
                   .then((result) => {
-                    console.log(require("util").inspect(result, true, 7, true));
                     return res.status(result[0].statusCode || 200).send({
                       msg: "confirmation e-mail sent",
                       msgType: "success",
-                      result: result,
                     });
                   })
                   .catch((error) => {
