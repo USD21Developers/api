@@ -77,7 +77,53 @@ exports.POST = (req, res) => {
           .send({ msg: "unable to update token record", msgType: "error" });
       }
 
-      // TODO:  at this point the user is confirmed.  Generate JWT tokens and send them in the response.
+      const sql = `SELECT fullname, usertype, passwordmustchange FROM users WHERE userid = ? LIMIT 1;`;
+      db.query(sql, [userid], (err, result) => {
+        if (err) {
+          console.log(err);
+          return res
+            .status(500)
+            .send({ msg: "unable to query for user", msgType: "error" });
+        }
+
+        if (!result.length) {
+          return res
+            .status(404)
+            .send({ msg: "user not found", msgType: "error" });
+        }
+
+        // Registration confirmed; send JWT
+        const jsonwebtoken = require("jsonwebtoken");
+        const { fullname, usertype, passwordmustchange } = result;
+        const refreshToken = jsonwebtoken.sign(
+          {
+            name: fullname,
+            userid: userid,
+            usertype: usertype,
+            passwordmustchange: passwordmustchange == 1 ? true : 0,
+          },
+          process.env.REFRESH_TOKEN_SECRET,
+          { expiresIn: "90d" }
+        );
+
+        const accessToken = jsonwebtoken.sign(
+          {
+            name: fullname,
+            userid: userid,
+            usertype: usertype,
+            passwordmustchange: passwordmustchange == 1 ? true : 0,
+          },
+          process.env.ACCESS_TOKEN_SECRET,
+          { expiresIn: "10m" }
+        );
+
+        return res.status(200).send({
+          msg: "registration confirmed",
+          msgType: "success",
+          refreshToken: refreshToken,
+          accessToken: accessToken,
+        });
+      });
     });
   });
 };
