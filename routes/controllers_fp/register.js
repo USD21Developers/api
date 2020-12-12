@@ -15,21 +15,19 @@ exports.POST = (req, res) => {
   const emailLinkText = req.body.emailLinkText || "";
   const emailSignature = req.body.emailSignature || "";
 
-  let protocol;
+  let protocol = "https:";
   let host;
-
+  const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
+  return res.status(200).send({ isStaging: isStaging });
   switch (process.env.ENV) {
     case "development":
       protocol = "http:";
       host = "localhost:5000";
       break;
-    case "staging":
-      protocol = "https:";
-      host = "staging.firstprinciples.mobi";
-      break;
     case "production":
-      protocol = "https:";
-      host = "firstprinciples.mobi";
+      host = isStaging
+        ? "staging.firstprinciples.mobi"
+        : "firstprinciples.mobi";
       break;
   }
 
