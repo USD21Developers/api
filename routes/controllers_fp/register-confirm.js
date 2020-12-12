@@ -125,7 +125,7 @@ exports.POST = (req, res) => {
             passwordmustchange: passwordmustchange == 1 ? true : 0,
           },
           process.env.ACCESS_TOKEN_SECRET,
-          { expiresIn: "10m" }
+          { expiresIn: "1d" }
         );
 
         return res.status(200).send({
