@@ -68,7 +68,18 @@ exports.POST = (req, res) => {
     // Token valid; update database
 
     const userid = result[0].userid || 0;
-    const sql = `UPDATE tokens SET claimed = 1 WHERE token = ?;`;
+    const sql = `
+      UPDATE
+        tokens t
+      INNER JOIN
+        users u
+      SET
+        t.claimed = 1,
+        u.userstatus = 'registered'
+      WHERE
+        t.token = ?
+      ;
+    `;
     db.query(sql, [token], (err, result) => {
       if (err) {
         console.log(err);
