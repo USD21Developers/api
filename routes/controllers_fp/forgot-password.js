@@ -78,7 +78,7 @@ exports.POST = (req, res) => {
         if (err) {
           console.log(err);
           return res.status(500).send({
-            msg: "unable to update employee record",
+            msg: "unable to update user record",
             msgType: "error",
           });
         }
