@@ -4,7 +4,7 @@ exports.POST = (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
   const sql =
-    "SELECT userid, password, fullname, usertype, passwordmustchange FROM users WHERE username = ? LIMIT 1;";
+    "SELECT userid, password, fullname, usertype, userstatus, passwordmustchange FROM users WHERE username = ? LIMIT 1;";
   db.query(sql, [username], (err, result) => {
     if (err) {
       return res.status(500).send({
@@ -23,6 +23,7 @@ exports.POST = (req, res) => {
     const fullname = result[0].fullname;
     const userid = result[0].userid;
     const usertype = result[0].usertype;
+    const userstatus = result[0].userstatus;
     const passwordmustchange =
       result[0].passwordmustchange === 1 ? true : false;
 
