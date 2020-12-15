@@ -2,6 +2,11 @@ exports.POST = (req, res) => {
   const db = require("../../database");
   const email = req.body.email || "";
   const lang = req.body.lang || "en";
+  const emailSender = req.body.emailSender || "First Principles";
+  const emailSubject = req.body.emailSubject || "Reset your password";
+  let emailParagraph1 = req.body.emailParagraph1 || "";
+  const emailParagraph2 = req.body.emailParagraph2 || "";
+  const emailParagraph3 = req.body.emailParagraph3 || "";
   let protocol = "https:";
   let host;
   const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
@@ -16,8 +21,14 @@ exports.POST = (req, res) => {
         : "firstprinciples.mobi";
       break;
   }
+
+  // Validate
+
   const validator = require("email-validator");
   const isValidEmail = validator.validate(email);
+
+  if (!email.length)
+    return res.status(400).send({ msg: "e-mail is missing", msgType: "error" });
 
   if (!isValidEmail)
     return res.status(400).send({
@@ -84,25 +95,26 @@ exports.POST = (req, res) => {
         }
         const uuid = require("uuid");
         const messageID = uuid.v4();
-        const utils = require("../utils");
-        const resetUrl = `${protocol}//${host}/lang/${lang}/account/reset-password#token=${resetToken}`;
-        const senderEmail = `First Principles <fp-admin@usd21.org>`;
-        const subject = "Reset your password";
+        const utils = require("./utils");
+        const resetUrl = `${protocol}//${host}/lang/${lang}/_reset/#${resetToken}`;
+        const senderEmail = `${emailSender} <fp-admin@usd21.org>`;
+        const subject = emailSubject;
         const body = `
-          <p>This message is for ${fullname}. We just received your request to reset your password.  To do so, please click on the following link within 20 minutes of your request:</p>
-          <p style="margin: 30px 0"><strong><big><a href="${resetUrl}" style="text-decoration: underline">Reset my password</a></big></strong></p>
-          <p>The Cyberministry</p>
+          <p>${emailParagraph1.replace("${fullname}", fullname)}</p>
+          <p style="margin: 30px 0"><strong><big><a href="${resetUrl}" style="text-decoration: underline">${emailParagraph2}</a></big></strong></p>
+          <p>${emailParagraph3}</p>
         `;
         utils
           .sendEmail(recipientEmail, senderEmail, subject, body)
           .then((result) => {
+            console.log(require("util").inspect(result, true, 7, true));
             return res.status(result[0].statusCode || 200).send({
               msg: "password reset e-mail sent",
               msgType: "success",
             });
           })
           .catch((error) => {
-            console.log(error);
+            console.log(require("util").inspect(error, true, 7, true));
             return res.status(500).send({
               msg: "password reset e-mail could not be sent",
               msgType: "error",
