@@ -107,14 +107,12 @@ exports.POST = (req, res) => {
         utils
           .sendEmail(recipientEmail, senderEmail, subject, body)
           .then((result) => {
-            console.log(require("util").inspect(result, true, 7, true));
             return res.status(result[0].statusCode || 200).send({
               msg: "password reset e-mail sent",
               msgType: "success",
             });
           })
           .catch((error) => {
-            console.log(require("util").inspect(error, true, 7, true));
             return res.status(500).send({
               msg: "password reset e-mail could not be sent",
               msgType: "error",
