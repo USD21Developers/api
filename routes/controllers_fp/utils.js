@@ -47,30 +47,27 @@ exports.sendSms = (recipient, content) => {
 };
 
 sendEmailViaSMTP = (recipient, emailSenderText, subject, body) => {
-  const sender = `"${emailSenderText}" <${process.env.SENDGRID_API_SENDER_EMAIL}>`;
+  const sender = `"${emailSenderText}" <${process.env.SMTP_SENDER_EMAIL}>`;
   return new Promise((resolve, reject) => {
     const nodemailer = require("nodemailer");
     const transport = nodemailer.createTransport({
-      host: process.env.SMTP_SERVER,
-      port: process.env.SMTP_PORT_SSL,
-      secure: true,
+      service: "gmail",
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PWD,
       },
     });
-    const message = {
-      to: recipient,
+    const mailOptions = {
       from: sender,
+      to: recipient,
       subject: subject,
       html: body,
     };
-    transport.sendMail(message, (err, info) => {
+    transport.sendMail(mailOptions, (err, info) => {
       if (err) {
         console.log(require("util").inspect(err, true, 7, true));
         reject(err);
       }
-
       resolve(info);
     });
   });
@@ -101,11 +98,13 @@ sendEmailViaAPI = (recipient, emailSenderText, subject, body) => {
 
 exports.sendEmail = async (recipient, emailSenderText, subject, body) => {
   let result;
-  try {
-    result = await sendEmailViaAPI(recipient, emailSenderText, subject, body);
+  result = await sendEmailViaAPI(recipient, emailSenderText, subject, body);
+  /* try {
+    result = await sendEmailViaSMTP(recipient, emailSenderText, subject, body);
   } catch (err) {
-    result = err;
-  }
+    result =
+      (await sendEmailViaAPI(recipient, emailSenderText, subject, body)) || err;
+  } */
   return result;
 };
 
