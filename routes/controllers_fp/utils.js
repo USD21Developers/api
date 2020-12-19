@@ -53,8 +53,10 @@ sendEmailViaSMTP = (recipient, emailSenderText, subject, body) => {
     const transport = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PWD,
+        type: "OAuth2",
+        user: process.env.SMTP_SENDER_EMAIL,
+        serviceClient: process.env.SMTP_SERVICE_CLIENT,
+        privateKey: process.env.SMTP_PRIVATE_KEY,
       },
     });
     const mailOptions = {

@@ -30,6 +30,7 @@
     "email-validator": "^2.0.4",
     "express": "^4.17.1",
     "google-libphonenumber": "^3.2.15",
+    "googleapis": "^39.2.0",
     "http-errors": "^1.8.0",
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.29.1",
