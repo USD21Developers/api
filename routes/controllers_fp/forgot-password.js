@@ -7,6 +7,7 @@ exports.POST = (req, res) => {
   let emailParagraph1 = req.body.emailParagraph1 || "";
   const emailParagraph2 = req.body.emailParagraph2 || "";
   const emailParagraph3 = req.body.emailParagraph3 || "";
+  const emailParagraph4 = req.body.emailParagraph4 || "";
   let protocol = "https:";
   let host;
   const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
@@ -39,6 +40,7 @@ exports.POST = (req, res) => {
   const sql = `
     SELECT 
       u.userid,
+      u.username,
       u.fullname, 
       u.email,
       t.token,
@@ -63,6 +65,7 @@ exports.POST = (req, res) => {
       return res.status(404).send({ msg: "user not found", msgType: "error" });
     const moment = require("moment");
     const userid = result[0].userid;
+    const username = result[0].username;
     const fullname = result[0].fullname;
     const recipientEmail = result[0].email;
     let resetToken = require("crypto").randomBytes(32).toString("hex");
@@ -101,6 +104,9 @@ exports.POST = (req, res) => {
         const subject = emailSubject;
         const body = `
           <p>${emailParagraph1.replace("${fullname}", fullname)}</p>
+          <p>${emailParagraph4
+            .replace("Your username is:", "Your username is:<br />")
+            .replace("${username}", username)}</p>
           <p style="margin: 30px 0"><strong><big><a href="${resetUrl}" style="text-decoration: underline">${emailParagraph2}</a></big></strong></p>
           <p>${emailParagraph3}</p>
         `;
