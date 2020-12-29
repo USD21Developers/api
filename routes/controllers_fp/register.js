@@ -14,6 +14,7 @@ exports.POST = (req, res) => {
   const emailParagraph1 = req.body.emailParagraph1 || "";
   const emailLinkText = req.body.emailLinkText || "";
   const emailSignature = req.body.emailSignature || "";
+  const country = req.body.country.substring(0, 2).toLowerCase() || "";
 
   let protocol = "https:";
   let host;
@@ -49,6 +50,9 @@ exports.POST = (req, res) => {
 
   if (!emailValidator.validate(email))
     return res.status(400).send({ msg: "invalid e-mail", msgType: "error" });
+
+  if (!country.length)
+    return res.status(400).send({ msg: "country missing", msgType: "error" });
 
   // Check for duplicate username
   const sql = `SELECT userid FROM users WHERE username = ? LIMIT 1;`;
@@ -118,8 +122,10 @@ exports.POST = (req, res) => {
               firstname,
               lastname,
               email,
+              country,
               createdAt
             ) VALUES(
+              ?,
               ?,
               ?,
               ?,
@@ -138,6 +144,7 @@ exports.POST = (req, res) => {
               firstname,
               lastname,
               email.toLowerCase(),
+              country,
             ],
             (err, result) => {
               if (err) {
