@@ -32,4 +32,20 @@ router.post(
   passwordMustChange.POST
 );
 
+// PAYPAL SANDBOX
+
+const paypalReturnUrlSandbox = require("./controllers_fp/paypalReturnUrlSandbox");
+router.post("/paypal-return-sandbox", paypalReturnUrlSandbox.POST);
+
+const paypalWebhooksUrlSandbox = require("./controllers_fp/paypalWebhooksUrlSandbox");
+router.post("/paypal-webhooks-sandbox", paypalWebhooksUrlSandbox.POST);
+
+// PAYPAL LIVE
+
+const paypalReturnUrlLive = require("./controllers_fp/paypalReturnUrlLive");
+router.post("/paypal-return", paypalReturnUrlLive.POST);
+
+const paypalWebhooksUrlLive = require("./controllers_fp/paypalWebhooksUrlLive");
+router.post("/paypal-webhooks", paypalWebhooksUrlLive.POST);
+
 module.exports = router;
