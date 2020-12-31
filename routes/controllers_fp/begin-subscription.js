@@ -19,7 +19,6 @@ exports.POST = (req, res) => {
   const timeZone = req.body.timeZone;
   const timeZoneOffset = moment.tz(timeZone).format("Z:00").slice(0, -3);
 
-  console.log("Beginning subscription...");
   return res
     .status(200)
     .send({ msg: "Beginning subscription...", msgType: "success" });
