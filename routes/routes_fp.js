@@ -48,4 +48,12 @@ router.post("/paypal-return", paypalReturnUrlLive.POST);
 const paypalWebhooksUrlLive = require("./controllers_fp/paypalWebhooksUrlLive");
 router.post("/paypal-webhooks", paypalWebhooksUrlLive.POST);
 
+// SUBSCRIPTION
+
+const checkSubscription = require("./controllers_fp/check-subscription");
+router.post("/check-subscription", authenticateToken, checkSubscription.POST);
+
+const beginSubscription = require("./controllers_fp/begin-subscription");
+router.post("/begin-subscription", authenticateToken, beginSubscription.POST);
+
 module.exports = router;
