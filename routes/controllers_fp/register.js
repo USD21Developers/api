@@ -21,7 +21,6 @@ exports.POST = (req, res) => {
 
   let protocol = "https:";
   let host;
-  const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
   switch (process.env.ENV) {
     case "development":
       protocol = "http:";
