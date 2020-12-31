@@ -1,5 +1,8 @@
 exports.POST = (req, res) => {
-  const db = require("../../database");
+  const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
+  const db = isStaging
+    ? require("../../database-test")
+    : require("../../database");
   const email = req.body.email || "";
   const lang = req.body.lang || "en";
   const emailSender = req.body.emailSender || "First Principles";
@@ -10,7 +13,6 @@ exports.POST = (req, res) => {
   const emailParagraph4 = req.body.emailParagraph4 || "";
   let protocol = "https:";
   let host;
-  const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
   switch (process.env.ENV) {
     case "development":
       protocol = "http:";

@@ -1,7 +1,10 @@
 const moment = require("moment");
-const db = require("../../database");
 
 exports.POST = (req, res) => {
+  const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
+  const db = isStaging
+    ? require("../../database-test")
+    : require("../../database");
   const token = req.body.token || "";
 
   // Validate

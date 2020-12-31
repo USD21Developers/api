@@ -1,6 +1,9 @@
 exports.POST = (req, res) => {
+  const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
+  const db = isStaging
+    ? require("../../database-test")
+    : require("../../database");
   const bcrypt = require("bcrypt");
-  const db = require("../../database");
   const username = req.body.username;
   const password = req.body.password;
   const sql =
