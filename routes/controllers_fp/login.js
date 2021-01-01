@@ -7,7 +7,7 @@ exports.POST = (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
   const sql =
-    "SELECT userid, password, fullname, usertype, userstatus, passwordmustchange FROM users WHERE username = ? LIMIT 1;";
+    "SELECT userid, password, fullname, usertype, userstatus, passwordmustchange, subscribeduntil FROM users WHERE username = ? LIMIT 1;";
   db.query(sql, [username], (err, result) => {
     if (err) {
       return res.status(500).send({
@@ -29,6 +29,10 @@ exports.POST = (req, res) => {
     const userstatus = result[0].userstatus;
     const passwordmustchange =
       result[0].passwordmustchange === 1 ? true : false;
+    const subscribeduntil = parseInt(result[0].subscribeduntil) || 0;
+    const now = Date.now().valueOf() / 1000;
+    const numSecondsUntilSubscriptionExpires =
+      subscribeduntil > now ? subscribeduntil - now : 0;
 
     if (userstatus !== "registered") {
       return res
@@ -70,11 +74,21 @@ exports.POST = (req, res) => {
         { expiresIn: "1d" }
       );
 
+      const subscribeToken = jsonwebtoken.sign(
+        {
+          userid: userid,
+          subscribeduntil: subscribeduntil,
+        },
+        process.env.SUBSCRIPTION_TOKEN_SECRET,
+        { expiresIn: `${numSecondsUntilSubscriptionExpires}s` }
+      );
+
       return res.status(200).send({
         msg: "user authenticated",
         msgType: "success",
         refreshToken: refreshToken,
         accessToken: accessToken,
+        subscribeToken: subscribeToken,
       });
     });
   });
