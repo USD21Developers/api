@@ -87,17 +87,61 @@ exports.POST = (req, res) => {
 
   paypal.payment.create(create_payment_json, (error, payment) => {
     if (error) {
-      console.log(error);
+      console.log(require("util").inspect(error, true, 7, true));
       return res
         .status(500)
         .send({ msg: "unable to create paypal payment", msgType: "error" });
     } else {
-      console.log(require("util").inspect(payment, true, 7, true));
-      res.status(200).send({
-        msg: "paypal payment created",
-        msgType: "success",
-        payment: payment,
-      });
+      const { id, state } = payment;
+      const sql = `
+        INSERT INTO payments (
+          userid,
+          paypalpaymentid,
+          paymentstate,
+          paymentjson,
+          amount,
+          currencycode,
+          createdAt
+        ) VALUES (
+          ?,
+          ?,
+          ?,
+          ?,
+          ?,
+          ?,
+          UTC_TIMESTAMP()
+        )
+      `;
+      const paymentjson = JSON.stringify(payment);
+      let paypalURL = "";
+
+      for (let i = 0; i < payment.links.length; i++) {
+        if (payment.links[i].rel === "approval_url") {
+          paypalURL = payment.links[i].href;
+          break;
+        }
+      }
+
+      db.query(
+        sql,
+        [req.user.userid, id, state, paymentjson, price, "USD"],
+        (err, result) => {
+          if (err) {
+            console.log(err);
+            return res
+              .status(500)
+              .send({
+                msg: "unable to update payments table",
+                msgType: "error",
+              });
+          }
+          return res.status(payment.httpStatusCode || 200).send({
+            msg: "paypal payment created",
+            msgType: "success",
+            paypalURL: paypalURL,
+          });
+        }
+      );
     }
   });
 };

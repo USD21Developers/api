@@ -56,4 +56,11 @@ router.post("/check-subscription", authenticateToken, checkSubscription.POST);
 const beginSubscription = require("./controllers_fp/begin-subscription");
 router.post("/begin-subscription", authenticateToken, beginSubscription.POST);
 
+const activateSubscription = require("./controllers_fp/activate-subscription");
+router.post(
+  "/activate-subscription",
+  authenticateToken,
+  activateSubscription.POST
+);
+
 module.exports = router;

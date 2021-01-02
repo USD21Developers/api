@@ -74,7 +74,7 @@ exports.POST = (req, res) => {
         { expiresIn: "1d" }
       );
 
-      const subscribeToken = jsonwebtoken.sign(
+      const subscriptionToken = jsonwebtoken.sign(
         {
           userid: userid,
           subscribeduntil: subscribeduntil,
@@ -88,7 +88,7 @@ exports.POST = (req, res) => {
         msgType: "success",
         refreshToken: refreshToken,
         accessToken: accessToken,
-        subscribeToken: subscribeToken,
+        subscriptionToken: subscriptionToken,
       });
     });
   });
