@@ -6,8 +6,25 @@ exports.POST = (req, res) => {
   const bcrypt = require("bcrypt");
   const username = req.body.username;
   const password = req.body.password;
-  const sql =
-    "SELECT userid, password, fullname, usertype, userstatus, passwordmustchange, subscribeduntil, UTC_TIMESTAMP AS now FROM users WHERE username = ? LIMIT 1;";
+  const sql = `
+    SELECT
+      userid,
+      password,
+      fullname,
+      usertype,
+      userstatus,
+      passwordmustchange,
+      subscribeduntil,
+      UTC_TIMESTAMP AS now,
+      ABS(DATEDIFF(now, subscribeduntil)) AS daysUntilSubscriptionExpiry
+    FROM
+      users
+    WHERE
+      username = ?
+    LIMIT
+      1
+    ;
+  `;
   db.query(sql, [username], (err, result) => {
     if (err) {
       return res.status(500).send({
@@ -32,13 +49,13 @@ exports.POST = (req, res) => {
     const passwordmustchange =
       result[0].passwordmustchange === 1 ? true : false;
 
-    const subscribeduntil = result[0].subscribeduntil.length
-      ? moment(result[0].subscribeduntil)
-      : moment(0);
+    const subscribeduntil =
+      result[0].subscribeduntil === null
+        ? moment(0)
+        : moment(result[0].subscribeduntil);
     const now = moment(result[0].now);
-
-    const numSecondsUntilSubscriptionExpires =
-      subscribeduntil > now ? subscribeduntil.diff(now, "s") : 0;
+    const daysUntilSubscriptionExpiry =
+      result[0].daysUntilSubscriptionExpiry || 0;
 
     if (userstatus !== "registered") {
       return res
@@ -83,10 +100,10 @@ exports.POST = (req, res) => {
       const subscriptionToken = jsonwebtoken.sign(
         {
           userid: userid,
-          subscribeduntil: subscribeduntil,
+          subscribeduntil: subscribeduntil.format("MMMM D, YYYY HH:mm:ss"),
         },
         process.env.SUBSCRIPTION_TOKEN_SECRET,
-        { expiresIn: `${numSecondsUntilSubscriptionExpires}s` }
+        { expiresIn: `${daysUntilSubscriptionExpiry}d` }
       );
 
       return res.status(200).send({
