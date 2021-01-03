@@ -95,6 +95,7 @@ exports.POST = (req, res) => {
         refreshToken: refreshToken,
         accessToken: accessToken,
         subscriptionToken: subscriptionToken,
+        subscribeduntil: result[0].subscribeduntil,
       });
     });
   });
