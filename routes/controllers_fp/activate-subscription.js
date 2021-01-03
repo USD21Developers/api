@@ -97,9 +97,8 @@ exports.POST = (req, res) => {
         const moment = require("moment");
         const currentExpiry = moment(result[0].subscribeduntil);
         const now = moment(result[0].now);
-        const appendToCurrentExpiry = currentExpiry > now ? true : false;
         let sql;
-        if (appendToCurrentExpiry) {
+        if (currentExpiry > now) {
           sql = `
             UPDATE
               users
@@ -132,7 +131,7 @@ exports.POST = (req, res) => {
           const sql = `
             SELECT
               subscribeduntil,
-              DATEDIFF(subscribeduntil, UTC_TIMESTAMP) AS newExpiryDaysAhead
+              ABS(DATEDIFF(subscribeduntil, UTC_TIMESTAMP)) AS newExpiryDaysAhead
             FROM
               users
             WHERE
@@ -152,6 +151,10 @@ exports.POST = (req, res) => {
                 .status(404)
                 .send({ msg: "user not found", msgType: "error" });
 
+            const numDaysAhead = result[0].newExpiryDaysAhead.length
+              ? result[0].newExpiryDaysAhead
+              : 365;
+
             const jsonwebtoken = require("jsonwebtoken");
             const subscriptionToken = jsonwebtoken.sign(
               {
@@ -159,7 +162,7 @@ exports.POST = (req, res) => {
                 subscribeduntil: result[0].subscribeduntil,
               },
               process.env.SUBSCRIPTION_TOKEN_SECRET,
-              { expiresIn: `${result[0].newExpiryDaysAhead}d` }
+              { expiresIn: `${numDaysAhead}d` }
             );
 
             return res.status(200).send({

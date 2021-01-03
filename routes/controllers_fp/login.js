@@ -7,7 +7,7 @@ exports.POST = (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
   const sql =
-    "SELECT userid, password, fullname, usertype, userstatus, passwordmustchange, subscribeduntil FROM users WHERE username = ? LIMIT 1;";
+    "SELECT userid, password, fullname, usertype, userstatus, passwordmustchange, subscribeduntil, UTC_TIMESTAMP AS now FROM users WHERE username = ? LIMIT 1;";
   db.query(sql, [username], (err, result) => {
     if (err) {
       return res.status(500).send({
@@ -22,6 +22,8 @@ exports.POST = (req, res) => {
         msgType: "error",
       });
 
+    const moment = require("moment");
+
     const passwordFromDB = result[0].password;
     const fullname = result[0].fullname;
     const userid = result[0].userid;
@@ -29,10 +31,14 @@ exports.POST = (req, res) => {
     const userstatus = result[0].userstatus;
     const passwordmustchange =
       result[0].passwordmustchange === 1 ? true : false;
-    const subscribeduntil = parseInt(result[0].subscribeduntil) || 0;
-    const now = Date.now().valueOf() / 1000;
+
+    const subscribeduntil = result[0].subscribeduntil.length
+      ? moment(result[0].subscribeduntil)
+      : moment(0);
+    const now = moment(result[0].now);
+
     const numSecondsUntilSubscriptionExpires =
-      subscribeduntil > now ? subscribeduntil - now : 0;
+      subscribeduntil > now ? subscribeduntil.diff(now, "s") : 0;
 
     if (userstatus !== "registered") {
       return res
@@ -60,7 +66,7 @@ exports.POST = (req, res) => {
           userid: userid,
         },
         process.env.REFRESH_TOKEN_SECRET,
-        { expiresIn: "90d" }
+        { expiresIn: "30d" }
       );
 
       const accessToken = jsonwebtoken.sign(
@@ -71,7 +77,7 @@ exports.POST = (req, res) => {
           passwordmustchange: passwordmustchange == 1 ? true : 0,
         },
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: "1d" }
+        { expiresIn: "10m" }
       );
 
       const subscriptionToken = jsonwebtoken.sign(
