@@ -82,6 +82,7 @@ exports.POST = (req, res) => {
       const refreshToken = jsonwebtoken.sign(
         {
           userid: userid,
+          usertype: usertype,
         },
         process.env.REFRESH_TOKEN_SECRET,
         { expiresIn: "30d" }
@@ -101,6 +102,7 @@ exports.POST = (req, res) => {
       const subscriptionToken = jsonwebtoken.sign(
         {
           userid: userid,
+          usertype: usertype,
           subscribeduntil: subscribeduntil.format("MMMM D, YYYY HH:mm:ss"),
         },
         process.env.SUBSCRIPTION_TOKEN_SECRET,

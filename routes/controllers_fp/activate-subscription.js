@@ -130,6 +130,7 @@ exports.POST = (req, res) => {
 
           const sql = `
             SELECT
+              usertype,
               subscribeduntil,
               ABS(DATEDIFF(subscribeduntil, UTC_TIMESTAMP)) AS newExpiryDaysAhead
             FROM
@@ -159,6 +160,7 @@ exports.POST = (req, res) => {
             const subscriptionToken = jsonwebtoken.sign(
               {
                 userid: req.user.userid,
+                usertype: result[0].usertype,
                 subscribeduntil: result[0].subscribeduntil,
               },
               process.env.SUBSCRIPTION_TOKEN_SECRET,
