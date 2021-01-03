@@ -128,12 +128,10 @@ exports.POST = (req, res) => {
         (err, result) => {
           if (err) {
             console.log(err);
-            return res
-              .status(500)
-              .send({
-                msg: "unable to update payments table",
-                msgType: "error",
-              });
+            return res.status(500).send({
+              msg: "unable to update payments table",
+              msgType: "error",
+            });
           }
           return res.status(payment.httpStatusCode || 200).send({
             msg: "paypal payment created",
