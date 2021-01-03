@@ -16,7 +16,7 @@ exports.POST = (req, res) => {
       passwordmustchange,
       subscribeduntil,
       UTC_TIMESTAMP AS now,
-      ABS(DATEDIFF(now, subscribeduntil)) AS daysUntilSubscriptionExpiry
+      ABS(DATEDIFF(UTC_TIMESTAMP, subscribeduntil)) AS daysUntilSubscriptionExpiry
     FROM
       users
     WHERE
@@ -27,6 +27,7 @@ exports.POST = (req, res) => {
   `;
   db.query(sql, [username], (err, result) => {
     if (err) {
+      console.log(err);
       return res.status(500).send({
         msg: "unable to query for user",
         msgType: "error",
