@@ -165,11 +165,35 @@ exports.POST = (req, res) => {
               { expiresIn: `${numDaysAhead}d` }
             );
 
-            return res.status(200).send({
-              msg: "subscription activated",
-              msgType: "success",
-              subscriptionToken: subscriptionToken,
-            });
+            const sql = `
+                UPDATE
+                  payments
+                SET
+                  paymentstate = ?,
+                  paymentjson = ?
+                WHERE
+                  paypalpaymentid = ?
+                ;
+              `;
+            db.query(
+              sql,
+              [payment.state, JSON.stringify(payment), payment.id],
+              (err, result) => {
+                if (err) {
+                  console.log(err);
+                  return res.status(500).send({
+                    msg: "unable to update payments table",
+                    msgType: "error",
+                  });
+                }
+
+                return res.status(200).send({
+                  msg: "subscription activated",
+                  msgType: "success",
+                  subscriptionToken: subscriptionToken,
+                });
+              }
+            );
           });
         });
       });
