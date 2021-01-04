@@ -2,7 +2,7 @@ const paypal = require("paypal-rest-sdk");
 
 exports.POST = (req, res) => {
   // Enforce authorization
-  const usertype = req.user.aud[0];
+  const usertype = req.user.usertype;
   const allowedUsertypes = ["user"];
   if (!allowedUsertypes.includes(usertype)) {
     console.log(`User (userid ${req.user.userid}) is not authorized.`);

@@ -71,7 +71,7 @@ exports.POST = (req, res) => {
           {
             name: fullname,
             userid: userid,
-            aud: [usertype],
+            usertype: usertype,
             passwordmustchange: passwordmustchange,
           },
           process.env.ACCESS_TOKEN_SECRET,

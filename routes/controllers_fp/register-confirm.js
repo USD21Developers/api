@@ -108,13 +108,14 @@ exports.POST = (req, res) => {
 
         // Registration confirmed; send JWT
         const jsonwebtoken = require("jsonwebtoken");
-        const { fullname, usertype, passwordmustchange } = result;
-        console.log(require("util").inspect(result, true, 7, true));
+        const fullname = result[0].fullname || "";
+        const usertype = result[0].usertype || "user";
+        const passwordmustchange = result[0].passwordmustchange || 0;
         const refreshToken = jsonwebtoken.sign(
           {
             name: fullname,
             userid: userid,
-            aud: [usertype],
+            usertype: usertype,
             passwordmustchange: passwordmustchange == 1 ? true : 0,
           },
           process.env.REFRESH_TOKEN_SECRET,
@@ -125,7 +126,7 @@ exports.POST = (req, res) => {
           {
             name: fullname,
             userid: userid,
-            aud: [usertype],
+            usertype: usertype,
             passwordmustchange: passwordmustchange == 1 ? true : 0,
           },
           process.env.ACCESS_TOKEN_SECRET,
