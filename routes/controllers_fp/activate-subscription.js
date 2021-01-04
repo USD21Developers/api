@@ -131,6 +131,7 @@ exports.POST = (req, res) => {
 
           const sql = `
             SELECT
+              fullname,
               usertype,
               subscribeduntil,
               ABS(DATEDIFF(subscribeduntil, UTC_TIMESTAMP)) AS newExpiryDaysAhead
@@ -153,6 +154,9 @@ exports.POST = (req, res) => {
                 .status(404)
                 .send({ msg: "user not found", msgType: "error" });
 
+            const fullname = request[0].fullname || "";
+            const usertype = request[0].usertype || "user";
+
             const numDaysAhead = result[0].newExpiryDaysAhead.length
               ? result[0].newExpiryDaysAhead
               : 365;
@@ -161,7 +165,7 @@ exports.POST = (req, res) => {
 
             const refreshToken = jsonwebtoken.sign(
               {
-                userid: userid,
+                userid: req.user.userid,
                 usertype: usertype,
               },
               process.env.REFRESH_TOKEN_SECRET,
@@ -171,7 +175,7 @@ exports.POST = (req, res) => {
             const accessToken = jsonwebtoken.sign(
               {
                 name: fullname,
-                userid: userid,
+                userid: req.user.userid,
                 usertype: usertype,
                 passwordmustchange: passwordmustchange == 1 ? true : 0,
               },
