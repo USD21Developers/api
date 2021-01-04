@@ -154,8 +154,8 @@ exports.POST = (req, res) => {
                 .status(404)
                 .send({ msg: "user not found", msgType: "error" });
 
-            const fullname = request[0].fullname || "";
-            const usertype = request[0].usertype || "user";
+            const fullname = result[0].fullname || "";
+            const usertype = result[0].usertype || "user";
 
             const numDaysAhead = result[0].newExpiryDaysAhead.length
               ? result[0].newExpiryDaysAhead
