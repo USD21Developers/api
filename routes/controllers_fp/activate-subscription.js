@@ -1,3 +1,4 @@
+const { access } = require("fs");
 const paypal = require("paypal-rest-sdk");
 
 exports.POST = (req, res) => {
@@ -157,6 +158,27 @@ exports.POST = (req, res) => {
               : 365;
 
             const jsonwebtoken = require("jsonwebtoken");
+
+            const refreshToken = jsonwebtoken.sign(
+              {
+                userid: userid,
+                usertype: usertype,
+              },
+              process.env.REFRESH_TOKEN_SECRET,
+              { expiresIn: "30d" }
+            );
+
+            const accessToken = jsonwebtoken.sign(
+              {
+                name: fullname,
+                userid: userid,
+                usertype: usertype,
+                passwordmustchange: passwordmustchange == 1 ? true : 0,
+              },
+              process.env.ACCESS_TOKEN_SECRET,
+              { expiresIn: "10m" }
+            );
+
             const subscriptionToken = jsonwebtoken.sign(
               {
                 userid: req.user.userid,
@@ -192,6 +214,8 @@ exports.POST = (req, res) => {
                 return res.status(200).send({
                   msg: "subscription activated",
                   msgType: "success",
+                  refreshToken: refreshToken,
+                  accessToken: accessToken,
                   subscriptionToken: subscriptionToken,
                 });
               }
