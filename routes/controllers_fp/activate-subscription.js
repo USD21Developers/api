@@ -133,6 +133,7 @@ exports.POST = (req, res) => {
             SELECT
               fullname,
               usertype,
+              passwordmustchange,
               subscribeduntil,
               ABS(DATEDIFF(subscribeduntil, UTC_TIMESTAMP)) AS newExpiryDaysAhead
             FROM
@@ -156,6 +157,7 @@ exports.POST = (req, res) => {
 
             const fullname = result[0].fullname || "";
             const usertype = result[0].usertype || "user";
+            const passwordmustchange = result[0].passwordmustchange || 0;
 
             const numDaysAhead = result[0].newExpiryDaysAhead.length
               ? result[0].newExpiryDaysAhead
