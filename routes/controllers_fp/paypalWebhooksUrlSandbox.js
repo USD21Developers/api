@@ -1,8 +1,4 @@
 exports.POST = (req, res) => {
-  /* const isStaging = req.headers.referrer.indexOf("staging") >= 0 ? true : false;
-  const db = isStaging
-    ? require("../../database-test")
-    : require("../../database"); */
-  console.log(require("util").inspect(req.headers, true, 7, true));
-  console.log(require("util").inspect(req.body, true, 7, true));
+  const db = require("../../database-test");
+  res.status(200).send();
 };
