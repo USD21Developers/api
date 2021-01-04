@@ -114,7 +114,7 @@ exports.POST = (req, res) => {
           {
             name: fullname,
             userid: userid,
-            usertype: usertype,
+            aud: [usertype],
             passwordmustchange: passwordmustchange == 1 ? true : 0,
           },
           process.env.REFRESH_TOKEN_SECRET,
@@ -125,7 +125,7 @@ exports.POST = (req, res) => {
           {
             name: fullname,
             userid: userid,
-            usertype: usertype,
+            aud: [usertype],
             passwordmustchange: passwordmustchange == 1 ? true : 0,
           },
           process.env.ACCESS_TOKEN_SECRET,

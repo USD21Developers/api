@@ -3,7 +3,7 @@ const paypal = require("paypal-rest-sdk");
 
 exports.POST = (req, res) => {
   // Enforce authorization
-  const usertype = req.user.usertype;
+  const usertype = req.user.aud[0];
   const allowedUsertypes = ["user"];
   if (!allowedUsertypes.includes(usertype)) {
     console.log(`User (userid ${req.user.userid}) is not authorized.`);
@@ -156,7 +156,7 @@ exports.POST = (req, res) => {
                 .send({ msg: "user not found", msgType: "error" });
 
             const fullname = result[0].fullname || "";
-            const usertype = result[0].usertype || "user";
+            const usertype = req.user.aud[0] || "user";
             const passwordmustchange = result[0].passwordmustchange || 0;
 
             const numDaysAhead = result[0].newExpiryDaysAhead.length
@@ -168,7 +168,7 @@ exports.POST = (req, res) => {
             const refreshToken = jsonwebtoken.sign(
               {
                 userid: req.user.userid,
-                usertype: usertype,
+                aud: [usertype],
               },
               process.env.REFRESH_TOKEN_SECRET,
               { expiresIn: "30d" }
@@ -178,7 +178,7 @@ exports.POST = (req, res) => {
               {
                 name: fullname,
                 userid: req.user.userid,
-                usertype: usertype,
+                aud: [usertype],
                 passwordmustchange: passwordmustchange == 1 ? true : 0,
               },
               process.env.ACCESS_TOKEN_SECRET,
@@ -188,7 +188,7 @@ exports.POST = (req, res) => {
             const subscriptionToken = jsonwebtoken.sign(
               {
                 userid: req.user.userid,
-                usertype: result[0].usertype,
+                aud: [usertype],
                 subscribeduntil: result[0].subscribeduntil,
               },
               process.env.SUBSCRIPTION_TOKEN_SECRET,
