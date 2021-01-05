@@ -23,7 +23,6 @@ exports.POST = (req, res) => {
     : require("../../database");
 
   // Configure Paypal
-
   if (isLocal || isStaging) {
     paypal.configure({
       mode: "sandbox",
@@ -40,7 +39,6 @@ exports.POST = (req, res) => {
 
   const PayerID = req.body.PayerID || "";
   const paymentId = req.body.paymentId || "";
-  const token = req.body.token || "";
 
   var execute_payment_json = {
     payer_id: PayerID,
@@ -61,93 +59,60 @@ exports.POST = (req, res) => {
         .status(500)
         .send({ msg: "unable to activate subscription", msgType: "error" });
     } else {
-      const isPaymentApproved = payment.state === "approved" ? true : false;
+      const paymentstate = payment.state;
+      const paymentid = payment.id;
+      const isPaymentApproved = paymentstate === "approved" ? true : false;
+
       if (!isPaymentApproved)
         return res
           .status(401)
           .send({ msg: "payment not approved", msgType: "error" });
 
-      // TODO:  update payments table with transaction details
-
+      // Payment is approved. Make sure that payment hasn't already been recorded before augmenting subscription expiry.
       const sql = `
         SELECT
-          subscribeduntil,
-          UTC_TIMESTAMP() AS now
+          paymentid
         FROM
-          users
+          payments
         WHERE
-          userid = ?
+          paypalpaymentid = ?
+        AND
+          paymentstate = ?
         LIMIT
           1
         ;
       `;
-      db.query(sql, [req.user.userid], (err, result) => {
+
+      db.query(sql, [paymentid, paymentstate], (err, result) => {
         if (err) {
           console.log(err);
-          return res.status(500).send({
-            msg: "unable to query for subscription expiry",
+          return res.state(500).send({
+            msg: "unable to determine prior payment",
             msgType: "error",
           });
         }
 
-        if (!result.length)
-          return res
-            .status(404)
-            .send({ msg: "user not found", msgType: "error" });
-
-        const moment = require("moment");
-        const currentExpiry = moment(result[0].subscribeduntil);
-        const now = moment(result[0].now);
-        let sql;
-        if (currentExpiry > now) {
-          sql = `
-            UPDATE
-              users
-            SET
-              subscribeduntil = DATE_ADD(subscribeduntil, INTERVAL 1 YEAR)
-            WHERE
-              userid = ?
-            ;
-          `;
-        } else {
-          sql = `
-            UPDATE
-              users
-            SET
-              subscribeduntil = DATE_ADD(UTC_TIMESTAMP(), INTERVAL 1 YEAR)
-            WHERE
-              userid = ?
-            ;
-          `;
-        }
-        db.query(sql, [req.user.userid], (err, result) => {
-          if (err) {
-            console.log(err);
-            return res.status(500).send({
-              msg: "unable to augment subscription expiry",
-              msgType: "error",
-            });
-          }
-
+        if (!result.length) {
+          // There is no record of this payment having been recorded, so augment subscription expiry
           const sql = `
-            SELECT
-              fullname,
-              usertype,
-              passwordmustchange,
-              subscribeduntil,
-              ABS(DATEDIFF(subscribeduntil, UTC_TIMESTAMP)) AS newExpiryDaysAhead
-            FROM
-              users
-            WHERE
-              userid = ?
-            ;
-          `;
+          SELECT
+            subscribeduntil,
+            UTC_TIMESTAMP() AS now
+          FROM
+            users
+          WHERE
+            userid = ?
+          LIMIT
+            1
+          ;
+        `;
           db.query(sql, [req.user.userid], (err, result) => {
             if (err) {
               console.log(err);
-              return res
-                .status(500)
-                .send({ msg: "unable to select subscription expiry" });
+              return res.status(500).send({
+                msg: "unable to query for subscription expiry",
+                msgType: "error",
+              });
             }
 
             if (!result.length)
@@ -155,79 +120,147 @@ exports.POST = (req, res) => {
                 .status(404)
                 .send({ msg: "user not found", msgType: "error" });
 
-            const fullname = result[0].fullname || "";
-            const usertype = result[0].usertype || "user";
-            const passwordmustchange = result[0].passwordmustchange || 0;
-
-            const numDaysAhead = result[0].newExpiryDaysAhead.length
-              ? result[0].newExpiryDaysAhead
-              : 365;
-
-            const jsonwebtoken = require("jsonwebtoken");
-
-            const refreshToken = jsonwebtoken.sign(
-              {
-                userid: req.user.userid,
-                usertype: usertype,
-              },
-              process.env.REFRESH_TOKEN_SECRET,
-              { expiresIn: "30d" }
-            );
-
-            const accessToken = jsonwebtoken.sign(
-              {
-                name: fullname,
-                userid: req.user.userid,
-                usertype: usertype,
-                passwordmustchange: passwordmustchange == 1 ? true : 0,
-              },
-              process.env.ACCESS_TOKEN_SECRET,
-              { expiresIn: "10m" }
-            );
-
-            const subscriptionToken = jsonwebtoken.sign(
-              {
-                userid: req.user.userid,
-                usertype: usertype,
-                subscribeduntil: result[0].subscribeduntil,
-              },
-              process.env.SUBSCRIPTION_TOKEN_SECRET,
-              { expiresIn: `${numDaysAhead}d` }
-            );
-
-            const sql = `
-                UPDATE
-                  payments
-                SET
-                  paymentstate = ?,
-                  paymentjson = ?
-                WHERE
-                  paypalpaymentid = ?
-                ;
-              `;
-            db.query(
-              sql,
-              [payment.state, JSON.stringify(payment), payment.id],
-              (err, result) => {
-                if (err) {
-                  console.log(err);
-                  return res.status(500).send({
-                    msg: "unable to update payments table",
-                    msgType: "error",
-                  });
-                }
-
-                return res.status(200).send({
-                  msg: "subscription activated",
-                  msgType: "success",
-                  refreshToken: refreshToken,
-                  accessToken: accessToken,
-                  subscriptionToken: subscriptionToken,
+            const moment = require("moment");
+            const currentExpiry = moment(result[0].subscribeduntil);
+            const now = moment(result[0].now);
+            let sql;
+            if (currentExpiry > now) {
+              sql = `
+              UPDATE
+                users
+              SET
+                subscribeduntil = DATE_ADD(subscribeduntil, INTERVAL 1 YEAR)
+              WHERE
+                userid = ?
+              ;
+            `;
+            } else {
+              sql = `
+              UPDATE
+                users
+              SET
+                subscribeduntil = DATE_ADD(UTC_TIMESTAMP(), INTERVAL 1 YEAR)
+              WHERE
+                userid = ?
+              ;
+            `;
+            }
+            db.query(sql, [req.user.userid], (err, result) => {
+              if (err) {
+                console.log(err);
+                return res.status(500).send({
+                  msg: "unable to augment subscription expiry",
+                  msgType: "error",
                 });
               }
-            );
+
+              const sql = `
+              SELECT
+                fullname,
+                usertype,
+                passwordmustchange,
+                subscribeduntil,
+                ABS(DATEDIFF(subscribeduntil, UTC_TIMESTAMP)) AS newExpiryDaysAhead
+              FROM
+                users
+              WHERE
+                userid = ?
+              ;
+            `;
+              db.query(sql, [req.user.userid], (err, result) => {
+                if (err) {
+                  console.log(err);
+                  return res
+                    .status(500)
+                    .send({ msg: "unable to select subscription expiry" });
+                }
+
+                if (!result.length)
+                  return res
+                    .status(404)
+                    .send({ msg: "user not found", msgType: "error" });
+
+                const fullname = result[0].fullname || "";
+                const usertype = result[0].usertype || "user";
+                const passwordmustchange = result[0].passwordmustchange || 0;
+
+                const numDaysAhead = result[0].newExpiryDaysAhead.length
+                  ? result[0].newExpiryDaysAhead
+                  : 365;
+
+                const jsonwebtoken = require("jsonwebtoken");
+
+                const refreshToken = jsonwebtoken.sign(
+                  {
+                    userid: req.user.userid,
+                    usertype: usertype,
+                  },
+                  process.env.REFRESH_TOKEN_SECRET,
+                  { expiresIn: "30d" }
+                );
+
+                const accessToken = jsonwebtoken.sign(
+                  {
+                    name: fullname,
+                    userid: req.user.userid,
+                    usertype: usertype,
+                    passwordmustchange: passwordmustchange == 1 ? true : 0,
+                  },
+                  process.env.ACCESS_TOKEN_SECRET,
+                  { expiresIn: "10m" }
+                );
+
+                const subscriptionToken = jsonwebtoken.sign(
+                  {
+                    userid: req.user.userid,
+                    usertype: usertype,
+                    subscribeduntil: result[0].subscribeduntil,
+                  },
+                  process.env.SUBSCRIPTION_TOKEN_SECRET,
+                  { expiresIn: `${numDaysAhead}d` }
+                );
+
+                const sql = `
+                  UPDATE
+                    payments
+                  SET
+                    paymentstate = ?,
+                    paymentjson = ?
+                  WHERE
+                    paypalpaymentid = ?
+                  ;
+                `;
+                db.query(
+                  sql,
+                  [payment.state, JSON.stringify(payment), payment.id],
+                  (err, result) => {
+                    if (err) {
+                      console.log(err);
+                      return res.status(500).send({
+                        msg: "unable to update payments table",
+                        msgType: "error",
+                      });
+                    }
+
+                    return res.status(200).send({
+                      msg: "subscription activated",
+                      msgType: "success",
+                      refreshToken: refreshToken,
+                      accessToken: accessToken,
+                      subscriptionToken: subscriptionToken,
+                    });
+                  }
+                );
+              });
+            });
           });
-        });
+        } else {
+          // Payment was already recorded. Don't augment subscription expiry a second time.
+          return res.status(304).send({
+            msg: "already recorded successful payment",
+            msgType: "error",
+          });
+        }
       });
     }
   });
