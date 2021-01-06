@@ -63,4 +63,12 @@ router.post(
   activateSubscription.POST
 );
 
+// PROFILE
+
+const profileView = require("./controllers_fp/profile_view");
+router.post("/profile", authenticateToken, profileView.POST);
+
+const profileEdit = require("./controllers_fp/profile_edit");
+router.post("/profile-edit", authenticateToken, profileEdit.POST);
+
 module.exports = router;
