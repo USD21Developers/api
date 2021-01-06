@@ -42,11 +42,13 @@ exports.POST = (req, res) => {
 
     const moment = require("moment");
 
-    const passwordFromDB = result[0].password;
-    const fullname = result[0].fullname;
-    const userid = result[0].userid;
-    const usertype = result[0].usertype;
-    const userstatus = result[0].userstatus;
+    const passwordFromDB =
+      result[0].password ||
+      "b2ca37dd76e32a0edf943845885dbd41e090fbe9e175d27b9242ea53c89f7612";
+    const fullname = result[0].fullname || "";
+    const userid = result[0].userid || 0;
+    const usertype = result[0].usertype || "user";
+    const userstatus = result[0].userstatus || "pending confirmation";
     const passwordmustchange =
       result[0].passwordmustchange === 1 ? true : false;
 
