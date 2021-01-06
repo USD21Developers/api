@@ -52,10 +52,7 @@ exports.POST = (req, res) => {
     const passwordmustchange =
       result[0].passwordmustchange === 1 ? true : false;
 
-    const subscribeduntil =
-      result[0].subscribeduntil === null
-        ? moment(0)
-        : moment(result[0].subscribeduntil);
+    const subscribeduntil = result[0].subscribeduntil || null;
     const daysUntilSubscriptionExpiry =
       result[0].daysUntilSubscriptionExpiry || 0;
 
@@ -114,7 +111,17 @@ exports.POST = (req, res) => {
         const subscriptionExpiry = subscribeduntil.length
           ? moment(subscribeduntil)
           : moment(0);
-        if (subscriptionExpiry > now) {
+        const isCurrent = subscriptionExpiry > now;
+        console.log(`isCurrent: ${isCurrent}`);
+        console.log(
+          `subscriptionExpiry: ${require("util").inspect(
+            subscriptionExpiry,
+            true,
+            7,
+            true
+          )}`
+        );
+        if (isCurrent) {
           const subscriptionToken = jsonwebtoken.sign(
             {
               userid: userid,
