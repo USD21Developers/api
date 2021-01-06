@@ -56,7 +56,6 @@ exports.POST = (req, res) => {
       result[0].subscribeduntil === null
         ? moment(0)
         : moment(result[0].subscribeduntil);
-    const now = moment(result[0].now);
     const daysUntilSubscriptionExpiry =
       result[0].daysUntilSubscriptionExpiry || 0;
 
