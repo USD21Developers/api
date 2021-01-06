@@ -106,27 +106,27 @@ exports.POST = (req, res) => {
       };
 
       // If subscription is current, send back a subscription token
-      if (subscribeduntil.length) {
+      const subscriptionexists = subscribeduntil !== null;
+      if (subscriptionexists) {
         const now = moment.utc();
-        const subscriptionExpiry = subscribeduntil.length
-          ? moment(subscribeduntil)
-          : moment(0);
+        const subscriptionExpiry = moment(subscribeduntil);
+        const daysUntilSubscriptionExpiry = Math.abs(
+          subscriptionExpiry.diff(now, "days")
+        );
         const isCurrent = subscriptionExpiry > now;
         console.log(`isCurrent: ${isCurrent}`);
+        console.log(`subscriptionExpiry: ${subscriptionExpiry}`);
         console.log(
-          `subscriptionExpiry: ${require("util").inspect(
-            subscriptionExpiry,
-            true,
-            7,
-            true
-          )}`
+          `daysUntilSubscriptionExpiry: ${daysUntilSubscriptionExpiry}`
         );
         if (isCurrent) {
           const subscriptionToken = jsonwebtoken.sign(
             {
               userid: userid,
               usertype: usertype,
-              subscribeduntil: subscribeduntil.format("MMMM D, YYYY HH:mm:ss"),
+              subscribeduntil: subscriptionExpiry.format(
+                "MMMM D, YYYY HH:mm:ss"
+              ),
             },
             process.env.SUBSCRIPTION_TOKEN_SECRET,
             { expiresIn: `${daysUntilSubscriptionExpiry}d` }
