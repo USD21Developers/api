@@ -105,7 +105,7 @@ exports.POST = (req, res) => {
         accessToken: accessToken,
       };
 
-      // If subscription is current, send back a subscription token
+      // If subscription exists and is current, send back a subscription token
       const subscriptionexists = subscribeduntil !== null;
       if (subscriptionexists) {
         const now = moment.utc();
@@ -114,11 +114,6 @@ exports.POST = (req, res) => {
           subscriptionExpiry.diff(now, "days")
         );
         const isCurrent = subscriptionExpiry > now;
-        console.log(`isCurrent: ${isCurrent}`);
-        console.log(`subscriptionExpiry: ${subscriptionExpiry}`);
-        console.log(
-          `daysUntilSubscriptionExpiry: ${daysUntilSubscriptionExpiry}`
-        );
         if (isCurrent) {
           const subscriptionToken = jsonwebtoken.sign(
             {
