@@ -99,24 +99,43 @@ exports.POST = (req, res) => {
         { expiresIn: "10m" }
       );
 
-      const subscriptionToken = jsonwebtoken.sign(
-        {
-          userid: userid,
-          usertype: usertype,
-          subscribeduntil: subscribeduntil.format("MMMM D, YYYY HH:mm:ss"),
-        },
-        process.env.SUBSCRIPTION_TOKEN_SECRET,
-        { expiresIn: `${daysUntilSubscriptionExpiry}d` }
-      );
-
-      return res.status(200).send({
+      // Set return object
+      let returnObject = {
         msg: "user authenticated",
         msgType: "success",
         refreshToken: refreshToken,
         accessToken: accessToken,
-        subscriptionToken: subscriptionToken,
-        subscribeduntil: subscribeduntil,
-      });
+      };
+
+      // If subscription is current, send back a subscription token
+      if (subscribeduntil.length) {
+        const now = moment.utc();
+        const subscriptionExpiry = subscribeduntil.length
+          ? moment(subscribeduntil)
+          : moment(0);
+        if (subscriptionExpiry > now) {
+          const subscriptionToken = jsonwebtoken.sign(
+            {
+              userid: userid,
+              usertype: usertype,
+              subscribeduntil: subscribeduntil.format("MMMM D, YYYY HH:mm:ss"),
+            },
+            process.env.SUBSCRIPTION_TOKEN_SECRET,
+            { expiresIn: `${daysUntilSubscriptionExpiry}d` }
+          );
+
+          returnObject = {
+            msg: "user authenticated",
+            msgType: "success",
+            refreshToken: refreshToken,
+            accessToken: accessToken,
+            subscriptionToken: subscriptionToken,
+            subscribeduntil: subscribeduntil,
+          };
+        }
+      }
+
+      return res.status(200).send(returnObject);
     });
   });
 };
