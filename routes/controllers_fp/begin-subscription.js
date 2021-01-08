@@ -37,23 +37,21 @@ exports.POST = (req, res) => {
   const sql = `
     SELECT
       c.couponid,
+      c.couponcode,
       UTC_TIMESTAMP() AS now,
       c.expiry AS couponexpiry,
       c.discountpercent,
       c.isdiscontinued,
-      cu.createdAt AS couponUsedDate
+      (SELECT createdAt FROM coupons_used WHERE userid = ? AND couponid = (SELECT couponid FROM coupons WHERE couponcode = ? LIMIT 1)) AS couponUsedDate
     FROM
       coupons c
-    LEFT OUTER JOIN coupons_used cu ON cu.couponid = c.couponid
     WHERE
       c.couponcode = ?
-    AND
-      cu.userid = ?
     LIMIT
       1
     ;
   `;
-  db.query(sql, [couponCode, req.user.userid], (err, result) => {
+  db.query(sql, [req.user.userid, couponCode, couponCode], (err, result) => {
     if (err) {
       console.log(err);
       return res
