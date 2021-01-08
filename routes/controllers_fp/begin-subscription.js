@@ -206,6 +206,15 @@ exports.POST = (req, res) => {
     let returnUrl = `${host}/lang/${lang}/account/subscribe/success/`;
     let cancelUrl = `${host}/lang/${lang}/account/subscribe/cancel/`;
 
+    // PayPal payment experience profile
+    const profile_name = Math.random().toString(36).substring(7);
+    const create_web_profile_json = {
+      name: profile_name,
+      input_fields: {
+        no_shipping: 1,
+      },
+    };
+
     const create_payment_json = {
       intent: "sale",
       payer: {
@@ -237,65 +246,76 @@ exports.POST = (req, res) => {
       ],
     };
 
-    paypal.payment.create(create_payment_json, (error, payment) => {
+    paypal.webProfile.create(create_web_profile_json, (error, web_profile) => {
       if (error) {
-        console.log(require("util").inspect(error, true, 7, true));
-        return res
-          .status(500)
-          .send({ msg: "unable to create paypal payment", msgType: "error" });
+        throw error;
       } else {
-        const { id, state } = payment;
-        const sql = `
-        INSERT INTO payments (
-          userid,
-          paypalpaymentid,
-          paymentstate,
-          paymentjson,
-          couponid,
-          amount,
-          currencycode,
-          createdAt
-        ) VALUES (
-          ?,
-          ?,
-          ?,
-          ?,
-          ?,
-          ?,
-          ?,
-          UTC_TIMESTAMP()
-        )
-      `;
-        const paymentjson = JSON.stringify(payment);
-        let paypalURL = "";
+        //Set the id of the created payment experience in payment json
+        const experience_profile_id = web_profile.id;
+        create_payment_json.experience_profile_id = experience_profile_id;
 
-        for (let i = 0; i < payment.links.length; i++) {
-          if (payment.links[i].rel === "approval_url") {
-            paypalURL = payment.links[i].href;
-            break;
-          }
-        }
-
-        db.query(
-          sql,
-          [req.user.userid, id, state, paymentjson, couponid, price, "USD"],
-          (err, result) => {
-            if (err) {
-              console.log(err);
-              return res.status(500).send({
-                msg: "unable to update payments table",
-                msgType: "error",
-              });
-            }
-            return res.status(payment.httpStatusCode || 200).send({
-              msg: "paypal payment created",
-              msgType: "success",
-              price: price,
-              paypalURL: paypalURL,
-              paypalpaymentid: id,
+        paypal.payment.create(create_payment_json, (error, payment) => {
+          if (error) {
+            console.log(require("util").inspect(error, true, 7, true));
+            return res.status(500).send({
+              msg: "unable to create paypal payment",
+              msgType: "error",
             });
+          } else {
+            const { id, state } = payment;
+            const sql = `
+            INSERT INTO payments (
+              userid,
+              paypalpaymentid,
+              paymentstate,
+              paymentjson,
+              couponid,
+              amount,
+              currencycode,
+              createdAt
+            ) VALUES (
+              ?,
+              ?,
+              ?,
+              ?,
+              ?,
+              ?,
+              ?,
+              UTC_TIMESTAMP()
+            )
+          `;
+            const paymentjson = JSON.stringify(payment);
+            let paypalURL = "";
+
+            for (let i = 0; i < payment.links.length; i++) {
+              if (payment.links[i].rel === "approval_url") {
+                paypalURL = payment.links[i].href;
+                break;
+              }
+            }
+
+            db.query(
+              sql,
+              [req.user.userid, id, state, paymentjson, couponid, price, "USD"],
+              (err, result) => {
+                if (err) {
+                  console.log(err);
+                  return res.status(500).send({
+                    msg: "unable to update payments table",
+                    msgType: "error",
+                  });
+                }
+                return res.status(payment.httpStatusCode || 200).send({
+                  msg: "paypal payment created",
+                  msgType: "success",
+                  price: price,
+                  paypalURL: paypalURL,
+                  paypalpaymentid: id,
+                });
+              }
+            );
           }
-        );
+        });
       }
     });
   });
