@@ -44,14 +44,16 @@ exports.POST = (req, res) => {
       cu.createdAt AS couponUsedDate
     FROM
       coupons c
-    LEFT OUTER JOIN coupons_used cu ON cu.userid = ?
+    LEFT OUTER JOIN coupons_used cu ON cu.couponid = c.couponid
     WHERE
       c.couponcode = ?
+    AND
+      cu.userid = ?
     LIMIT
       1
     ;
   `;
-  db.query(sql, [req.user.userid, couponCode], (err, result) => {
+  db.query(sql, [couponCode, req.user.userid], (err, result) => {
     if (err) {
       console.log(err);
       return res
