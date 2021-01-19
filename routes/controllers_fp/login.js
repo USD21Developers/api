@@ -1,3 +1,5 @@
+const { lang } = require("moment");
+
 exports.POST = (req, res) => {
   const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
   const db = isStaging
@@ -13,6 +15,8 @@ exports.POST = (req, res) => {
       fullname,
       usertype,
       userstatus,
+      lang,
+      country,
       passwordmustchange,
       subscribeduntil,
       may_redeem_coupons,
@@ -52,6 +56,8 @@ exports.POST = (req, res) => {
     const userid = result[0].userid || 0;
     const usertype = result[0].usertype || "user";
     const userstatus = result[0].userstatus || "pending confirmation";
+    const lang = result[0].lang || "en";
+    const country = result[0].country || "us";
     const passwordmustchange =
       result[0].passwordmustchange === 1 ? true : false;
     const may_redeem_coupons =
@@ -100,6 +106,8 @@ exports.POST = (req, res) => {
           name: fullname,
           userid: userid,
           usertype: usertype,
+          lang: lang,
+          country: country,
           passwordmustchange: passwordmustchange,
           may_redeem_coupons: may_redeem_coupons,
           may_create_coupons: may_create_coupons,

@@ -34,7 +34,13 @@ exports.POST = (req, res) => {
         SELECT
           fullname,
           usertype,
-          passwordmustchange
+          lang,
+          country,
+          passwordmustchange,
+          subscribeduntil,
+          may_redeem_coupons,
+          may_create_coupons,
+          may_create_preauthorized_users
         FROM
           users
         WHERE
@@ -56,15 +62,20 @@ exports.POST = (req, res) => {
 
         const fullname = result[0].fullname;
         const usertype = result[0].usertype;
+        const lang = result[0].lang;
+        const country = result[0].country;
         const passwordmustchange =
           result[0].passwordmustchange === 1 ? true : false;
+        const may_redeem_coupons = result[0].may_redeem_coupons;
+        const may_create_coupons = result[0].may_create_coupons;
+        const may_create_preauthorized_users = result[0].may_create_preauthorized_users;
 
         const refreshToken = jsonwebtoken.sign(
           {
             userid: userid,
           },
           process.env.REFRESH_TOKEN_SECRET,
-          { expiresIn: "90d" }
+          { expiresIn: "30d" }
         );
 
         const accessToken = jsonwebtoken.sign(
@@ -72,10 +83,15 @@ exports.POST = (req, res) => {
             name: fullname,
             userid: userid,
             usertype: usertype,
+            lang: lang,
+            country: country,
             passwordmustchange: passwordmustchange,
+            may_redeem_coupons: may_redeem_coupons,
+            may_create_coupons: may_create_coupons,
+            may_create_preauthorized_users: may_create_preauthorized_users,
           },
           process.env.ACCESS_TOKEN_SECRET,
-          { expiresIn: "1d" }
+          { expiresIn: "10m" }
         );
 
         return res.status(200).send({
