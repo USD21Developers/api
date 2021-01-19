@@ -72,3 +72,20 @@ const profileEdit = require("./controllers_fp/profile_edit");
 router.post("/profile-edit", authenticateToken, profileEdit.POST);
 
 module.exports = router;
+
+// COUPONS
+
+const couponList = require("./controllers_fp/coupon_list");
+router.post("/coupon-list", authenticateToken, couponList.POST);
+
+const couponSearch = require("./controllers_fp/coupon_search");
+router.post("/coupon-search", authenticateToken, couponSearch.POST);
+
+const couponAdd = require("./controllers_fp/coupon_add");
+router.post("/coupon-add", authenticateToken, couponAdd.POST);
+
+const couponEdit = require("./controllers_fp/coupon_edit");
+router.post("/coupon-edit", authenticateToken, couponEdit.POST);
+
+const couponDelete = require("./controllers_fp/coupon_delete");
+router.post("/coupon-delete", authenticateToken, couponDelete.POST);
