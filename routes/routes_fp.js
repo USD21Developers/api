@@ -75,6 +75,9 @@ module.exports = router;
 
 // COUPONS
 
+const couponMetaData = require("./controllers_fp/coupon-metadata");
+router.get("/coupon-metadata", authenticateToken, couponMetaData.GET);
+
 const couponList = require("./controllers_fp/coupon_list");
 router.post("/coupon-list", authenticateToken, couponList.POST);
 
