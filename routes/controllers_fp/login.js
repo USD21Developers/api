@@ -15,6 +15,9 @@ exports.POST = (req, res) => {
       userstatus,
       passwordmustchange,
       subscribeduntil,
+      may_redeem_coupons,
+      may_create_coupons,
+      may_create_preauthorized_users,
       UTC_TIMESTAMP AS now,
       ABS(DATEDIFF(UTC_TIMESTAMP, subscribeduntil)) AS daysUntilSubscriptionExpiry
     FROM
@@ -51,6 +54,12 @@ exports.POST = (req, res) => {
     const userstatus = result[0].userstatus || "pending confirmation";
     const passwordmustchange =
       result[0].passwordmustchange === 1 ? true : false;
+    const may_redeem_coupons =
+      result[0].may_redeem_coupons === 1 ? true : false;
+    const may_create_coupons =
+      result[0].may_create_coupons === 1 ? true : false;
+    const may_create_preauthorized_users =
+      result[0].may_create_preauthorized_users === 1 ? true : false;
 
     const subscribeduntil = result[0].subscribeduntil || null;
     const daysUntilSubscriptionExpiry =
@@ -91,7 +100,10 @@ exports.POST = (req, res) => {
           name: fullname,
           userid: userid,
           usertype: usertype,
-          passwordmustchange: passwordmustchange == 1 ? true : 0,
+          passwordmustchange: passwordmustchange,
+          may_redeem_coupons: may_redeem_coupons,
+          may_create_coupons: may_create_coupons,
+          may_create_preauthorized_users: may_create_preauthorized_users,
         },
         process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: "10m" }
