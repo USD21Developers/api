@@ -72,7 +72,7 @@ exports.POST = (req, res) => {
       return res.status(500).send({msg: "unable to retrieve coupons", msgType: "error"});
     }
 
-    if (!result.length) return res.status(200).send({msg: "no coupons found", msgType: "success", data=[]});
+    if (!result.length) return res.status(200).send({msg: "no coupons found", msgType: "success", data:[]});
 
     let returnObject = [];
     let numcoupons = result.length;
