@@ -46,12 +46,12 @@ exports.POST = (req, res) => {
       AND expiry > UTC_TIMESTAMP()
     `;
   }
-  if (!showdiscontinued) {
+  if (showdiscontinued) {
     sql += `
       AND isdiscontinued = 1
     `;
   }
-  if (!showonlymine) {
+  if (showonlymine) {
     sql += `
       AND createdBy = ${req.user.userid}
     `;
@@ -84,8 +84,10 @@ exports.POST = (req, res) => {
         expiry: expiry,
         discountpercent: discountpercent,
         isdiscontinued: isdiscontinued,
-        userid: userid,
-        fullname: fullname
+        issuer: {
+          userid: userid,
+          name: fullname
+        }
       });
     };
 
