@@ -32,13 +32,16 @@ exports.POST = (req, res) => {
   const sql = `
     SELECT
       c.couponid,
+      c.couponcode,
       c.expiry,
       c.discountpercent,
       c.isdiscontinued,
       u.userid,
-      u.fullname
+      u.fullname,
+      u.email
     FROM
       coupons c
+    INNER JOIN users u ON c.createdBy = u.userid
     WHERE
       c.couponcode = ?
     LIMIT
@@ -66,6 +69,7 @@ exports.POST = (req, res) => {
       isdiscontinued,
       userid,
       fullname,
+      email
     } = result[0];
 
     const returnObject = {
@@ -74,8 +78,11 @@ exports.POST = (req, res) => {
       expiry: expiry,
       discountpercent: discountpercent,
       isdiscontinued: isdiscontinued,
-      userid: userid,
-      fullname: fullname,
+      issuedby: {
+        name: fullname,
+        userid: userid,
+        email: email
+      }
     };
 
     return res
