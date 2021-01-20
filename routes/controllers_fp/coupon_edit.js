@@ -69,7 +69,8 @@ exports.POST = (req, res) => {
       .status(400)
       .send({ msg: "discount percent must be numeric", msgType: "error" });
 
-  const expirySql = moment(expiry).utc().format("YYYY-MM-DD 00:00:00");
+  const timeNow = moment().utc().format("HH:mm:ss");
+  const expirySql = moment(expiry).utc().format(`YYYY-MM-DD ${timeNow}`);
   const discountPctSql = Math.abs(parseInt(discountpercent)) || 0;
 
   if (discountPctSql > 100)

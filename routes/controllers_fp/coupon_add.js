@@ -1,4 +1,4 @@
-const moment = require("moment-timezone");
+const moment = require("moment");
 
 exports.POST = (req, res) => {
   // Enforce authorization
@@ -61,7 +61,8 @@ exports.POST = (req, res) => {
       .status(400)
       .send({ msg: "discount percent must be numeric", msgType: "error" });
 
-  const expirySql = moment(expiry).utc().format("YYYY-MM-DD 00:00:00");
+  const timeNow = moment().utc().format("HH:mm:ss");
+  const expirySql = moment(expiry).utc().format(`YYYY-MM-DD ${timeNow}`);
   const discountPctSql = Math.abs(parseInt(discountpercent)) || 0;
 
   if (discountPctSql > 100)
@@ -88,6 +89,7 @@ exports.POST = (req, res) => {
     }
 
     if (result.length) {
+      const couponid = result[0].couponid;
       return res.status(400).send({
         msg: "coupon code already in use",
         msgType: "error",
@@ -97,9 +99,17 @@ exports.POST = (req, res) => {
 
     const sql = `
       INSERT INTO coupons(
-        couponcode, expiry, discountpercent, createdBy, createdAt
+        couponcode,
+        expiry,
+        discountpercent,
+        createdBy,
+        createdAt
       ) VALUES(
-        ?, ?, ?, ?, UTC_TIMESTAMP()
+        ?,
+        ?,
+        ?,
+        ?,
+        UTC_TIMESTAMP()
       );
     `;
     db.query(
