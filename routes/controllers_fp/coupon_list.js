@@ -58,6 +58,7 @@ exports.POST = (req, res) => {
   }
   sql += `
     ORDER BY
+      c.couponcode ASC,
       c.expiry DESC,
       c.isdiscontinued ASC,
       c.discountpercent DESC,
