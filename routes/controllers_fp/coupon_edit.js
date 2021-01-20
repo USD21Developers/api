@@ -1,3 +1,5 @@
+const moment = require("moment");
+
 exports.POST = (req, res) => {
   // Enforce authorization
   const usertype = req.user.usertype;
@@ -21,21 +23,27 @@ exports.POST = (req, res) => {
 
   // Get request params
   const couponid = req.body.couponid;
-  const couponcode = req.body.couponcode || "";
+  const couponcode = req.body.couponcode;
   const expiry = req.body.expiry || "";
   const discountpercent = req.body.discountpercent || 0;
   const isdiscontinued = req.body.isdiscontinued === true ? true : false;
 
   // Validate
 
-  if (!couponid.length)
+  if (typeof couponid === "undefined")
     return res
       .status(400)
       .send({ msg: "coupon id must not be blank", msgType: "error" });
 
-  if (typeof couponid !== "numeric")
+  if (typeof couponid !== "number")
     return res.status(400).send({
       msg: "coupon id must be numeric",
+      msgType: "error",
+    });
+
+  if (!couponcode.length)
+    return res.status(400).send({
+      msg: "coupon code must not be blank",
       msgType: "error",
     });
 
@@ -127,7 +135,7 @@ exports.POST = (req, res) => {
           });
       }
 
-      if (result[0].length)
+      if (result.length)
         return res
           .status(400)
           .send({ msg: "coupon code is already in use", msgType: "error" });
