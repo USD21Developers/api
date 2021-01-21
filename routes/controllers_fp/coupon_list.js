@@ -46,9 +46,9 @@ exports.POST = (req, res) => {
       AND expiry > UTC_TIMESTAMP()
     `;
   }
-  if (showdiscontinued) {
+  if (!showdiscontinued) {
     sql += `
-      AND isdiscontinued = 1
+      AND isdiscontinued = 0
     `;
   }
   if (showonlymine) {
