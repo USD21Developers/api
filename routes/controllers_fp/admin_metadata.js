@@ -60,7 +60,7 @@ exports.POST = (req, res) => {
 
       if (!result.length) return res.status(404).send({msg: "no user countries found", msgType: "error"});
 
-      const countries = result;
+      const countries = result.map(item => item.country);
 
       const sql = `
         SELECT
@@ -85,7 +85,7 @@ exports.POST = (req, res) => {
 
         if (!result.length) return res.status(404).send({msg: "no user languages found", msgType: "error"});
 
-        const languages = result;
+        const languages = result.map(item => item.lang);
 
         const returnObject = {
           active_subscribers: active_subscribers,
