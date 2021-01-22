@@ -72,9 +72,9 @@ exports.POST = (req, res) => {
         AND
           subscribeduntil > UTC_TIMESTAMP()
         GROUP BY
-          country
+          lang
         ORDER BY
-          country ASC
+          lang ASC
         ;
       `;
       db.query(sql, [], (err, result) => {
