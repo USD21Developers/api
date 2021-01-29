@@ -96,6 +96,35 @@ exports.POST = (req, res) => {
       // Hash the password
       const bcrypt = require("bcrypt");
       const saltRounds = 10;
+      let usertype = "user";
+      let may_create_coupons = 0;
+      let may_create_preauthorized_users = 0;
+      
+      // Designate usertype as "sysadmin" if user's e-mail is a match
+      const listOfSysadmins = [
+        "ron@usd21.org",
+        "jeremy@usd21.org",
+        "jason.mcneill@usd21.org"
+      ];
+      if (listOfSysadmins.includes(email)) {
+        usertype = "sysadmin";
+      }
+
+      // Designate user as authorized to create coupons if user's e-mail is a match
+      const listOfAuthorizedCouponMakers = [
+        "kip@usd21.org",
+        "donna.cruz@usd21.org"
+      ];
+      if (listOfAuthorizedCouponMakers.includes(email)) {
+        may_create_coupons = 1;
+      }
+
+      // Designate users who are authorized to create preauthorized users
+      if (usertype === "sysadmin") {
+        may_create_coupons = 1;
+        may_create_preauthorized_users = 1;
+      }
+
       bcrypt.genSalt(saltRounds, (err, salt) => {
         if (err) {
           console.log(err);
@@ -125,8 +154,14 @@ exports.POST = (req, res) => {
               lastname,
               email,
               country,
+              usertype,
+              may_create_coupons,
+              may_create_preauthorized_users,
               createdAt
             ) VALUES(
+              ?,
+              ?,
+              ?,
               ?,
               ?,
               ?,
@@ -147,6 +182,9 @@ exports.POST = (req, res) => {
               lastname,
               email.toLowerCase(),
               country,
+              usertype,
+              may_create_coupons,
+              may_create_preauthorized_users
             ],
             (err, result) => {
               if (err) {
