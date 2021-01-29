@@ -102,6 +102,7 @@ exports.POST = (req, res) => {
       
       // Designate usertype as "sysadmin" if user's e-mail is a match
       const listOfSysadmins = [
+        "kip@usd21.org",
         "ron@usd21.org",
         "jeremy@usd21.org",
         "jason.mcneill@usd21.org"
@@ -112,14 +113,13 @@ exports.POST = (req, res) => {
 
       // Designate user as authorized to create coupons if user's e-mail is a match
       const listOfAuthorizedCouponMakers = [
-        "kip@usd21.org",
         "donna.cruz@usd21.org"
       ];
       if (listOfAuthorizedCouponMakers.includes(email)) {
         may_create_coupons = 1;
       }
 
-      // Designate users who are authorized to create preauthorized users
+      // Give user specific permissions if they're a sysadmin
       if (usertype === "sysadmin") {
         may_create_coupons = 1;
         may_create_preauthorized_users = 1;
