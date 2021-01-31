@@ -90,7 +90,7 @@ exports.POST = (req, res) => {
           console.log(require("util").inspect(error, true, 7, true));
           return res
             .status(500)
-            .send({ msg: "unable to activate subscription", msgType: "error" });
+            .send({ msg: "unable to activate subscription", msgType: "error", error });
         } else {
           const paymentstate = payment.state;
           const paymentid = payment.id;
