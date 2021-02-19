@@ -96,3 +96,6 @@ router.post("/coupon-delete", authenticateToken, couponDelete.POST);
 // ADMIN
 const adminMetadata = require("./controllers_fp/admin_metadata");
 router.post("/admin-metadata", authenticateToken, adminMetadata.POST);
+
+const getUsers = require("./controllers_fp/get_users");
+router.get("/get-users", authenticateToken, getUsers.GET);
