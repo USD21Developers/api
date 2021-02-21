@@ -23,10 +23,10 @@ exports.GET = (req, res) => {
   const sql = `
     SELECT
       userid,
-      username,
       fullname,
       usertype,
-      userstatus
+      userstatus,
+      subscribeduntil
     FROM
       users
     ORDER BY
