@@ -32,7 +32,7 @@ exports.GET = (req, res) => {
     WHERE
       subscribeduntil > UTC_TIMESTAMP()
     ORDER BY
-      lastname, firstname, createdAt
+      subscribeduntil DESC, lastname, firstname
     ;
   `;
   db.query(sql, [], (err, result) => {
