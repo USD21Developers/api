@@ -22,17 +22,24 @@ exports.GET = (req, res) => {
   // Query
   const sql = `
     SELECT
-      userid,
-      fullname,
-      usertype,
-      userstatus,
-      subscribeduntil
+      u.userid,
+      u.fullname,
+      u.usertype,
+      u.userstatus,
+      u.subscribeduntil
     FROM
-      users
+      users u
+    INNER JOIN
+      payments p ON u.userid = p.userid
     WHERE
-      subscribeduntil > UTC_TIMESTAMP()
+      u.subscribeduntil IS NOT NULL
+    GROUP BY
+      u.userid,
+      u.fullname,
+      u.subscribeduntil,
+      p.updatedAt
     ORDER BY
-      subscribeduntil DESC, lastname, firstname
+      p.updatedAt DESC
     ;
   `;
   db.query(sql, [], (err, result) => {
