@@ -31,7 +31,7 @@ exports.GET = (req, res) => {
       fullname,
       usertype,
       userstatus,
-      date_format(convert_tz(subscribeduntil, '+00:00', ?), "%M %e, %Y") AS subscribeduntil
+      date_format(convert_tz(subscribeduntil, '+00:00', ?), "%M %e, %Y") AS expiry
     FROM
       users
     WHERE
