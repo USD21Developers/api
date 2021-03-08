@@ -98,7 +98,7 @@ const adminMetadata = require("./controllers_fp/admin_metadata");
 router.post("/admin-metadata", authenticateToken, adminMetadata.POST);
 
 const usersListAll = require("./controllers_fp/users_list_all");
-router.get("/users-list-all", authenticateToken, usersListAll.GET);
+router.post("/users-list-all", authenticateToken, usersListAll.POST);
 
 const usersListSubscribers = require("./controllers_fp/users_list_subscribers");
 router.post(
