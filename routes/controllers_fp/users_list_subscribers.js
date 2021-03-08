@@ -1,6 +1,6 @@
 const moment = require("moment-timezone");
 
-exports.GET = (req, res) => {
+exports.POST = (req, res) => {
   // Enforce authorization
   const usertype = req.user.usertype;
   const allowedUsertypes = ["sysadmin"];

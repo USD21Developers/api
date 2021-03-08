@@ -101,8 +101,8 @@ const usersListAll = require("./controllers_fp/users_list_all");
 router.get("/users-list-all", authenticateToken, usersListAll.GET);
 
 const usersListSubscribers = require("./controllers_fp/users_list_subscribers");
-router.get(
+router.post(
   "/users-list-subscribers",
   authenticateToken,
-  usersListSubscribers.GET
+  usersListSubscribers.POST
 );
