@@ -1,3 +1,5 @@
+const moment = require("moment-timezone");
+
 exports.GET = (req, res) => {
   // Enforce authorization
   const usertype = req.user.usertype;
@@ -19,6 +21,9 @@ exports.GET = (req, res) => {
     ? require("../../database-test")
     : require("../../database");
 
+  const timezone = req.body.timezone || "UTC";
+  const timeZoneOffset = moment.tz(timezone).format("Z:00").slice(0, -3);
+
   // Query
   const sql = `
     SELECT
@@ -26,14 +31,14 @@ exports.GET = (req, res) => {
       fullname,
       usertype,
       userstatus,
-      subscribeduntil
+      date_format(convert_tz(subscribeduntil, '+00:00', ?), "%M %e, %Y") AS subscribeduntil
     FROM
       users
     ORDER BY
       lastname, firstname, createdAt
     ;
   `;
-  db.query(sql, [], (err, result) => {
+  db.query(sql, [timeZoneOffset], (err, result) => {
     if (err) {
       console.log(err);
       return res
