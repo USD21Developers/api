@@ -36,6 +36,8 @@ exports.POST = (req, res) => {
       users
     WHERE
       subscribeduntil IS NOT NULL
+    AND
+      subscribeduntil >= UTC_TIMESTAMP()
     ORDER BY
       subscribeduntil DESC,
       lastname ASC
