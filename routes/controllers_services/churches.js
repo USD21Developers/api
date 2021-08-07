@@ -17,7 +17,6 @@ exports.GET = (req, res) => {
 
   db.query(sql, [], (err, result) => {
     if (err) {
-      console.log(err);
       return res.status(500).send({ msg: "unable to query service for churches", msgType: "error", err: err });
     }
 
