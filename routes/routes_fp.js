@@ -106,3 +106,5 @@ router.post(
   authenticateToken,
   usersListSubscribers.POST
 );
+
+module.exports = router;
