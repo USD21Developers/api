@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const emailValidator = require("email-validator");
+const { json } = require("express");
 
 exports.POST = (req, res) => {
   const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
@@ -64,7 +65,7 @@ exports.POST = (req, res) => {
   if (!churchid.length)
     return res.status(400).send({ msg: "churchid missing", msgType: "error" });
 
-  if (church == 0 && !unlistedchurch.length)
+  if (churchid == 0 && !unlistedchurch.length)
     return res.status(400).send({ msg: "unlisted church missing", msgType: "error" });
 
   // Check for duplicate username
@@ -128,7 +129,7 @@ exports.POST = (req, res) => {
       // Derive symmetric encryption key from password
       const salt = crypto.randomBytes(32);
       const iterations = 200000;
-      const keylen = 256;
+      const keylen = 32;
       const digest = "sha256";
 
       crypto.pbkdf2(password, salt, iterations, keylen, digest, (err, derivedKey) => {
@@ -138,7 +139,7 @@ exports.POST = (req, res) => {
         }
 
         const hashObj = JSON.stringify({
-          salt: salt,
+          salt: salt.toString("hex"),
           iterations: iterations,
           keylen: keylen,
           digest: digest,
@@ -147,8 +148,8 @@ exports.POST = (req, res) => {
 
         // Generate a key pair
         crypto.generateKeyPair("rsa", {
-          moduluslength: 2048,
-          PublicKeyEncoding: {
+          modulusLength: 2048,
+          publicKeyEncoding: {
             type: "spki",
             format: "pem"
           },
