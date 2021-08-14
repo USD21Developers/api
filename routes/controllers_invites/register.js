@@ -250,8 +250,8 @@ exports.POST = (req, res) => {
                     privateKey: hexPrivateKey
                   });
                 })
-                .catch((error) => {
-                  console.log(error);
+                .catch((err) => {
+                  console.log(err);
                   return res.status(500).send({
                     msg: "confirmation e-mail could not be sent",
                     msgType: "error",
