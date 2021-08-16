@@ -23,6 +23,9 @@ exports.POST = (req, res) => {
 
   let protocol = "https:";
   let host;
+
+  console.log(`isStaging: ${isStaging}`);
+
   switch (process.env.ENV) {
     case "development":
       protocol = "http:";
