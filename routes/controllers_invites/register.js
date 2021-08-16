@@ -34,15 +34,15 @@ exports.POST = (req, res) => {
     case "production":
       if (isStaging) {
         if (req.headers.referer.indexOf("staging.invites.usd21.org")) {
-          host = "https://staging.invites.usd21.org";
+          host = "staging.invites.usd21.org";
         } else {
-          host = "https://staging.invites.mobi";
+          host = "staging.invites.mobi";
         }
       } else {
         if (req.headers.referer.indexOf("invites.usd21.org")) {
-          host = "https://invites.usd21.org";
+          host = "invites.usd21.org";
         } else {
-          host = "https://invites.mobi";
+          host = "invites.mobi";
         }
       }
       break;
