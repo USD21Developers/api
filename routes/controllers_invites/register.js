@@ -151,11 +151,11 @@ exports.POST = (req, res) => {
           modulusLength: 2048,
           publicKeyEncoding: {
             type: "spki",
-            format: "pem"
+            format: "der"
           },
           privateKeyEncoding: {
             type: "pkcs8",
-            format: "pem"
+            format: "der"
           }
         }, (err, publicKey, privateKey) => {
           if (err) {
