@@ -1,6 +1,5 @@
 const crypto = require("crypto");
 const emailValidator = require("email-validator");
-const { json } = require("express");
 
 exports.POST = (req, res) => {
   const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
@@ -31,13 +30,13 @@ exports.POST = (req, res) => {
       break;
     case "production":
       if (isStaging) {
-        if (req.headers.referer.indexOf("usd21.org")) {
+        if (req.headers.referer.indexOf("staging.invites.usd21.org")) {
           host = "https://staging.invites.usd21.org";
         } else {
           host = "https://staging.invites.mobi";
         }
       } else {
-        if (req.headers.referer.indexOf("usd21.org")) {
+        if (req.headers.referer.indexOf("invites.usd21.org")) {
           host = "https://invites.usd21.org";
         } else {
           host = "https://invites.mobi";
