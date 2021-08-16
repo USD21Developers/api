@@ -254,20 +254,14 @@ exports.POST = (req, res) => {
                 .then((result) => {
                   return res.status(result[0].statusCode || 200).send({
                     msg: "confirmation e-mail sent",
-                    msgType: "success",
-                    userid: userid,
-                    publicKey: hexPublicKey,
-                    privateKey: hexPrivateKey
+                    msgType: "success"
                   });
                 })
                 .catch((err) => {
                   console.log(err);
                   return res.status(500).send({
                     msg: "confirmation e-mail could not be sent",
-                    msgType: "error",
-                    userid: userid,
-                    publicKey: hexPublicKey,
-                    privateKey: hexPrivateKey
+                    msgType: "error"
                   });
                 });
             });
