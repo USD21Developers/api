@@ -30,9 +30,19 @@ exports.POST = (req, res) => {
       host = "localhost:5555";
       break;
     case "production":
-      host = isStaging
-        ? "staging.invites.mobi"
-        : "invites.mobi";
+      if (isStaging) {
+        if (req.headers.referer.indexOf("usd21.org")) {
+          host = "https://staging.invites.usd21.org";
+        } else {
+          host = "https://staging.invites.mobi";
+        }
+      } else {
+        if (req.headers.referer.indexOf("usd21.org")) {
+          host = "https://invites.usd21.org";
+        } else {
+          host = "https://invites.mobi";
+        }
+      }
       break;
   }
 
