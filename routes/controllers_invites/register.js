@@ -122,7 +122,7 @@ exports.POST = (req, res) => {
       let usertype = "user";
       let isAuthorized = 0;
       let canAuthorize = 0;
-      let canDelegateAuthorization = 0;
+      let canAuthToAuth = 0;
 
       // Designate usertype as "sysadmin" if user's e-mail is a match
       const listOfSysadmins = [
@@ -139,7 +139,7 @@ exports.POST = (req, res) => {
       if (usertype === "sysadmin") {
         isAuthorized = 1;
         canAuthorize = 1;
-        canDelegateAuthorization = 1;
+        canAuthToAuth = 1;
       }
 
       // Derive symmetric encryption key from password
@@ -181,12 +181,12 @@ exports.POST = (req, res) => {
 
         const sql = `
             INSERT INTO users(
-              churchid, username, password, firstname, lastname, email, usertype, lang, country, datakey, isAuthorized, canAuthorize, canDelegateAuthorization, createdAt
+              churchid, username, password, firstname, lastname, email, usertype, lang, country, datakey, isAuthorized, canAuthorize, canAuthToAuth, createdAt
             ) VALUES (
               ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, utc_timestamp()
             );
           `;
-        db.query(sql, [churchid, username, hashObj, firstname, lastname, email, usertype, lang, country, dataKeyObj, isAuthorized, canAuthorize, canDelegateAuthorization], (err, result) => {
+        db.query(sql, [churchid, username, hashObj, firstname, lastname, email, usertype, lang, country, dataKeyObj, isAuthorized, canAuthorize, canAuthToAuth], (err, result) => {
           if (err) {
             console.log(err);
             return res.status(500).send({ msg: "unable to insert new record", msgType: "error" });
