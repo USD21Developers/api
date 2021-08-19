@@ -151,71 +151,48 @@ exports.POST = (req, res) => {
           console.log(err);
           return res.status(500).send({ msg: "unable to generate password hash", msgType: "error" });
         }
+        const saltHexEncoded = new Buffer.from(salt).toString("hex");
+        const derivedKeyHexEncoded = new Buffer.from(derivedKey).toString("hex");
 
         const hashObj = JSON.stringify({
-          salt: salt.toString("hex"),
+          salt: saltHexEncoded,
           iterations: iterations,
           keylen: keylen,
           digest: digest,
-          derivedKey: derivedKey.toString("hex"),
+          derivedKey: derivedKeyHexEncoded
         });
 
-        // Generate a key pair
-        crypto.generateKeyPair("rsa", {
-          modulusLength: 2048,
-          publicKeyEncoding: {
-            type: "spki",
-            format: "der"
-          },
-          privateKeyEncoding: {
-            type: "pkcs8",
-            format: "der"
-          }
-        }, (err, publicKey, privateKey) => {
-          if (err) {
-            console.log(err);
-            return res.status(500).send({ msg: "unable to generate key pair", msgType: "error" });
-          }
+        // Encrypt client-side data key with encryption key derived from user's password
 
-          // Encrypt key pair with derived encryption key
+        const algorithm = "aes-256-cbc";
+        const iv = crypto.randomBytes(16);
+        const cipher = crypto.createCipheriv(algorithm, derivedKey, iv);
+        let ciphertext = cipher.update(datakey, "utf-8", "hex");
+        ciphertext += cipher.final("hex");
+        const ciphertextHexEncoded = new Buffer.from(ciphertext).toString("hex");
+        const ivHexEncoded = new Buffer.from(iv).toString("hex");
+        const dataKeyObj = JSON.stringify({
+          algorithm: algorithm,
+          iv: ivHexEncoded,
+          ciphertext: ciphertextHexEncoded
+        });
 
-          const algorithmPublicKey = "aes-256-cbc";
-          const initVectorPublicKey = crypto.randomBytes(16);
-          const cipherPublicKey = crypto.createCipheriv(algorithmPublicKey, derivedKey, initVectorPublicKey);
-          let encryptedDataPublicKey = cipherPublicKey.update(publicKey, "utf-8", "hex");
-          encryptedDataPublicKey += cipherPublicKey.final("hex");
-
-          const algorithmPrivateKey = "aes-256-cbc";
-          const initVectorPrivateKey = crypto.randomBytes(16);
-          const cipherPrivateKey = crypto.createCipheriv(algorithmPrivateKey, derivedKey, initVectorPrivateKey);
-          let encryptedDataPrivateKey = cipherPrivateKey.update(privateKey, "utf-8", "hex");
-          encryptedDataPrivateKey += cipherPrivateKey.final("hex");
-
-          const algorithmDataKey = "aes-256-cbc";
-          const initVectorDataKey = crypto.randomBytes(16);
-          const cipherDataKey = crypto.createCipheriv(algorithmDataKey, derivedKey, initVectorDataKey);
-          let encryptedDataKey = cipherDataKey.update(datakey, "utf-8", "hex");
-          encryptedDataKey += cipherDataKey.final("hex");
-
-          const hexPublicKey = new Buffer.from(publicKey).toString("hex");
-          const hexPrivateKey = new Buffer.from(privateKey).toString("hex");
-
-          const sql = `
+        const sql = `
             INSERT INTO users(
-              churchid, username, password, firstname, lastname, email, usertype, lang, country, publickey, privatekey, datakey, isAuthorized, canAuthorize, createdAt
+              churchid, username, password, firstname, lastname, email, usertype, lang, country, datakey, isAuthorized, canAuthorize, createdAt
             ) VALUES (
-              ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, utc_timestamp()
+              ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, utc_timestamp()
             );
           `;
-          db.query(sql, [churchid, username, hashObj, firstname, lastname, email, usertype, lang, country, encryptedDataPublicKey, encryptedDataPrivateKey, encryptedDataKey, isAuthorized, canAuthorize], (err, result) => {
-            if (err) {
-              console.log(err);
-              return res.status(500).send({ msg: "unable to insert new record", msgType: "error" });
-            }
+        db.query(sql, [churchid, username, hashObj, firstname, lastname, email, usertype, lang, country, dataKeyObj, isAuthorized, canAuthorize], (err, result) => {
+          if (err) {
+            console.log(err);
+            return res.status(500).send({ msg: "unable to insert new record", msgType: "error" });
+          }
 
-            const userid = result.insertId;
-            const registrationToken = crypto.randomBytes(32).toString("hex");
-            const sql = `
+          const userid = result.insertId;
+          const registrationToken = crypto.randomBytes(32).toString("hex");
+          const sql = `
               INSERT INTO tokens(
                 token,
                 expiry,
@@ -231,18 +208,18 @@ exports.POST = (req, res) => {
               );
             `;
 
-            db.query(sql, [registrationToken, userid], (err, result) => {
-              if (err) {
-                console.log(err);
-                return res.status(500).send({
-                  msg: "unable to insert registration token",
-                  msgType: "error"
-                });
-              }
+          db.query(sql, [registrationToken, userid], (err, result) => {
+            if (err) {
+              console.log(err);
+              return res.status(500).send({
+                msg: "unable to insert registration token",
+                msgType: "error"
+              });
+            }
 
-              const confirmationUrl = `${protocol}//${host}/registration/confirm/#${registrationToken}`;
+            const confirmationUrl = `${protocol}//${host}/registration/confirm/#${registrationToken}`;
 
-              const body = `
+            const body = `
                 <p>
                   ${emailParagraph1}
                 </p>
@@ -258,23 +235,22 @@ exports.POST = (req, res) => {
                 <p>${emailSignature}</p>
               `;
 
-              const recipient = `"${firstname} ${lastname}" <${email}>`;
-              require("./utils")
-                .sendEmail(recipient, emailSenderText, emailSubject, body)
-                .then((result) => {
-                  return res.status(result[0].statusCode || 200).send({
-                    msg: "confirmation e-mail sent",
-                    msgType: "success"
-                  });
-                })
-                .catch((err) => {
-                  console.log(err);
-                  return res.status(500).send({
-                    msg: "confirmation e-mail could not be sent",
-                    msgType: "error"
-                  });
+            const recipient = `"${firstname} ${lastname}" <${email}>`;
+            require("./utils")
+              .sendEmail(recipient, emailSenderText, emailSubject, body)
+              .then((result) => {
+                return res.status(result[0].statusCode || 200).send({
+                  msg: "confirmation e-mail sent",
+                  msgType: "success"
                 });
-            });
+              })
+              .catch((err) => {
+                console.log(err);
+                return res.status(500).send({
+                  msg: "confirmation e-mail could not be sent",
+                  msgType: "error"
+                });
+              });
           });
         });
       });
