@@ -20,6 +20,7 @@ exports.POST = (req, res) => {
   const emailParagraph1 = req.body.emailParagraph1 || "";
   const emailLinkText = req.body.emailLinkText || "";
   const emailSignature = req.body.emailSignature || "";
+  const datakey = req.body.dataKey || "";
 
   let protocol = "https:";
   let host;
@@ -77,6 +78,9 @@ exports.POST = (req, res) => {
 
   if (churchid == 0 && !unlistedchurch.length)
     return res.status(400).send({ msg: "unlisted church missing", msgType: "error" });
+
+  if (!datakey.length)
+    return res.status(400).send({ msg: "datakey missiong", msgType: "error" });
 
   // Check for duplicate username
   const sql = `SELECT userid FROM users WHERE username = ? LIMIT 1;`;
@@ -187,17 +191,23 @@ exports.POST = (req, res) => {
           let encryptedDataPrivateKey = cipherPrivateKey.update(privateKey, "utf-8", "hex");
           encryptedDataPrivateKey += cipherPrivateKey.final("hex");
 
+          const algorithmDataKey = "aes-256-cbc";
+          const initVectorDataKey = crypto.randomBytes(16);
+          const cipherDataKey = crypto.createCipheriv(algorithmDataKey, derivedKey, initVectorDataKey);
+          let encryptedDataKey = cipherDataKey.update(datakey, "utf-8", "hex");
+          encryptedDataKey += cipherDataKey.final("hex");
+
           const hexPublicKey = new Buffer.from(publicKey).toString("hex");
           const hexPrivateKey = new Buffer.from(privateKey).toString("hex");
 
           const sql = `
             INSERT INTO users(
-              churchid, username, password, firstname, lastname, email, usertype, lang, country, publickey, privatekey, isAuthorized, canAuthorize, createdAt
+              churchid, username, password, firstname, lastname, email, usertype, lang, country, publickey, privatekey, datakey, isAuthorized, canAuthorize, createdAt
             ) VALUES (
-              ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, utc_timestamp()
+              ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, utc_timestamp()
             );
           `;
-          db.query(sql, [churchid, username, hashObj, firstname, lastname, email, usertype, lang, country, encryptedDataPublicKey, encryptedDataPrivateKey, isAuthorized, canAuthorize], (err, result) => {
+          db.query(sql, [churchid, username, hashObj, firstname, lastname, email, usertype, lang, country, encryptedDataPublicKey, encryptedDataPrivateKey, encryptedDataKey, isAuthorized, canAuthorize], (err, result) => {
             if (err) {
               console.log(err);
               return res.status(500).send({ msg: "unable to insert new record", msgType: "error" });
