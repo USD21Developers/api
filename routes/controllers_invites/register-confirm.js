@@ -3,8 +3,8 @@ const moment = require("moment");
 exports.POST = (req, res) => {
   const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
   const db = isStaging
-    ? require("../../database-test")
-    : require("../../database");
+    ? require("../../database-invites-test")
+    : require("../../database-invites");
   const token = req.body.token || "";
 
   // Validate
@@ -91,7 +91,7 @@ exports.POST = (req, res) => {
           .send({ msg: "unable to update token record", msgType: "error" });
       }
 
-      const sql = `SELECT fullname, usertype, passwordmustchange FROM users WHERE userid = ? LIMIT 1;`;
+      const sql = `SELECT firstname, lastname, usertype, passwordmustchange FROM users WHERE userid = ? LIMIT 1;`;
       db.query(sql, [userid], (err, result) => {
         if (err) {
           console.log(err);
@@ -108,12 +108,14 @@ exports.POST = (req, res) => {
 
         // Registration confirmed; send JWT
         const jsonwebtoken = require("jsonwebtoken");
-        const fullname = result[0].fullname || "";
+        const firstname = result[0].firstname || "";
+        const lastname = result[0].lastname || "";
         const usertype = result[0].usertype || "user";
         const passwordmustchange = result[0].passwordmustchange || 0;
         const refreshToken = jsonwebtoken.sign(
           {
-            name: fullname,
+            firstname: firstname,
+            lastname: lastname,
             userid: userid,
             usertype: usertype,
             passwordmustchange: passwordmustchange == 1 ? true : 0,
@@ -124,7 +126,8 @@ exports.POST = (req, res) => {
 
         const accessToken = jsonwebtoken.sign(
           {
-            name: fullname,
+            firstname: firstname,
+            lastname: lastname,
             userid: userid,
             usertype: usertype,
             passwordmustchange: passwordmustchange == 1 ? true : 0,
