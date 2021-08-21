@@ -7,11 +7,11 @@ exports.GET = (req, res) => {
       mailing_city,
       mailing_state,
       mailing_country,
-      church_iso
+      country_iso
     FROM 
       churches
     ORDER BY
-      church_iso,
+    country_iso,
       mailing_state,
       mailing_city
     ;
@@ -23,14 +23,14 @@ exports.GET = (req, res) => {
     }
 
     const data = result.map(item => {
-      const { church_name, church_URL, mailing_city, mailing_state, mailing_country, church_iso } = item;
+      const { church_name, church_URL, mailing_city, mailing_state, mailing_country, country_iso } = item;
       return {
         name: church_name,
         url: church_URL,
         city: mailing_city,
         state: mailing_state,
         country: mailing_country,
-        country_iso: church_iso
+        country_iso: country_iso
       }
     });
 
