@@ -22,6 +22,8 @@ exports.POST = (req, res) => {
   const emailSignature = req.body.emailSignature || "";
   const datakey = req.body.dataKey || "";
 
+  const isUsd21Email = email1.substring(email1.length - 10, email1.length) === "@usd21.org" ? true : false;
+
   let protocol = "https:";
   let host;
 
@@ -123,6 +125,12 @@ exports.POST = (req, res) => {
       let isAuthorized = 0;
       let canAuthorize = 0;
       let canAuthToAuth = 0;
+
+      // Give privileges to USD21 e-mail account holders
+      if (isUsd21Email) {
+        isAuthorized = 1;
+        canAuthorize = 1;
+      }
 
       // Designate usertype as "sysadmin" if user's e-mail is a match
       const listOfSysadmins = [
