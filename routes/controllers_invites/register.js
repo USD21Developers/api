@@ -227,7 +227,7 @@ exports.POST = (req, res) => {
               });
             }
 
-            const confirmationUrl = `${protocol}//${host}/registration/confirm/#${registrationToken}`;
+            const confirmationUrl = `${protocol}//${host}/register/confirm/#${registrationToken}`;
 
             const body = `
                 <p>
