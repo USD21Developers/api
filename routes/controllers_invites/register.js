@@ -22,7 +22,7 @@ exports.POST = (req, res) => {
   const emailSignature = req.body.emailSignature || "";
   const datakey = req.body.dataKey || "";
 
-  const isUsd21Email = email1.substring(email1.length - 10, email1.length) === "@usd21.org" ? true : false;
+  const isUsd21Email = email.substring(email.length - 10, email.length) === "@usd21.org" ? true : false;
 
   let protocol = "https:";
   let host;
