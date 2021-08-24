@@ -9,6 +9,9 @@ const authenticateToken = utils.authenticateToken;
 const register = require("./controllers_invites/register");
 router.post("/register", register.POST);
 
+const registerConfirm = require("./controllers_invites/register-confirm");
+router.post("/register-confirm", registerConfirm.POST);
+
 
 // AUTHORIZATION
 
