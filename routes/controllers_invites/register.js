@@ -151,40 +151,51 @@ exports.POST = (req, res) => {
       }
 
       // Derive symmetric encryption key from password
-      const salt = crypto.randomBytes(32);
-      const iterations = 200000;
-      const keylen = 32;
-      const digest = "sha256";
+      const kekSalt = crypto.randomBytes(32);
+      const kekIterations = 200000;
+      const kekKeylen = 32;
+      const kekDigest = "sha256";
 
-      crypto.pbkdf2(password, salt, iterations, keylen, digest, (err, derivedKey) => {
+      crypto.pbkdf2(password, kekSalt, kekIterations, kekKeylen, kekDigest, (err, kek) => {
         if (err) {
           console.log(err);
           return res.status(500).send({ msg: "unable to generate password hash", msgType: "error" });
         }
-        const saltHexEncoded = new Buffer.from(salt).toString("hex");
-        const derivedKeyHexEncoded = new Buffer.from(derivedKey).toString("hex");
 
-        const hashObj = JSON.stringify({
-          salt: saltHexEncoded,
-          iterations: iterations,
-          keylen: keylen,
-          digest: digest,
-          derivedKey: derivedKeyHexEncoded
+        // Generate server-side data key (DEK) with key derived from user's password (KEK)
+
+        const authDEK = crypto.randomBytes(32);
+        const authAlgorithm = "aes-256-cbc";
+        const authIV = crypto.randomBytes(16);
+        const authCipher = crypto.createCipheriv(authAlgorithm, kek, authIV);
+        let authWrappedDEK = authCipher.update(authDEK, "utf-8", "hex");
+        authWrappedDEK += authCipher.final("hex");
+
+        const passwordObj = JSON.stringify({
+          kek: {
+            salt: new Buffer.from(kekSalt).toString("hex"),
+            iterations: kekIterations,
+            keylen: kekKeylen,
+            digest: kekDigest
+          },
+          dek: {
+            algorithm: authAlgorithm,
+            iv: new Buffer.from(authIV).toString("hex"),
+            ciphertext: authWrappedDEK
+          }
         });
 
-        // Encrypt client-side data key with encryption key derived from user's password
+        // Encrypt client-side data key ("datakey") with encryption key derived from user's password
 
-        const algorithm = "aes-256-cbc";
-        const iv = crypto.randomBytes(16);
-        const cipher = crypto.createCipheriv(algorithm, derivedKey, iv);
-        let ciphertext = cipher.update(datakey, "utf-8", "hex");
-        ciphertext += cipher.final("hex");
-        const ciphertextHexEncoded = new Buffer.from(ciphertext).toString("hex");
-        const ivHexEncoded = new Buffer.from(iv).toString("hex");
+        const clientAlgorithm = "aes-256-cbc";
+        const clientIV = crypto.randomBytes(16);
+        const clientCipher = crypto.createCipheriv(clientAlgorithm, authDEK, clientIV);
+        let clientCipherText = clientCipher.update(datakey, "utf-8", "hex");
+        clientCipherText += clientCipher.final("hex");
         const dataKeyObj = JSON.stringify({
-          algorithm: algorithm,
-          iv: ivHexEncoded,
-          ciphertext: ciphertextHexEncoded
+          algorithm: clientAlgorithm,
+          iv: new Buffer.from(clientIV).toString("hex"),
+          ciphertext: clientCipherText
         });
 
         const sql = `
@@ -194,7 +205,7 @@ exports.POST = (req, res) => {
               ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, utc_timestamp()
             );
           `;
-        db.query(sql, [churchid, username, hashObj, firstname, lastname, email, usertype, lang, country, dataKeyObj, isAuthorized, canAuthorize, canAuthToAuth], (err, result) => {
+        db.query(sql, [churchid, username, passwordObj, firstname, lastname, email, usertype, lang, country, dataKeyObj, isAuthorized, canAuthorize, canAuthToAuth], (err, result) => {
           if (err) {
             console.log(err);
             return res.status(500).send({ msg: "unable to insert new record", msgType: "error" });

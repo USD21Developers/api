@@ -7,6 +7,7 @@ exports.POST = (req, res) => {
     : require("../../database-invites");
   const username = req.body.username || "";
   const password = req.body.password || "";
+
   const sql = `
     SELECT
       userid,
@@ -17,6 +18,7 @@ exports.POST = (req, res) => {
       userstatus,
       lang,
       country,
+      datakey,
       passwordmustchange,
       isAuthorized,
       canAuthorize,
@@ -61,6 +63,7 @@ exports.POST = (req, res) => {
       result[0].canAuthorize === 1 ? true : false;
     const canAuthToAuth =
       result[0].canAuthToAuth === 1 ? true : false;
+    const datakey = JSON.parse(result[0].datakey);
 
     if (userstatus !== "registered") {
       return res
@@ -69,19 +72,28 @@ exports.POST = (req, res) => {
     }
 
     // Derive symmetric encryption key from password
-    const { derivedKey: derivedKeyFromDB, salt, iterations, keylen, digest } = passwordFromDB;
-    crypto.pbkdf2(password, salt, iterations, keylen, digest, (err, derivedKey) => {
+    const { kek, dek } = passwordFromDB;
+    crypto.pbkdf2(password, Buffer.from(kek.salt, "hex"), kek.iterations, kek.keylen, kek.digest, (err, derivedKey) => {
       if (err)
         return res.status(500).send({
           msg: "unable to verify login",
           msgType: "error",
         });
 
-      if (derivedKey !== derivedKeyFromDB)
+      // Decrypt DEK in password field of DB
+      let decryptedDEK;
+      try {
+        const ivDecoded = Buffer.from(dek.iv, "hex");
+        const decipher = crypto.createDecipheriv(dek.algorithm, derivedKey, ivDecoded);
+        decryptedDEK = decipher.update(dek.ciphertext, "hex", "hex");
+        decryptedDEK += decipher.final("hex");
+      } catch (err) {
+        console.log(err);
         return res.status(404).send({
           msg: "invalid login",
-          msgType: "error",
+          msgType: "error"
         });
+      }
 
       const jsonwebtoken = require("jsonwebtoken");
       const refreshToken = jsonwebtoken.sign(
@@ -116,9 +128,11 @@ exports.POST = (req, res) => {
         msgType: "success",
         refreshToken: refreshToken,
         accessToken: accessToken,
+        datakey: decryptedDEK
       };
 
       return res.status(200).send(returnObject);
+
     });
   });
 };
