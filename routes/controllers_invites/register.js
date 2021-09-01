@@ -152,6 +152,7 @@ exports.POST = (req, res) => {
 
       // Derive symmetric encryption key from password
       const kekSalt = crypto.randomBytes(32);
+      const kekSaltBase64 = new Buffer.from(kekSalt).toString("base64");
       const kekIterations = 200000;
       const kekKeylen = 32;
       const kekDigest = "sha256";
@@ -162,40 +163,40 @@ exports.POST = (req, res) => {
           return res.status(500).send({ msg: "unable to generate password hash", msgType: "error" });
         }
 
-        // Generate server-side data key (DEK) with key derived from user's password (KEK)
+        const algorithm = "aes-256-cbc";
+        const dekKeyLen = 32;
+        const dek = crypto.randomBytes(dekKeyLen);
+        const dekIv = crypto.randomBytes(16);
+        const dekCipher = crypto.createCipheriv(algorithm, kek, dekIv);
+        let dekCiphertext = dekCipher.update(dek, "utf-8", "base64");
+        dekCiphertext += dekCipher.final("base64");
 
-        const authDEK = crypto.randomBytes(32);
-        const authAlgorithm = "aes-256-cbc";
-        const authIV = crypto.randomBytes(16);
-        const authCipher = crypto.createCipheriv(authAlgorithm, kek, authIV);
-        let authWrappedDEK = authCipher.update(authDEK, "utf-8", "hex");
-        authWrappedDEK += authCipher.final("hex");
+        const iv = crypto.randomBytes(16);
+        const ivBase64 = new Buffer.from(iv).toString("base64");
+        const cipher = crypto.createCipheriv(algorithm, dek, iv);
+        let ciphertext = cipher.update(datakey, "utf-8", "base64");
+        ciphertext += cipher.final("base64");
+
+        const dekIvBase64 = new Buffer.from(dekIv).toString("base64");
 
         const passwordObj = JSON.stringify({
           kek: {
-            salt: new Buffer.from(kekSalt).toString("hex"),
+            salt: kekSaltBase64,
             iterations: kekIterations,
             keylen: kekKeylen,
             digest: kekDigest
           },
           dek: {
-            algorithm: authAlgorithm,
-            iv: new Buffer.from(authIV).toString("hex"),
-            ciphertext: authWrappedDEK
+            algorithm: algorithm,
+            iv: dekIvBase64,
+            ciphertext: dekCiphertext
           }
         });
 
-        // Encrypt client-side data key ("datakey") with encryption key derived from user's password
-
-        const clientAlgorithm = "aes-256-cbc";
-        const clientIV = crypto.randomBytes(16);
-        const clientCipher = crypto.createCipheriv(clientAlgorithm, authDEK, clientIV);
-        let clientCipherText = clientCipher.update(datakey, "utf-8", "hex");
-        clientCipherText += clientCipher.final("hex");
         const dataKeyObj = JSON.stringify({
-          algorithm: clientAlgorithm,
-          iv: new Buffer.from(clientIV).toString("hex"),
-          ciphertext: clientCipherText
+          algorithm: algorithm,
+          iv: ivBase64,
+          ciphertext: ciphertext
         });
 
         const sql = `

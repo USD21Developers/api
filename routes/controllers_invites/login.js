@@ -71,9 +71,9 @@ exports.POST = (req, res) => {
         .send({ msg: "user status is not registered", msgType: "error" });
     }
 
-    // Derive symmetric encryption key from password
-    const { kek, dek } = passwordFromDB;
-    crypto.pbkdf2(password, Buffer.from(kek.salt, "hex"), kek.iterations, kek.keylen, kek.digest, (err, derivedKey) => {
+    // Derive KEK and DEK from stored password
+    const saltBase64 = new Buffer.from(passwordFromDB.kek.salt, "base64");
+    crypto.pbkdf2(password, saltBase64, passwordFromDB.kek.iterations, passwordFromDB.kek.keylen, passwordFromDB.kek.digest, (err, kek) => {
       if (err)
         return res.status(500).send({
           msg: "unable to verify login",
@@ -82,11 +82,28 @@ exports.POST = (req, res) => {
 
       // Decrypt DEK in password field of DB
       let decryptedDEK;
+      let dek;
       try {
-        const ivDecoded = Buffer.from(dek.iv, "hex");
-        const decipher = crypto.createDecipheriv(dek.algorithm, derivedKey, ivDecoded);
-        decryptedDEK = decipher.update(dek.ciphertext, "hex", "hex");
-        decryptedDEK += decipher.final("hex");
+        const dekIv = new Buffer.from(passwordFromDB.dek.iv, "base64");
+        const decipher = crypto.createDecipheriv(passwordFromDB.dek.algorithm, kek, dekIv);
+        decryptedDEK = decipher.update(passwordFromDB.dek.ciphertext, "base64", "base64");
+        decryptedDEK += decipher.final("base64");
+        dek = new Buffer.from(decryptedDEK, "base64");
+      } catch (err) {
+        console.log(err);
+        return res.status(404).send({
+          msg: "invalid login",
+          msgType: "error"
+        });
+      }
+
+      // Decrypt browser's data key
+      let decryptedDataKey;
+      try {
+        const dataKeyIv = new Buffer.from(datakey.iv, "base64");
+        const decipher = crypto.createDecipheriv(datakey.algorithm, dek, dataKeyIv);
+        decryptedDataKey = decipher.update(datakey.ciphertext, "base64", "utf-8");
+        decryptedDataKey += decipher.final("utf-8");
       } catch (err) {
         console.log(err);
         return res.status(404).send({
@@ -128,7 +145,7 @@ exports.POST = (req, res) => {
         msgType: "success",
         refreshToken: refreshToken,
         accessToken: accessToken,
-        datakey: decryptedDEK
+        datakey: decryptedDataKey
       };
 
       return res.status(200).send(returnObject);
