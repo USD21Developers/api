@@ -107,7 +107,7 @@ exports.POST = (req, res) => {
       } catch (err) {
         console.log(err);
         return res.status(404).send({
-          msg: "invalid login",
+          msg: "unable to decrypt datakey",
           msgType: "error"
         });
       }
