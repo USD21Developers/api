@@ -12,7 +12,7 @@ exports.GET = (req, res) => {
     FROM 
       churches
     ORDER BY
-    country_iso,
+      mailing_country,
       mailing_state,
       mailing_city
     ;
