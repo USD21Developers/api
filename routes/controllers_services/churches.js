@@ -5,6 +5,7 @@ exports.GET = (req, res) => {
       churchID,
       church_name,
       church_URL,
+      identifying_place,
       mailing_city,
       mailing_state,
       mailing_country,
@@ -12,7 +13,7 @@ exports.GET = (req, res) => {
     FROM 
       churches
     ORDER BY
-      mailing_country,
+      identifying_place,
       mailing_state,
       mailing_city
     ;
@@ -33,12 +34,14 @@ exports.GET = (req, res) => {
         churchID,
         church_name,
         church_URL,
+        identifying_place,
         mailing_city,
         mailing_state,
         mailing_country,
         country_iso,
       } = item;
-      let place = mailing_city.trim();
+      let place = identifying_place.trim();
+      if (!place.length) place = mailing_city.trim();
       if (
         mailing_state.trim() !== "" &&
         mailing_state.trim() !== mailing_city
