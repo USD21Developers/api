@@ -2,6 +2,7 @@ exports.GET = (req, res) => {
   const db = require("../../database-services");
   const sql = `
     SELECT 
+      churchID,
       church_name,
       church_URL,
       mailing_city,
@@ -19,6 +20,7 @@ exports.GET = (req, res) => {
 
   db.query(sql, [], (err, result) => {
     if (err) {
+      console.log(err);
       return res.status(500).send({
         msg: "unable to query service for churches",
         msgType: "error",
@@ -28,6 +30,7 @@ exports.GET = (req, res) => {
     const churches = [];
     result.map((item) => {
       const {
+        churchID,
         church_name,
         church_URL,
         mailing_city,
@@ -49,6 +52,7 @@ exports.GET = (req, res) => {
             name: mailing_country,
             churches: [
               {
+                id: churchID,
                 name: church_name,
                 place: place,
                 url: church_URL,
@@ -74,6 +78,7 @@ exports.GET = (req, res) => {
             name: mailing_country,
             churches: [
               {
+                id: churchID,
                 name: church_name,
                 place: place,
                 url: church_URL,
@@ -93,6 +98,7 @@ exports.GET = (req, res) => {
             }
             if (!containsChurch) {
               churches[i].country.churches.push({
+                id: churchID,
                 name: church_name,
                 place: place,
                 url: church_URL,
