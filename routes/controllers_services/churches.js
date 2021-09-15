@@ -13,9 +13,7 @@ exports.GET = (req, res) => {
     FROM 
       churches
     ORDER BY
-      identifying_place,
-      mailing_state,
-      mailing_city
+      identifying_place
     ;
   `;
 
@@ -42,12 +40,6 @@ exports.GET = (req, res) => {
       } = item;
       let place = identifying_place.trim();
       if (!place.length) place = mailing_city.trim();
-      if (
-        mailing_state.trim() !== "" &&
-        mailing_state.trim() !== mailing_city
-      ) {
-        place = `${mailing_city}, ${mailing_state}`.trim();
-      }
       if (!churches.length) {
         churches.push({
           country: {
