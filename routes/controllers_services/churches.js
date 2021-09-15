@@ -39,7 +39,7 @@ exports.GET = (req, res) => {
         country_iso,
       } = item;
       let country =
-        mailing_country === "USA" ? "United States" : mailing_country;
+        mailing_country.trim() === "USA" ? "United States" : mailing_country;
       let place = identifying_place.trim();
       if (!place.length) place = mailing_city.trim();
       if (!churches.length) {
