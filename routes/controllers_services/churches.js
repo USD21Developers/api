@@ -35,17 +35,18 @@ exports.GET = (req, res) => {
         church_URL,
         identifying_place,
         mailing_city,
-        mailing_state,
         mailing_country,
         country_iso,
       } = item;
+      let country =
+        mailing_country === "USA" ? "United States" : mailing_country;
       let place = identifying_place.trim();
       if (!place.length) place = mailing_city.trim();
       if (!churches.length) {
         churches.push({
           country: {
             iso: country_iso,
-            name: mailing_country,
+            name: country,
             churches: [
               {
                 id: churchID,
