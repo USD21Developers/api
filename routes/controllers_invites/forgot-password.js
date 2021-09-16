@@ -104,10 +104,6 @@ exports.POST = (req, res) => {
           <p>${emailParagraph1
             .replace("${firstname}", `${firstname}`)
             .replace("${lastname}", `${lastname}`)}</p>
-          <p>${emailParagraph2.replace(
-            emailParagraph2,
-            `${emailParagraph2}<br />`
-          )}</p>
           <p style="margin: 30px 0"><strong><big><a href="${resetUrl}" style="text-decoration: underline">${emailParagraph2}</a></big></strong></p>
           <p>${emailParagraph3}</p>
         `;
