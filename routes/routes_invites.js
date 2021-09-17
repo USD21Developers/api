@@ -22,10 +22,10 @@ router.post("/login", login.POST);
 const forgotPassword = require("./controllers_invites/forgot-password");
 router.post("/forgot-password", forgotPassword.POST);
 
-/* const resetPassword = require("./controllers_invites/reset-password");
+const resetPassword = require("./controllers_invites/reset-password");
 router.post("/reset-password", resetPassword.POST);
 
-const passwordMustChange = require("./controllers_invites/password-must-change");
+/* const passwordMustChange = require("./controllers_invites/password-must-change");
 router.post(
   "/password-must-change",
   authenticateToken,
