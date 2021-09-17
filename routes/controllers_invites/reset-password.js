@@ -126,7 +126,7 @@ exports.POST = (req, res) => {
             userid = ?
           ;
         `;
-        db.query(sql, [passwordObj, datakey, userid], (err, result) => {
+        db.query(sql, [passwordObj, dataKeyObj, userid], (err, result) => {
           if (err) {
             console.log(err);
 
