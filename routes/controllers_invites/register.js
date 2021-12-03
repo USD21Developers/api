@@ -11,10 +11,11 @@ exports.POST = (req, res) => {
   const email = req.body.email || "";
   const firstname = req.body.firstname || "";
   const lastname = req.body.lastname || "";
+  const gender = req.body.gender || "";
   const lang = req.body.lang || "en";
   const country = req.body.country.substring(0, 2).toLowerCase() || "";
   const churchid = req.body.churchid || "";
-  const unlistedchurch = req.body.unlistedchurch || "";  // TODO: notify admin that this church needs to be added
+  const unlistedchurch = req.body.unlistedchurch || ""; // TODO: notify admin that this church needs to be added
   const emailSenderText = req.body.emailSenderText || "";
   const emailSubject = req.body.emailSubject || "";
   const emailParagraph1 = req.body.emailParagraph1 || "";
@@ -22,7 +23,10 @@ exports.POST = (req, res) => {
   const emailSignature = req.body.emailSignature || "";
   const datakey = req.body.dataKey || "";
 
-  const isUsd21Email = email.substring(email.length - 10, email.length) === "@usd21.org" ? true : false;
+  const isUsd21Email =
+    email.substring(email.length - 10, email.length) === "@usd21.org"
+      ? true
+      : false;
 
   let protocol = "https:";
   let host;
@@ -64,10 +68,16 @@ exports.POST = (req, res) => {
     return res.status(400).send({ msg: "invalid e-mail", msgType: "error" });
 
   if (!firstname.length)
-    return res.status(400).send({ msg: "first name missing", msgType: "error" });
+    return res
+      .status(400)
+      .send({ msg: "first name missing", msgType: "error" });
 
   if (!lastname.length)
     return res.status(400).send({ msg: "last name missing", msgType: "error" });
+
+  if (gender !== "male" && gender !== "female") {
+    return res.status(400).send({ msg: "gender missing", msgType: "error" });
+  }
 
   if (!lang.length)
     return res.status(400).send({ msg: "language missing", msgType: "error" });
@@ -79,7 +89,9 @@ exports.POST = (req, res) => {
     return res.status(400).send({ msg: "churchid missing", msgType: "error" });
 
   if (churchid == 0 && !unlistedchurch.length)
-    return res.status(400).send({ msg: "unlisted church missing", msgType: "error" });
+    return res
+      .status(400)
+      .send({ msg: "unlisted church missing", msgType: "error" });
 
   if (!datakey.length)
     return res.status(400).send({ msg: "datakey missiong", msgType: "error" });
@@ -91,7 +103,7 @@ exports.POST = (req, res) => {
       console.log(err);
       return res.status(500).send({
         msg: "unable to query for duplicate username",
-        msgType: "error"
+        msgType: "error",
       });
     }
     if (result.length)
@@ -106,7 +118,7 @@ exports.POST = (req, res) => {
         console.log(err);
         return res.status(500).send({
           msg: "unable to query for duplicate e-mail address",
-          msgType: "error"
+          msgType: "error",
         });
       }
       if (result.length)
@@ -137,7 +149,7 @@ exports.POST = (req, res) => {
         "kip@usd21.org",
         "ron@usd21.org",
         "jeremy@usd21.org",
-        "jason.mcneill@usd21.org"
+        "jason.mcneill@usd21.org",
       ];
       if (listOfSysadmins.includes(email)) {
         usertype = "sysadmin";
@@ -157,64 +169,94 @@ exports.POST = (req, res) => {
       const kekKeylen = 32;
       const kekDigest = "sha256";
 
-      crypto.pbkdf2(password, kekSalt, kekIterations, kekKeylen, kekDigest, (err, kek) => {
-        if (err) {
-          console.log(err);
-          return res.status(500).send({ msg: "unable to generate password hash", msgType: "error" });
-        }
-
-        const algorithm = "aes-256-cbc";
-        const dekKeyLen = 32;
-        const dek = crypto.randomBytes(dekKeyLen);
-        const dekIv = crypto.randomBytes(16);
-        const dekCipher = crypto.createCipheriv(algorithm, kek, dekIv);
-        let dekCiphertext = dekCipher.update(dek, "utf-8", "base64");
-        dekCiphertext += dekCipher.final("base64");
-
-        const iv = crypto.randomBytes(16);
-        const ivBase64 = new Buffer.from(iv).toString("base64");
-        const cipher = crypto.createCipheriv(algorithm, dek, iv);
-        let ciphertext = cipher.update(datakey, "utf-8", "base64");
-        ciphertext += cipher.final("base64");
-
-        const dekIvBase64 = new Buffer.from(dekIv).toString("base64");
-
-        const passwordObj = JSON.stringify({
-          kek: {
-            salt: kekSaltBase64,
-            iterations: kekIterations,
-            keylen: kekKeylen,
-            digest: kekDigest
-          },
-          dek: {
-            algorithm: algorithm,
-            iv: dekIvBase64,
-            ciphertext: dekCiphertext
-          }
-        });
-
-        const dataKeyObj = JSON.stringify({
-          algorithm: algorithm,
-          iv: ivBase64,
-          ciphertext: ciphertext
-        });
-
-        const sql = `
-            INSERT INTO users(
-              churchid, username, password, firstname, lastname, email, usertype, lang, country, datakey, isAuthorized, canAuthorize, canAuthToAuth, createdAt
-            ) VALUES (
-              ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, utc_timestamp()
-            );
-          `;
-        db.query(sql, [churchid, username, passwordObj, firstname, lastname, email, usertype, lang, country, dataKeyObj, isAuthorized, canAuthorize, canAuthToAuth], (err, result) => {
+      crypto.pbkdf2(
+        password,
+        kekSalt,
+        kekIterations,
+        kekKeylen,
+        kekDigest,
+        (err, kek) => {
           if (err) {
             console.log(err);
-            return res.status(500).send({ msg: "unable to insert new record", msgType: "error" });
+            return res.status(500).send({
+              msg: "unable to generate password hash",
+              msgType: "error",
+            });
           }
 
-          const userid = result.insertId;
-          const registrationToken = crypto.randomBytes(32).toString("hex");
+          const algorithm = "aes-256-cbc";
+          const dekKeyLen = 32;
+          const dek = crypto.randomBytes(dekKeyLen);
+          const dekIv = crypto.randomBytes(16);
+          const dekCipher = crypto.createCipheriv(algorithm, kek, dekIv);
+          let dekCiphertext = dekCipher.update(dek, "utf-8", "base64");
+          dekCiphertext += dekCipher.final("base64");
+
+          const iv = crypto.randomBytes(16);
+          const ivBase64 = new Buffer.from(iv).toString("base64");
+          const cipher = crypto.createCipheriv(algorithm, dek, iv);
+          let ciphertext = cipher.update(datakey, "utf-8", "base64");
+          ciphertext += cipher.final("base64");
+
+          const dekIvBase64 = new Buffer.from(dekIv).toString("base64");
+
+          const passwordObj = JSON.stringify({
+            kek: {
+              salt: kekSaltBase64,
+              iterations: kekIterations,
+              keylen: kekKeylen,
+              digest: kekDigest,
+            },
+            dek: {
+              algorithm: algorithm,
+              iv: dekIvBase64,
+              ciphertext: dekCiphertext,
+            },
+          });
+
+          const dataKeyObj = JSON.stringify({
+            algorithm: algorithm,
+            iv: ivBase64,
+            ciphertext: ciphertext,
+          });
+
           const sql = `
+            INSERT INTO users(
+              churchid, username, password, firstname, lastname, gender, email, usertype, lang, country, datakey, isAuthorized, canAuthorize, canAuthToAuth, createdAt
+            ) VALUES (
+              ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, utc_timestamp()
+            );
+          `;
+          db.query(
+            sql,
+            [
+              churchid,
+              username,
+              passwordObj,
+              firstname,
+              lastname,
+              gender,
+              email,
+              usertype,
+              lang,
+              country,
+              dataKeyObj,
+              isAuthorized,
+              canAuthorize,
+              canAuthToAuth,
+            ],
+            (err, result) => {
+              if (err) {
+                console.log(err);
+                return res.status(500).send({
+                  msg: "unable to insert new record",
+                  msgType: "error",
+                });
+              }
+
+              const userid = result.insertId;
+              const registrationToken = crypto.randomBytes(32).toString("hex");
+              const sql = `
               INSERT INTO tokens(
                 token,
                 expiry,
@@ -230,18 +272,18 @@ exports.POST = (req, res) => {
               );
             `;
 
-          db.query(sql, [registrationToken, userid], (err, result) => {
-            if (err) {
-              console.log(err);
-              return res.status(500).send({
-                msg: "unable to insert registration token",
-                msgType: "error"
-              });
-            }
+              db.query(sql, [registrationToken, userid], (err, result) => {
+                if (err) {
+                  console.log(err);
+                  return res.status(500).send({
+                    msg: "unable to insert registration token",
+                    msgType: "error",
+                  });
+                }
 
-            const confirmationUrl = `${protocol}//${host}/register/confirm/#${registrationToken}`;
+                const confirmationUrl = `${protocol}//${host}/register/confirm/#${registrationToken}`;
 
-            const body = `
+                const body = `
                 <p>
                   ${emailParagraph1}
                 </p>
@@ -257,25 +299,27 @@ exports.POST = (req, res) => {
                 <p>${emailSignature}</p>
               `;
 
-            const recipient = `"${firstname} ${lastname}" <${email}>`;
-            require("./utils")
-              .sendEmail(recipient, emailSenderText, emailSubject, body)
-              .then((result) => {
-                return res.status(result[0].statusCode || 200).send({
-                  msg: "confirmation e-mail sent",
-                  msgType: "success"
-                });
-              })
-              .catch((err) => {
-                console.log(err);
-                return res.status(500).send({
-                  msg: "confirmation e-mail could not be sent",
-                  msgType: "error"
-                });
+                const recipient = `"${firstname} ${lastname}" <${email}>`;
+                require("./utils")
+                  .sendEmail(recipient, emailSenderText, emailSubject, body)
+                  .then((result) => {
+                    return res.status(result[0].statusCode || 200).send({
+                      msg: "confirmation e-mail sent",
+                      msgType: "success",
+                    });
+                  })
+                  .catch((err) => {
+                    console.log(err);
+                    return res.status(500).send({
+                      msg: "confirmation e-mail could not be sent",
+                      msgType: "error",
+                    });
+                  });
               });
-          });
-        });
-      });
+            }
+          );
+        }
+      );
     });
   });
 };

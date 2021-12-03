@@ -15,6 +15,7 @@ exports.POST = (req, res) => {
       password,
       firstname,
       lastname,
+      gender,
       usertype,
       userstatus,
       lang,
@@ -51,6 +52,7 @@ exports.POST = (req, res) => {
     const passwordFromDB = JSON.parse(result[0].password);
     const firstname = result[0].firstname || "";
     const lastname = result[0].lastname || "";
+    const gender = result[0].gender || "";
     const userid = result[0].userid;
     const churchid = result[0].churchid;
     const usertype = result[0].usertype || "user";
@@ -150,6 +152,7 @@ exports.POST = (req, res) => {
           {
             firstname: firstname,
             lastname: lastname,
+            gender: gender,
             churchid: churchid,
             userid: userid,
             usertype: usertype,
