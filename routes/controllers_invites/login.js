@@ -143,6 +143,9 @@ exports.POST = (req, res) => {
             lang: lang,
             userid: userid,
             usertype: usertype,
+            firstname: firstname,
+            lastname: lastname,
+            gender: gender
           },
           process.env.REFRESH_TOKEN_SECRET,
           { expiresIn: "30d" }
@@ -150,9 +153,6 @@ exports.POST = (req, res) => {
 
         const accessToken = jsonwebtoken.sign(
           {
-            firstname: firstname,
-            lastname: lastname,
-            gender: gender,
             churchid: churchid,
             userid: userid,
             usertype: usertype,
