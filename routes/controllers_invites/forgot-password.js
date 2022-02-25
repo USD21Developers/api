@@ -4,7 +4,7 @@ exports.POST = (req, res) => {
     ? require("../../database-invites-test")
     : require("../../database-invites");
   const email = req.body.email || "";
-  const emailSenderText = req.body.emailSenderText || "Virtual Invites";
+  const emailSenderText = req.body.emailSenderText || "Invites";
   const emailSubject = req.body.emailSubject || "Reset your password";
   let emailParagraph1 = req.body.emailParagraph1 || "";
   const emailParagraph2 = req.body.emailParagraph2 || "";
