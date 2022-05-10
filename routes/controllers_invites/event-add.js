@@ -1,4 +1,5 @@
 const moment = require("moment-timezone");
+const emailValidator = require("email-validator");
 
 exports.POST = (req, res) => {
   // Enforce authorization
@@ -65,7 +66,7 @@ exports.POST = (req, res) => {
   }
 
   // event type
-  const validEventTypes = ["bible talk", "church", "others"];
+  const validEventTypes = ["bible talk", "church", "other"];
   if (!validEventTypes.includes(eventtype)) {
     return res.status(400).send({
       msg: "a valid event type is required",
@@ -168,6 +169,49 @@ exports.POST = (req, res) => {
         msg: "starttime is required",
         msgType: "error"
       });
+    }
+
+    // recurring weekday must match next occurence weekday
+    if (frequency !== "once") {
+      const nextOccuranceWeekday = moment.tz(`${startdate} ${starttime}`).format("dddd");
+      let hasWeekdayConflict = false;
+      switch (frequency) {
+        case "Every Sunday": {
+          if (nextOccuranceWeekday !== "Sunday") hasWeekdayConflict = true;
+          break;
+        }
+        case "Every Monday": {
+          if (nextOccuranceWeekday !== "Monday") hasWeekdayConflict = true;
+          break;
+        }
+        case "Every Tuesday": {
+          if (nextOccuranceWeekday !== "Tuesday") hasWeekdayConflict = true;
+          break;
+        }
+        case "Every Wednesday": {
+          if (nextOccuranceWeekday !== "Wednesday") hasWeekdayConflict = true;
+          break;
+        }
+        case "Every Thursday": {
+          if (nextOccuranceWeekday !== "Thursday") hasWeekdayConflict = true;
+          break;
+        }
+        case "Every Friday": {
+          if (nextOccuranceWeekday !== "Friday") hasWeekdayConflict = true;
+          break;
+        }
+        case "Every Saturday": {
+          if (nextOccuranceWeekday !== "Saturday") hasWeekdayConflict = true;
+          break;
+        }
+      }
+
+      if (hasWeekdayConflict) {
+        return res.status(400).send({
+          msg: "weekday of recurring date must match weekday of next occurence",
+          msgType: "error"
+        });
+      }
     }
 
     const momentStartDateTime = moment.tz(`${startdate} ${starttime}`, timezone);
@@ -278,20 +322,107 @@ exports.POST = (req, res) => {
         msgType: "error"
       });
     }
+
+    if (momentMultidayStartDateTime.isAfter(momentMultidayEndDateTime)) {
+      return res.status(400).send({
+        msg: "multidayBeginDate and multidayBeginTime must come before multidayEndDate and multidayEndTime",
+        msgType: "error"
+      });
+    }
+
+    const momentMultidayBeginDate = moment.tz(multidayBeginDate, timezone);
+    const momentMultidayEndDate = moment.tz(multidayEndDate, timezone);
+    if (momentMultidayBeginDate.isSame(momentMultidayEndDate)) {
+      return res.status(400).send({
+        msg: "multidayBeginDate and multidayEndDate must not be on the same day",
+        msgType: "error"
+      });
+    }
   }
 
-  // TODO:  locationvisibility (discreet vs. public)
+  // country
+  if (country === "") {
+    return res.status(400).send({
+      msg: "country is required",
+      msgType: "error"
+    });
+  }
 
+  // Addresses must constitute at least 2 lines (unless in Japan, or unless coordinates supplied)
+  let numAddressLines = 0;
+  const line1Populated = (addressLine1.length > 0);
+  const line2Populated = (addressLine2.length > 0);
+  const line3Populated = (addressLine3.length > 0);
+  const latPopulated = (latitude.length > 0);
+  const longPopulated = (longitude.length > 0);
+  const isJapan = (country === "jp");
 
+  if (line1Populated) numAddressLines += 1;
+  if (line2Populated) numAddressLines += 1;
+  if (line3Populated) numAddressLines += 1;
 
+  // If only one address line populated
+  if ((numAddressLines === 1) && (!isJapan)) {
+    return res.status(400).send({
+      msg: "event address must have at least 2 lines",
+      msgType: "error"
+    });
+  }
 
+  // If only one coordinate is populated
+  const oneCoordinateSupplied = (latPopulated || longPopulated);
+  const bothCoordinatesSupplied = (latPopulated && longPopulated);
+  if (oneCoordinateSupplied && !bothCoordinatesSupplied) {
+    return res.status(400).send({
+      msg: "both coordinates are required",
+      msgType: "error"
+    });
+  }
 
+  // If neither address nor coordinates were populated
+  if ((!latPopulated) && (!longPopulated) && (numAddressLines === 0)) {
+    return res.status(400).send({
+      msg: "either an address or coordinates are required",
+      msgType: "error"
+    });
+  }
 
+  if (!contactFirstName.length) {
+    return res.status(400).send({
+      msg: "first name is required for contact person",
+      msgType: "error"
+    });
+  }
 
+  if ((!contactPhone.length) && (!contactEmail.length)) {
+    return res.status(400).send({
+      msg: "at least one method of contact is required",
+      msgType: "error"
+    });
+  }
 
+  if (contactPhone.length) {
+    const validatePhone = require("./utils").validatePhone;
+    const isValidPhoneNumber = validatePhone(contactPhone, contactPhoneCountryData.iso2);
+    if (!isValidPhoneNumber) {
+      return res.status(400).send({
+        msg: "invalid phone number",
+        msgType: "error"
+      });
+    }
+  }
 
+  if (contactEmail.length) {
+    const isValidEmail = emailValidator.validate(contactEmail);
+    if (!isValidEmail) {
+      return res.status(400).send({
+        msg: "invalid email",
+        msgType: "error"
+      });
+    }
+  }
 
-  /* // QUERY THE DATABASE
+  /* // TODO:  QUERY THE DATABASE
 
   const sql = ``;
 
