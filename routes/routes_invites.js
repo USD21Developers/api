@@ -32,6 +32,11 @@ router.post(
   passwordMustChange.POST
 ); */
 
+// EVENTS
+
+const eventAdd = require("./controllers_invites/event-add");
+router.post("/event-add", authenticateToken, eventAdd.POST);
+
 // AUTHORIZATION
 
 const authorize = require("./controllers_invites/authorize");
