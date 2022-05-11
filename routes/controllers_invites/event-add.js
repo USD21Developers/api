@@ -29,7 +29,7 @@ exports.POST = (req, res) => {
   const eventdescription = req.body.eventdescription || "";
   const frequency = req.body.frequency || "";
   const duration = req.body.duration || "";
-  const durationInHours = req.body.duration || "";
+  const durationInHours = req.body.durationInHours || "";
   const startdate = req.body.startdate || "";
   const starttime = req.body.starttime || "";
   const multidayBeginDate = req.body.multidayBeginDate || "";
@@ -173,7 +173,7 @@ exports.POST = (req, res) => {
 
     // recurring weekday must match next occurence weekday
     if (frequency !== "once") {
-      const nextOccuranceWeekday = moment.tz(`${startdate} ${starttime}`).format("dddd");
+      const nextOccuranceWeekday = moment.tz(`${startdate} ${starttime}`, timezone).format("dddd");
       let hasWeekdayConflict = false;
       switch (frequency) {
         case "Every Sunday": {
@@ -421,6 +421,8 @@ exports.POST = (req, res) => {
       });
     }
   }
+
+  return res.status(200).send({ msg: "Validation succeeded", msgType: "success" })
 
   /* // TODO:  QUERY THE DATABASE
 
