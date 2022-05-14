@@ -512,7 +512,8 @@ exports.POST = (req, res) => {
       coordinates: (latitude.trim().length && longitude.trim().length) ? `POINT(${latitude.trim()},${longitude.trim()})` : nullValue
     };
     const virtualDetails = attendVirtuallyConnectionDetails.trim().length > 0 ? attendVirtuallyConnectionDetails.trim() : nullValue;
-    const hasvirtual = otherLocationDetails.trim().length ? 1 : 0;
+    const hasvirtual = attendVirtuallyConnectionDetails.trim().length ? 1 : 0;
+    const sqlOtherLocationDetails = otherLocationDetails.trim().length ? otherLocationDetails.trim() : nullValue;
     const contact = {
       firstname: contactFirstName.trim(),
       lastname: contactLastName.trim().length ? contactLastName.trim() : nullValue,
@@ -536,7 +537,7 @@ exports.POST = (req, res) => {
       sqlAddress.line2,
       sqlAddress.line3,
       sqlAddress.coordinates,
-      otherLocationDetails,
+      sqlOtherLocationDetails,
       virtualDetails,
       hasvirtual,
       contact.firstname,
