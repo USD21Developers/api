@@ -1,4 +1,5 @@
-const moment = require("moment-timezone");
+const moment = require("moment");
+const momentTimeZone = require("moment-timezone");
 const emailValidator = require("email-validator");
 
 exports.POST = (req, res) => {
@@ -55,7 +56,7 @@ exports.POST = (req, res) => {
 
   // VALIDATE
 
-  const momentNow = moment.tz(moment(), timezone);
+  const momentNow = momentTimeZone.tz(moment(), timezone);
 
   // language
   if (language.trim().length !== 2) {
@@ -155,7 +156,7 @@ exports.POST = (req, res) => {
       });
     }
 
-    const isValidDate = moment.tz(startdate, timezone).isValid();
+    const isValidDate = momentTimeZone.tz(startdate, timezone).isValid();
     if (!isValidDate) {
       return res.status(400).send({
         msg: "a valid startdate is required",
@@ -173,7 +174,7 @@ exports.POST = (req, res) => {
 
     // recurring weekday must match next occurence weekday
     if (frequency !== "once") {
-      const nextOccuranceWeekday = moment.tz(`${startdate} ${starttime}`, timezone).format("dddd");
+      const nextOccuranceWeekday = momentTimeZone.tz(`${startdate} ${starttime}`, timezone).format("dddd");
       let hasWeekdayConflict = false;
       switch (frequency) {
         case "Every Sunday": {
@@ -214,7 +215,7 @@ exports.POST = (req, res) => {
       }
     }
 
-    const momentStartDateTime = moment.tz(`${startdate} ${starttime}`, timezone);
+    const momentStartDateTime = momentTimeZone.tz(`${startdate} ${starttime}`, timezone);
     const isValidDateTime = momentStartDateTime.isValid();
 
     if (!isValidDateTime) {
@@ -245,7 +246,7 @@ exports.POST = (req, res) => {
       });
     }
 
-    const isValidMultidayBeginDate = moment.tz(multidayBeginDate, timezone).isValid();
+    const isValidMultidayBeginDate = momentTimeZone.tz(multidayBeginDate, timezone).isValid();
     if (!isValidMultidayBeginDate) {
       return res.status(400).send({
         msg: "a valid multidayBeginDate is required",
@@ -261,7 +262,7 @@ exports.POST = (req, res) => {
       });
     }
 
-    const momentMultidayStartDateTime = moment.tz(`${multidayBeginDate} ${multidayBeginTime}`, timezone);
+    const momentMultidayStartDateTime = momentTimeZone.tz(`${multidayBeginDate} ${multidayBeginTime}`, timezone);
     const isValidMultidayStartDateTime = momentMultidayStartDateTime.isValid();
 
     if (!isValidMultidayStartDateTime) {
@@ -288,7 +289,7 @@ exports.POST = (req, res) => {
       });
     }
 
-    const isValidMultidayEndDate = moment.tz(multidayEndDate, timezone).isValid();
+    const isValidMultidayEndDate = momentTimeZone.tz(multidayEndDate, timezone).isValid();
     if (!isValidMultidayEndDate) {
       return res.status(400).send({
         msg: "a valid multidayEndDate is required",
@@ -304,7 +305,7 @@ exports.POST = (req, res) => {
       });
     }
 
-    const momentMultidayEndDateTime = moment.tz(`${multidayEndDate} ${multidayEndTime}`, timezone);
+    const momentMultidayEndDateTime = momentTimeZone.tz(`${multidayEndDate} ${multidayEndTime}`, timezone);
     const isValidMultidayEndDateTime = momentMultidayEndDateTime.isValid();
 
     if (!isValidMultidayEndDateTime) {
@@ -330,8 +331,8 @@ exports.POST = (req, res) => {
       });
     }
 
-    const momentMultidayBeginDate = moment.tz(multidayBeginDate, timezone);
-    const momentMultidayEndDate = moment.tz(multidayEndDate, timezone);
+    const momentMultidayBeginDate = momentTimeZone.tz(multidayBeginDate, timezone);
+    const momentMultidayEndDate = momentTimeZone.tz(multidayEndDate, timezone);
     if (momentMultidayBeginDate.isSame(momentMultidayEndDate)) {
       return res.status(400).send({
         msg: "multidayBeginDate and multidayEndDate must not be on the same day",
@@ -422,18 +423,138 @@ exports.POST = (req, res) => {
     }
   }
 
-  return res.status(200).send({ msg: "Validation succeeded", msgType: "success" })
+  const sqlStartDate = startdate.length ? momentTimeZone.tz(moment(`${startdate} ${starttime}`), timezone) : moment("");
+  const sqlMultidayStart = multidayBeginDate.length ? momentTimeZone.tz(moment(`${multidayBeginDate} ${multidayBeginTime}`), timezone) : moment("");
+  const sqlMultidayEnd = multidayEndDate.length ? momentTimeZone.tz(moment(`${multidayEndDate} ${multidayEndTime}`), timezone) : moment("");
+  const nullValue = null;
+  const sqlDates = {
+    startdate: sqlStartDate.isValid() ? `${sqlStartDate.format()}` : nullValue,
+    multidayStart: sqlMultidayStart.isValid() ? `= ${sqlMultidayStart.format()}` : nullValue,
+    multidayEnd: sqlMultidayEnd.isValid() ? `= ${sqlMultidayEnd.format()}` : nullValue
+  }
 
-  /* // TODO:  QUERY THE DATABASE
+  const sql = `
+    SELECT
+      eventid,
+      type,
+      title,
+      startdate,
+      multidaybegindate,
+      multidayenddate
+    FROM
+      events
+    WHERE
+      type = ?
+    AND
+      title = ?
+    AND
+      startdate = ?
+    AND
+      multidaybegindate = ?
+    AND
+      multidayenddate = ?
+    LIMIT 1
+    ;
+  `;
 
-  const sql = ``;
-
-  db.query(sql, [], (error, result) => {
-    if (error)
+  db.query(sql, [eventtype, eventtitle, sqlDates.startdate, sqlDates.multidayStart, sqlDates.multidayEnd], (error, result) => {
+    if (error) {
+      console.log(error);
       return res
         .status(500)
-        .send({ msg: "", msgType: "error" });
-    if (!result.length)
-      return res.status(404).send({ msg: "", msgType: "error" });
-  }); */
+        .send({ msg: "unable to query for duplicate events", msgType: "error", error: error });
+    }
+    if (result.length) {
+      return res.status(404).send({ msg: "duplicate event", msgType: "error", eventid: result[0].eventid });
+    }
+
+    const sql = `
+        INSERT INTO events(
+          churchid,
+          type,
+          title,
+          description,
+          frequency,
+          startdate,
+          duration,
+          durationInHours,
+          multidayBeginDate,
+          multidayEndDate,
+          locationvisibility,
+          locationaddressline1,
+          locationaddressline2,
+          locationaddressline3,
+          locationcoordinates,
+          otherlocationdetails,
+          virtualconnectiondetails,
+          hasvirtual,
+          contactfirstname,
+          contactlastname,
+          contactemail,
+          contactphone,
+          contactphonecountrydata,
+          country,
+          lang,
+          createdBy,
+          createdAt
+        ) VALUES (
+          (SELECT churchid FROM users WHERE userid = ${req.user.userid} LIMIT 1),
+          ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+          UTC_TIMESTAMP()
+        )
+      `;
+
+    const sqlDuration = duration.trim().length ? duration.trim() : nullValue;
+    const sqlAddress = {
+      line1: `${addressLine1.trim().length ? addressLine1.trim() : ""}`,
+      line2: `${addressLine2.trim().length ? addressLine2.trim() : ""}`,
+      line3: `${addressLine3.trim().length ? addressLine3.trim() : ""}`,
+      coordinates: (latitude.trim().length && longitude.trim().length) ? `POINT(${latitude.trim()},${longitude.trim()})` : nullValue
+    };
+    const virtualDetails = attendVirtuallyConnectionDetails.trim().length > 0 ? attendVirtuallyConnectionDetails.trim() : nullValue;
+    const hasvirtual = otherLocationDetails.trim().length ? 1 : 0;
+    const contact = {
+      firstname: contactFirstName.trim(),
+      lastname: contactLastName.trim().length ? contactLastName.trim() : nullValue,
+      phone: contactPhone.trim().length ? contactPhone.trim() : nullValue,
+      phonedata: typeof contactPhoneCountryData === "object" ? JSON.stringify(contactPhoneCountryData) : nullValue,
+      email: contactEmail.trim().length ? contactEmail.trim().toLowerCase() : nullValue
+    };
+
+    db.query(sql, [
+      eventtype,
+      eventtitle,
+      eventdescription,
+      frequency,
+      sqlDates.startdate,
+      sqlDuration,
+      durationInHours,
+      sqlDates.multidayStart,
+      sqlDates.multidayEnd,
+      locationvisibility,
+      sqlAddress.line1,
+      sqlAddress.line2,
+      sqlAddress.line3,
+      sqlAddress.coordinates,
+      otherLocationDetails,
+      virtualDetails,
+      hasvirtual,
+      contact.firstname,
+      contact.lastname,
+      contact.email,
+      contact.phone,
+      contact.phonedata,
+      country,
+      language,
+      req.user.userid
+    ], (error, result) => {
+      if (error) {
+        console.log(error);
+        return res
+          .status(500)
+          .send({ msg: "unable to insert new event", msgType: "error", error: error });
+      }
+      return res.status(200).send({ msg: "event added", msgType: "success", id: result.insertId })
+    });
+  });
 };
