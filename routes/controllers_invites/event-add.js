@@ -506,9 +506,9 @@ exports.POST = (req, res) => {
 
     const sqlDuration = duration.trim().length ? duration.trim() : nullValue;
     const sqlAddress = {
-      line1: `${addressLine1.trim().length ? addressLine1.trim() : ""}`,
-      line2: `${addressLine2.trim().length ? addressLine2.trim() : ""}`,
-      line3: `${addressLine3.trim().length ? addressLine3.trim() : ""}`,
+      line1: addressLine1.trim().length ? addressLine1.trim() : nullValue,
+      line2: addressLine2.trim().length ? addressLine2.trim() : nullValue,
+      line3: addressLine3.trim().length ? addressLine3.trim() : nullValue,
       coordinates: (latitude.trim().length && longitude.trim().length) ? `POINT(${latitude.trim()},${longitude.trim()})` : nullValue
     };
     const virtualDetails = attendVirtuallyConnectionDetails.trim().length > 0 ? attendVirtuallyConnectionDetails.trim() : nullValue;
