@@ -525,6 +525,7 @@ exports.POST = (req, res) => {
       const sql = `
         SELECT
           eventid,
+          type,
           frequency
         FROM
           events
@@ -532,6 +533,8 @@ exports.POST = (req, res) => {
           createdBy = ?
         AND
           churchid = ?
+        AND
+          type = ?
         AND
           type <> "other"
         AND
@@ -542,7 +545,7 @@ exports.POST = (req, res) => {
         ;
       `;
 
-      db.query(sql, [req.user.userid, churchid, sqlWeekday], (error, result) => {
+      db.query(sql, [req.user.userid, churchid, eventtype, sqlWeekday], (error, result) => {
         if (error) {
           console.log(error);
           return res
