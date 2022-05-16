@@ -423,51 +423,79 @@ exports.POST = (req, res) => {
     }
   }
 
-  const sqlStartDate = startdate.length ? momentTimeZone.tz(moment(`${startdate} ${starttime}`), timezone) : moment("");
-  const sqlMultidayStart = multidayBeginDate.length ? momentTimeZone.tz(moment(`${multidayBeginDate} ${multidayBeginTime}`), timezone) : moment("");
-  const sqlMultidayEnd = multidayEndDate.length ? momentTimeZone.tz(moment(`${multidayEndDate} ${multidayEndTime}`), timezone) : moment("");
-  const sqlDates = {
-    startdate: sqlStartDate.isValid() ? `${sqlStartDate.format()}` : null,
-    multidayStart: sqlMultidayStart.isValid() ? `= ${sqlMultidayStart.format()}` : null,
-    multidayEnd: sqlMultidayEnd.isValid() ? `= ${sqlMultidayEnd.format()}` : null
-  }
-
   const sql = `
     SELECT
-      eventid,
-      type,
-      title,
-      startdate,
-      multidaybegindate,
-      multidayenddate
+      churchid
     FROM
-      events
+      users
     WHERE
-      type = ?
-    AND
-      title = ?
-    AND
-      startdate ${sqlDates.startdate === null ? "IS NULL" : "= ?"}
-    AND
-      multidaybegindate ${sqlDates.multidayStart === null ? "IS NULL" : "= ?"}
-    AND
-      multidayenddate ${sqlDates.multidayEnd === null ? "IS NULL" : "= ?"}
+      userid = ?
     LIMIT 1
     ;
   `;
 
-  db.query(sql, [eventtype, eventtitle, sqlDates.startdate, sqlDates.multidayStart, sqlDates.multidayEnd], (error, result) => {
+  db.query(sql, [req.user.userid], (error, result) => {
     if (error) {
       console.log(error);
       return res
         .status(500)
-        .send({ msg: "unable to query for duplicate events", msgType: "error", error: error });
+        .send({ msg: "unable to query for church id", msgType: "error", error: error });
     }
-    if (result.length) {
-      return res.status(400).send({ msg: "duplicate event", msgType: "error", eventid: result[0].eventid });
+    if (!result.length) {
+      return res.status(400).send({ msg: "invalid user", msgType: "error" });
+    }
+
+    const churchid = result[0].churchid;
+
+    const sqlStartDate = startdate.length ? momentTimeZone.tz(moment(`${startdate} ${starttime}`), timezone) : moment("");
+    const sqlMultidayStart = multidayBeginDate.length ? momentTimeZone.tz(moment(`${multidayBeginDate} ${multidayBeginTime}`), timezone) : moment("");
+    const sqlMultidayEnd = multidayEndDate.length ? momentTimeZone.tz(moment(`${multidayEndDate} ${multidayEndTime}`), timezone) : moment("");
+    const sqlDates = {
+      startdate: sqlStartDate.isValid() ? `${sqlStartDate.format()}` : null,
+      multidayStart: sqlMultidayStart.isValid() ? `= ${sqlMultidayStart.format()}` : null,
+      multidayEnd: sqlMultidayEnd.isValid() ? `= ${sqlMultidayEnd.format()}` : null
     }
 
     const sql = `
+      SELECT
+        eventid
+      FROM
+        events
+      WHERE
+        createdBy = ?
+      AND
+        churchid = ?
+      AND
+        type = ?
+      AND
+        title = ?
+      AND
+        startdate ${sqlDates.startdate === null ? "IS NULL" : "= ?"}
+      AND
+        multidaybegindate ${sqlDates.multidayStart === null ? "IS NULL" : "= ?"}
+      AND
+        multidayenddate ${sqlDates.multidayEnd === null ? "IS NULL" : "= ?"}
+      LIMIT 1
+      ;
+    `;
+
+    const sqlArray = [req.user.userid, churchid, eventtype, eventtitle];
+    if (sqlDates.startdate !== null) sqlArray.push(sqlDates.startdate);
+    if (sqlDates.multidayStart !== null) sqlArray.push(sqlDates.multidayStart);
+    if (sqlDates.multidayEnd !== null) sqlArray.push(sqlDates.multidayEnd);
+
+    db.query(sql, sqlArray, (error, result) => {
+      if (error) {
+        console.log(error);
+        return res
+          .status(500)
+          .send({ msg: "unable to query for duplicate events", msgType: "error", error: error });
+      }
+      if (result.length) {
+        return res.status(400).send({ msg: "duplicate event", msgType: "error", eventid: result[0].eventid });
+      }
+
+      const sql = `
         INSERT INTO events(
           churchid,
           type,
@@ -497,64 +525,65 @@ exports.POST = (req, res) => {
           createdBy,
           createdAt
         ) VALUES (
-          (SELECT churchid FROM users WHERE userid = ${req.user.userid} LIMIT 1),
-          ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+          ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
           UTC_TIMESTAMP()
         )
       `;
 
-    const sqlDuration = duration.trim().length ? duration.trim() : null;
-    const sqlAddress = {
-      line1: addressLine1.trim().length ? addressLine1.trim() : null,
-      line2: addressLine2.trim().length ? addressLine2.trim() : null,
-      line3: addressLine3.trim().length ? addressLine3.trim() : null,
-      coordinates: (latitude.trim().length && longitude.trim().length) ? `POINT(${latitude.trim()},${longitude.trim()})` : null
-    };
-    const virtualDetails = attendVirtuallyConnectionDetails.trim().length > 0 ? attendVirtuallyConnectionDetails.trim() : null;
-    const hasvirtual = attendVirtuallyConnectionDetails.trim().length ? 1 : 0;
-    const sqlOtherLocationDetails = otherLocationDetails.trim().length ? otherLocationDetails.trim() : null;
-    const contact = {
-      firstname: contactFirstName.trim(),
-      lastname: contactLastName.trim().length ? contactLastName.trim() : null,
-      phone: contactPhone.trim().length ? contactPhone.trim() : null,
-      phonedata: typeof contactPhoneCountryData === "object" ? JSON.stringify(contactPhoneCountryData) : null,
-      email: contactEmail.trim().length ? contactEmail.trim().toLowerCase() : null
-    };
+      const sqlDuration = duration.trim().length ? duration.trim() : null;
+      const sqlAddress = {
+        line1: addressLine1.trim().length ? addressLine1.trim() : null,
+        line2: addressLine2.trim().length ? addressLine2.trim() : null,
+        line3: addressLine3.trim().length ? addressLine3.trim() : null,
+        coordinates: (latitude.trim().length && longitude.trim().length) ? `POINT(${latitude.trim()},${longitude.trim()})` : null
+      };
+      const virtualDetails = attendVirtuallyConnectionDetails.trim().length > 0 ? attendVirtuallyConnectionDetails.trim() : null;
+      const hasvirtual = attendVirtuallyConnectionDetails.trim().length ? 1 : 0;
+      const sqlOtherLocationDetails = otherLocationDetails.trim().length ? otherLocationDetails.trim() : null;
+      const contact = {
+        firstname: contactFirstName.trim(),
+        lastname: contactLastName.trim().length ? contactLastName.trim() : null,
+        phone: contactPhone.trim().length ? contactPhone.trim() : null,
+        phonedata: typeof contactPhoneCountryData === "object" ? JSON.stringify(contactPhoneCountryData) : null,
+        email: contactEmail.trim().length ? contactEmail.trim().toLowerCase() : null
+      };
 
-    db.query(sql, [
-      eventtype,
-      eventtitle,
-      eventdescription,
-      frequency,
-      sqlDates.startdate,
-      sqlDuration,
-      durationInHours,
-      sqlDates.multidayStart,
-      sqlDates.multidayEnd,
-      locationvisibility,
-      sqlAddress.line1,
-      sqlAddress.line2,
-      sqlAddress.line3,
-      sqlAddress.coordinates,
-      sqlOtherLocationDetails,
-      virtualDetails,
-      hasvirtual,
-      contact.firstname,
-      contact.lastname,
-      contact.email,
-      contact.phone,
-      contact.phonedata,
-      country,
-      language,
-      req.user.userid
-    ], (error, result) => {
-      if (error) {
-        console.log(error);
-        return res
-          .status(500)
-          .send({ msg: "unable to insert new event", msgType: "error", error: error });
-      }
-      return res.status(200).send({ msg: "event added", msgType: "success", id: result.insertId })
+      db.query(sql, [
+        churchid,
+        eventtype,
+        eventtitle,
+        eventdescription,
+        frequency,
+        sqlDates.startdate,
+        sqlDuration,
+        durationInHours,
+        sqlDates.multidayStart,
+        sqlDates.multidayEnd,
+        locationvisibility,
+        sqlAddress.line1,
+        sqlAddress.line2,
+        sqlAddress.line3,
+        sqlAddress.coordinates,
+        sqlOtherLocationDetails,
+        virtualDetails,
+        hasvirtual,
+        contact.firstname,
+        contact.lastname,
+        contact.email,
+        contact.phone,
+        contact.phonedata,
+        country,
+        language,
+        req.user.userid
+      ], (error, result) => {
+        if (error) {
+          console.log(error);
+          return res
+            .status(500)
+            .send({ msg: "unable to insert new event", msgType: "error", error: error });
+        }
+        return res.status(200).send({ msg: "event added", msgType: "success", id: result.insertId })
+      });
     });
   });
 };
