@@ -533,6 +533,8 @@ exports.POST = (req, res) => {
         AND
           churchid = ?
         AND
+          type <> "other"
+        AND
           frequency <> 'once'
         AND
           WEEKDAY(startdate) = ?
