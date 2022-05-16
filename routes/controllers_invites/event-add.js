@@ -426,11 +426,10 @@ exports.POST = (req, res) => {
   const sqlStartDate = startdate.length ? momentTimeZone.tz(moment(`${startdate} ${starttime}`), timezone) : moment("");
   const sqlMultidayStart = multidayBeginDate.length ? momentTimeZone.tz(moment(`${multidayBeginDate} ${multidayBeginTime}`), timezone) : moment("");
   const sqlMultidayEnd = multidayEndDate.length ? momentTimeZone.tz(moment(`${multidayEndDate} ${multidayEndTime}`), timezone) : moment("");
-  const nullValue = null;
   const sqlDates = {
-    startdate: sqlStartDate.isValid() ? `${sqlStartDate.format()}` : nullValue,
-    multidayStart: sqlMultidayStart.isValid() ? `= ${sqlMultidayStart.format()}` : nullValue,
-    multidayEnd: sqlMultidayEnd.isValid() ? `= ${sqlMultidayEnd.format()}` : nullValue
+    startdate: sqlStartDate.isValid() ? `${sqlStartDate.format()}` : null,
+    multidayStart: sqlMultidayStart.isValid() ? `= ${sqlMultidayStart.format()}` : null,
+    multidayEnd: sqlMultidayEnd.isValid() ? `= ${sqlMultidayEnd.format()}` : null
   }
 
   const sql = `
@@ -448,11 +447,11 @@ exports.POST = (req, res) => {
     AND
       title = ?
     AND
-      startdate = ?
+      startdate ${sqlDates.startdate === null ? "IS NULL" : "= ?"}
     AND
-      multidaybegindate = ?
+      multidaybegindate ${sqlDates.multidayStart === null ? "IS NULL" : "= ?"}
     AND
-      multidayenddate = ?
+      multidayenddate ${sqlDates.multidayEnd === null ? "IS NULL" : "= ?"}
     LIMIT 1
     ;
   `;
@@ -465,7 +464,7 @@ exports.POST = (req, res) => {
         .send({ msg: "unable to query for duplicate events", msgType: "error", error: error });
     }
     if (result.length) {
-      return res.status(404).send({ msg: "duplicate event", msgType: "error", eventid: result[0].eventid });
+      return res.status(400).send({ msg: "duplicate event", msgType: "error", eventid: result[0].eventid });
     }
 
     const sql = `
@@ -504,22 +503,22 @@ exports.POST = (req, res) => {
         )
       `;
 
-    const sqlDuration = duration.trim().length ? duration.trim() : nullValue;
+    const sqlDuration = duration.trim().length ? duration.trim() : null;
     const sqlAddress = {
-      line1: addressLine1.trim().length ? addressLine1.trim() : nullValue,
-      line2: addressLine2.trim().length ? addressLine2.trim() : nullValue,
-      line3: addressLine3.trim().length ? addressLine3.trim() : nullValue,
-      coordinates: (latitude.trim().length && longitude.trim().length) ? `POINT(${latitude.trim()},${longitude.trim()})` : nullValue
+      line1: addressLine1.trim().length ? addressLine1.trim() : null,
+      line2: addressLine2.trim().length ? addressLine2.trim() : null,
+      line3: addressLine3.trim().length ? addressLine3.trim() : null,
+      coordinates: (latitude.trim().length && longitude.trim().length) ? `POINT(${latitude.trim()},${longitude.trim()})` : null
     };
-    const virtualDetails = attendVirtuallyConnectionDetails.trim().length > 0 ? attendVirtuallyConnectionDetails.trim() : nullValue;
+    const virtualDetails = attendVirtuallyConnectionDetails.trim().length > 0 ? attendVirtuallyConnectionDetails.trim() : null;
     const hasvirtual = attendVirtuallyConnectionDetails.trim().length ? 1 : 0;
-    const sqlOtherLocationDetails = otherLocationDetails.trim().length ? otherLocationDetails.trim() : nullValue;
+    const sqlOtherLocationDetails = otherLocationDetails.trim().length ? otherLocationDetails.trim() : null;
     const contact = {
       firstname: contactFirstName.trim(),
-      lastname: contactLastName.trim().length ? contactLastName.trim() : nullValue,
-      phone: contactPhone.trim().length ? contactPhone.trim() : nullValue,
-      phonedata: typeof contactPhoneCountryData === "object" ? JSON.stringify(contactPhoneCountryData) : nullValue,
-      email: contactEmail.trim().length ? contactEmail.trim().toLowerCase() : nullValue
+      lastname: contactLastName.trim().length ? contactLastName.trim() : null,
+      phone: contactPhone.trim().length ? contactPhone.trim() : null,
+      phonedata: typeof contactPhoneCountryData === "object" ? JSON.stringify(contactPhoneCountryData) : null,
+      email: contactEmail.trim().length ? contactEmail.trim().toLowerCase() : null
     };
 
     db.query(sql, [
