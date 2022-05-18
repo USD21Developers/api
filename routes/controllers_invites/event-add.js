@@ -524,9 +524,7 @@ exports.POST = (req, res) => {
 
       const sql = `
         SELECT
-          eventid,
-          type,
-          frequency
+          title
         FROM
           events
         WHERE
@@ -553,7 +551,7 @@ exports.POST = (req, res) => {
             .send({ msg: "unable to query for overlapping recurring events", msgType: "error", error: error });
         }
         if (result.length) {
-          return res.status(400).send({ msg: "overlapping recurring event", msgType: "error", eventid: result[0].eventid, frequency: result[0].frequency });
+          return res.status(400).send({ msg: "overlapping recurring event", msgType: "error", title: result[0].title });
         }
 
         const sql = `
