@@ -162,6 +162,12 @@ exports.POST = (req, res) => {
         canAuthToAuth = 1;
       }
 
+      const isPrivilegedEmailAccount = require("./utils").isPrivilegedEmailAccount;
+      if (isPrivilegedEmailAccount(email)) {
+        isAuthorized = 1;
+        canAuthorize = 1;
+      }
+
       // Derive symmetric encryption key from password
       const kekSalt = crypto.randomBytes(32);
       const kekSaltBase64 = new Buffer.from(kekSalt).toString("base64");
