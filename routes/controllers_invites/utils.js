@@ -22,6 +22,25 @@ exports.authenticateToken = (req, res, next) => {
   );
 };
 
+exports.isPrivilegedEmailAccount = (email = "") => {
+  const privilegedDomains = ["usd21.org"];
+  let isPrivilegedEmail = false;
+
+  // Validate
+  const validator = require("email-validator");
+  if (!validator.validate(email)) return false;
+
+  // Format
+  const validEmail = email.trim().toLowerCase();
+  
+  // Match
+  privilegedDomains.forEach(item => {
+      if (validEmail.endsWith(`@${item}`)) isPrivilegedEmail = true;
+  });
+
+  return isPrivilegedEmail;
+}
+
 exports.sendSms = (recipient, content) => {
   const twilio = require("twilio");
   const client = new twilio(
