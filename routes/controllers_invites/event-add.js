@@ -404,10 +404,22 @@ exports.POST = (req, res) => {
 
   if (contactPhone.length) {
     const validatePhone = require("./utils").validatePhone;
-    const isValidPhoneNumber = validatePhone(contactPhone, contactPhoneCountryData.iso2);
+    const { isPossibleNumber, isValidForRegion, isValidSmsType } = validatePhone(contactPhone, contactPhoneCountryData.iso2);
+    let isValidPhoneNumber = true;
+    let msg = "";
+    if (!isPossibleNumber) {
+      isValidPhoneNumber = false;
+      msg = "invalid phone number";
+    } else if (!isValidForRegion) {
+      isValidPhoneNumber = false;
+      msg = "invalid phone number for region";
+    } else if (!isValidSmsType) {
+      isValidPhoneNumber = false;
+      msg = "invalid phone number for sms";
+    }
     if (!isValidPhoneNumber) {
       return res.status(400).send({
-        msg: "invalid phone number",
+        msg: msg,
         msgType: "error"
       });
     }
