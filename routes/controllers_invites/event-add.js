@@ -30,7 +30,7 @@ exports.POST = (req, res) => {
   const eventdescription = req.body.eventdescription || "";
   const frequency = req.body.frequency || "";
   const duration = req.body.duration || "";
-  const durationInHours = req.body.durationInHours || "";
+  let durationInHours = req.body.durationInHours || "";
   const startdate = req.body.startdate || "";
   const starttime = req.body.starttime || "";
   const multidayBeginDate = req.body.multidayBeginDate || "";
@@ -138,6 +138,7 @@ exports.POST = (req, res) => {
       });
     }
   }
+  if (duration === "multiple days") durationInHours = "";
 
   // time zone
   if (!timezone.length) {
@@ -507,34 +508,37 @@ exports.POST = (req, res) => {
         return res.status(400).send({ msg: "duplicate event", msgType: "error", eventid: result[0].eventid });
       }
 
-      const momentStartDateTime = momentTimeZone.tz(moment(`${startdate} ${starttime}`), timezone);
+      if (moment(startdate).isValid()) {
+        const momentStartDateTime = momentTimeZone.tz(moment(`${startdate} ${starttime}`), timezone);
 
-      let sqlWeekday = parseInt(momentStartDateTime.format("d"));
-      switch (sqlWeekday) {
-        case 0:
-          sqlWeekday = 6;
-          break;
-        case 1:
-          sqlWeekday = 0;
-          break;
-        case 2:
-          sqlWeekday = 1;
-          break;
-        case 3:
-          sqlWeekday = 2;
-          break;
-        case 4:
-          sqlWeekday = 3;
-          break;
-        case 5:
-          sqlWeekday = 4;
-          break;
-        case 6:
-          sqlWeekday = 5;
-          break;
+        let sqlWeekday = parseInt(momentStartDateTime.format("d"));
+        switch (sqlWeekday) {
+          case 0:
+            sqlWeekday = 6;
+            break;
+          case 1:
+            sqlWeekday = 0;
+            break;
+          case 2:
+            sqlWeekday = 1;
+            break;
+          case 3:
+            sqlWeekday = 2;
+            break;
+          case 4:
+            sqlWeekday = 3;
+            break;
+          case 5:
+            sqlWeekday = 4;
+            break;
+          case 6:
+            sqlWeekday = 5;
+            break;
+        }
       }
 
-      const sql = `
+      let sqlArray = "req.user.userid, churchid, eventtype, sqlWeekday";
+      let sql = `
         SELECT
           title
         FROM
@@ -555,7 +559,21 @@ exports.POST = (req, res) => {
         ;
       `;
 
-      db.query(sql, [req.user.userid, churchid, eventtype, sqlWeekday], (error, result) => {
+      if (frequency === "once") {
+        sql = `
+          SELECT
+            eventid
+          FROM
+            events
+          WHERE
+            eventid = 0
+          ;
+        `;
+        durationInHours = null;
+        sqlArray = [];
+      }
+
+      db.query(sql, sqlArray, (error, result) => {
         if (error) {
           console.log(error);
           return res
