@@ -156,7 +156,7 @@ exports.POST = (req, res) => {
       });
     }
 
-    const isValidDate = momentTimeZone.tz(startdate, timezone).isValid();
+    const isValidDate = momentTimeZone.tz(moment(startdate), timezone).isValid();
     if (!isValidDate) {
       return res.status(400).send({
         msg: "a valid startdate is required",
@@ -174,7 +174,7 @@ exports.POST = (req, res) => {
 
     // recurring weekday must match next occurence weekday
     if (frequency !== "once") {
-      const nextOccuranceWeekday = momentTimeZone.tz(`${startdate} ${starttime}`, timezone).format("dddd");
+      const nextOccuranceWeekday = momentTimeZone.tz(moment(`${startdate} ${starttime}`), timezone).format("dddd");
       let hasWeekdayConflict = false;
       switch (frequency) {
         case "Every Sunday": {
@@ -215,7 +215,7 @@ exports.POST = (req, res) => {
       }
     }
 
-    const momentStartDateTime = momentTimeZone.tz(`${startdate} ${starttime}`, timezone);
+    const momentStartDateTime = momentTimeZone.tz(moment(`${startdate} ${starttime}`), timezone);
     const isValidDateTime = momentStartDateTime.isValid();
 
     if (!isValidDateTime) {
@@ -262,7 +262,7 @@ exports.POST = (req, res) => {
       });
     }
 
-    const momentMultidayStartDateTime = momentTimeZone.tz(`${multidayBeginDate} ${multidayBeginTime}`, timezone);
+    const momentMultidayStartDateTime = momentTimeZone.tz(moment(`${multidayBeginDate} ${multidayBeginTime}`), timezone);
     const isValidMultidayStartDateTime = momentMultidayStartDateTime.isValid();
 
     if (!isValidMultidayStartDateTime) {
@@ -305,7 +305,7 @@ exports.POST = (req, res) => {
       });
     }
 
-    const momentMultidayEndDateTime = momentTimeZone.tz(`${multidayEndDate} ${multidayEndTime}`, timezone);
+    const momentMultidayEndDateTime = momentTimeZone.tz(moment(`${multidayEndDate} ${multidayEndTime}`), timezone);
     const isValidMultidayEndDateTime = momentMultidayEndDateTime.isValid();
 
     if (!isValidMultidayEndDateTime) {
@@ -315,7 +315,7 @@ exports.POST = (req, res) => {
       });
     }
 
-    const multidayEndDateIsInThePast = momentNow.isAfter(isValidMultidayEndDateTime) ? true : false;
+    const multidayEndDateIsInThePast = momentNow.isAfter(momentMultidayEndDateTime) ? true : false;
 
     if (multidayEndDateIsInThePast) {
       return res.status(400).send({
@@ -464,8 +464,8 @@ exports.POST = (req, res) => {
     const sqlMultidayEnd = multidayEndDate.length ? momentTimeZone.tz(moment(`${multidayEndDate} ${multidayEndTime}`), timezone) : moment("");
     const sqlDates = {
       startdate: sqlStartDate.isValid() ? `${sqlStartDate.format()}` : null,
-      multidayStart: sqlMultidayStart.isValid() ? `= ${sqlMultidayStart.format()}` : null,
-      multidayEnd: sqlMultidayEnd.isValid() ? `= ${sqlMultidayEnd.format()}` : null
+      multidayStart: sqlMultidayStart.isValid() ? `${sqlMultidayStart.format()}` : null,
+      multidayEnd: sqlMultidayEnd.isValid() ? `${sqlMultidayEnd.format()}` : null
     }
 
     const sql = `
@@ -507,7 +507,7 @@ exports.POST = (req, res) => {
         return res.status(400).send({ msg: "duplicate event", msgType: "error", eventid: result[0].eventid });
       }
 
-      const momentStartDateTime = momentTimeZone.tz(`${startdate} ${starttime}`, timezone);
+      const momentStartDateTime = momentTimeZone.tz(moment(`${startdate} ${starttime}`), timezone);
 
       let sqlWeekday = parseInt(momentStartDateTime.format("d"));
       switch (sqlWeekday) {
