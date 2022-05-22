@@ -56,7 +56,7 @@ exports.POST = (req, res) => {
 
   // VALIDATE
 
-  const momentNow = momentTimeZone.tz(moment(), timezone);
+  const momentNow = momentTimeZone.tz(moment().format(), timezone);
 
   // language
   if (language.trim().length !== 2) {
@@ -157,7 +157,7 @@ exports.POST = (req, res) => {
       });
     }
 
-    const isValidDate = momentTimeZone.tz(moment(startdate), timezone).isValid();
+    const isValidDate = momentTimeZone.tz(moment(startdate).format(), timezone).isValid();
     if (!isValidDate) {
       return res.status(400).send({
         msg: "a valid startdate is required",
@@ -175,7 +175,7 @@ exports.POST = (req, res) => {
 
     // recurring weekday must match next occurence weekday
     if (frequency !== "once") {
-      const nextOccuranceWeekday = momentTimeZone.tz(moment(`${startdate} ${starttime}`), timezone).format("dddd");
+      const nextOccuranceWeekday = momentTimeZone.tz(moment(`${startdate} ${starttime}`).format(), timezone).format("dddd");
       let hasWeekdayConflict = false;
       switch (frequency) {
         case "Every Sunday": {
@@ -216,7 +216,7 @@ exports.POST = (req, res) => {
       }
     }
 
-    const momentStartDateTime = momentTimeZone.tz(moment(`${startdate} ${starttime}`), timezone);
+    const momentStartDateTime = momentTimeZone.tz(moment(`${startdate} ${starttime}`).format(), timezone);
     const isValidDateTime = momentStartDateTime.isValid();
 
     if (!isValidDateTime) {
@@ -263,7 +263,7 @@ exports.POST = (req, res) => {
       });
     }
 
-    const momentMultidayStartDateTime = momentTimeZone.tz(moment(`${multidayBeginDate} ${multidayBeginTime}`), timezone);
+    const momentMultidayStartDateTime = momentTimeZone.tz(moment(`${multidayBeginDate} ${multidayBeginTime}`).format(), timezone);
     const isValidMultidayStartDateTime = momentMultidayStartDateTime.isValid();
 
     if (!isValidMultidayStartDateTime) {
@@ -290,7 +290,7 @@ exports.POST = (req, res) => {
       });
     }
 
-    const isValidMultidayEndDate = momentTimeZone.tz(multidayEndDate, timezone).isValid();
+    const isValidMultidayEndDate = momentTimeZone.tz(moment(multidayEndDate).format(), timezone).isValid();
     if (!isValidMultidayEndDate) {
       return res.status(400).send({
         msg: "a valid multidayEndDate is required",
@@ -306,7 +306,7 @@ exports.POST = (req, res) => {
       });
     }
 
-    const momentMultidayEndDateTime = momentTimeZone.tz(moment(`${multidayEndDate} ${multidayEndTime}`), timezone);
+    const momentMultidayEndDateTime = momentTimeZone.tz(moment(`${multidayEndDate} ${multidayEndTime}`).format(), timezone);
     const isValidMultidayEndDateTime = momentMultidayEndDateTime.isValid();
 
     if (!isValidMultidayEndDateTime) {
@@ -332,8 +332,8 @@ exports.POST = (req, res) => {
       });
     }
 
-    const momentMultidayBeginDate = momentTimeZone.tz(multidayBeginDate, timezone);
-    const momentMultidayEndDate = momentTimeZone.tz(multidayEndDate, timezone);
+    const momentMultidayBeginDate = momentTimeZone.tz(moment(multidayBeginDate).format(), timezone);
+    const momentMultidayEndDate = momentTimeZone.tz(moment(multidayEndDate).format(), timezone);
     if (momentMultidayBeginDate.isSame(momentMultidayEndDate)) {
       return res.status(400).send({
         msg: "multidayBeginDate and multidayEndDate must not be on the same day",
@@ -460,9 +460,9 @@ exports.POST = (req, res) => {
 
     const churchid = result[0].churchid;
 
-    const sqlStartDate = startdate.length ? momentTimeZone.tz(moment(`${startdate} ${starttime}`), timezone) : moment("");
-    const sqlMultidayStart = multidayBeginDate.length ? momentTimeZone.tz(moment(`${multidayBeginDate} ${multidayBeginTime}`), timezone) : moment("");
-    const sqlMultidayEnd = multidayEndDate.length ? momentTimeZone.tz(moment(`${multidayEndDate} ${multidayEndTime}`), timezone) : moment("");
+    const sqlStartDate = startdate.length ? momentTimeZone.tz(moment(`${startdate} ${starttime}`).format(), timezone) : moment("");
+    const sqlMultidayStart = multidayBeginDate.length ? momentTimeZone.tz(moment(`${multidayBeginDate} ${multidayBeginTime}`).format(), timezone) : moment("");
+    const sqlMultidayEnd = multidayEndDate.length ? momentTimeZone.tz(moment(`${multidayEndDate} ${multidayEndTime}`).format(), timezone) : moment("");
     const sqlDates = {
       startdate: sqlStartDate.isValid() ? `${sqlStartDate.format()}` : null,
       multidayStart: sqlMultidayStart.isValid() ? `${sqlMultidayStart.format()}` : null,
@@ -492,7 +492,7 @@ exports.POST = (req, res) => {
       ;
     `;
 
-    const sqlArray = [req.user.userid, churchid, eventtype, eventtitle];
+    let sqlArray = [req.user.userid, churchid, eventtype, eventtitle];
     if (sqlDates.startdate !== null) sqlArray.push(sqlDates.startdate);
     if (sqlDates.multidayStart !== null) sqlArray.push(sqlDates.multidayStart);
     if (sqlDates.multidayEnd !== null) sqlArray.push(sqlDates.multidayEnd);
@@ -508,10 +508,11 @@ exports.POST = (req, res) => {
         return res.status(400).send({ msg: "duplicate event", msgType: "error", eventid: result[0].eventid });
       }
 
-      if (moment(startdate).isValid()) {
-        const momentStartDateTime = momentTimeZone.tz(moment(`${startdate} ${starttime}`), timezone);
+      const momentStartDateTime = momentTimeZone.tz(moment(`${startdate} ${starttime}`).format(), timezone);
+      let sql = "";
+      let sqlWeekday = parseInt(momentStartDateTime.format("d"));
 
-        let sqlWeekday = parseInt(momentStartDateTime.format("d"));
+      if (moment(startdate).isValid()) {
         switch (sqlWeekday) {
           case 0:
             sqlWeekday = 6;
@@ -537,8 +538,7 @@ exports.POST = (req, res) => {
         }
       }
 
-      let sqlArray = "req.user.userid, churchid, eventtype, sqlWeekday";
-      let sql = `
+      sql = `
         SELECT
           title
         FROM
@@ -550,7 +550,7 @@ exports.POST = (req, res) => {
         AND
           type = ?
         AND
-          type <> "other"
+          type <> 'other'
         AND
           frequency <> 'once'
         AND
@@ -558,6 +558,7 @@ exports.POST = (req, res) => {
         LIMIT 1
         ;
       `;
+      sqlArray = [req.user.userid, churchid, eventtype, sqlWeekday];
 
       if (frequency === "once") {
         sql = `
