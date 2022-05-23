@@ -460,14 +460,14 @@ exports.POST = (req, res) => {
 
     const churchid = result[0].churchid;
 
-    const sqlStartDate = startdate.length ? momentTimeZone.tz(moment(`${startdate} ${starttime}`).format(), timezone) : moment("");
-    const sqlMultidayStart = multidayBeginDate.length ? momentTimeZone.tz(moment(`${multidayBeginDate} ${multidayBeginTime}`).format(), timezone) : moment("");
-    const sqlMultidayEnd = multidayEndDate.length ? momentTimeZone.tz(moment(`${multidayEndDate} ${multidayEndTime}`).format(), timezone) : moment("");
+    const sqlStartDate = startdate.length ? momentTimeZone.tz(moment(`${startdate} ${starttime}`).format(), timezone) : null;
+    const sqlMultidayStart = multidayBeginDate.length ? momentTimeZone.tz(moment(`${multidayBeginDate} ${multidayBeginTime}`).format(), timezone) : null;
+    const sqlMultidayEnd = multidayEndDate.length ? momentTimeZone.tz(moment(`${multidayEndDate} ${multidayEndTime}`).format(), timezone) : null;
     const sqlDates = {
-      startdate: sqlStartDate.isValid() ? `${sqlStartDate.format()}` : null,
-      multidayStart: sqlMultidayStart.isValid() ? `${sqlMultidayStart.format()}` : null,
-      multidayEnd: sqlMultidayEnd.isValid() ? `${sqlMultidayEnd.format()}` : null
-    }
+      startdate: sqlStartDate,
+      multidayStart: sqlMultidayStart,
+      multidayEnd: sqlMultidayEnd
+    };
 
     const sql = `
       SELECT
@@ -555,24 +555,17 @@ exports.POST = (req, res) => {
           frequency <> 'once'
         AND
           WEEKDAY(startdate) = ?
+      `;
+      if (frequency === "once") {
+        sql += `WHERE
+            eventid = 0
+        `;
+        sqlArray = [req.user.userid, churchid, eventtype, sqlWeekday];
+      }
+      sql += `
         LIMIT 1
         ;
       `;
-      sqlArray = [req.user.userid, churchid, eventtype, sqlWeekday];
-
-      if (frequency === "once") {
-        sql = `
-          SELECT
-            eventid
-          FROM
-            events
-          WHERE
-            eventid = 0
-          ;
-        `;
-        durationInHours = null;
-        sqlArray = [];
-      }
 
       db.query(sql, sqlArray, (error, result) => {
         if (error) {
@@ -621,6 +614,7 @@ exports.POST = (req, res) => {
         `;
 
         const sqlDuration = duration.trim().length ? duration.trim() : null;
+        const sqlDurationInHours = (frequency !== "once") ? durationInHours : null;
         const sqlAddress = {
           line1: addressLine1.trim().length ? addressLine1.trim() : null,
           line2: addressLine2.trim().length ? addressLine2.trim() : null,
@@ -646,7 +640,7 @@ exports.POST = (req, res) => {
           frequency,
           sqlDates.startdate,
           sqlDuration,
-          durationInHours,
+          sqlDurationInHours,
           sqlDates.multidayStart,
           sqlDates.multidayEnd,
           locationvisibility,
