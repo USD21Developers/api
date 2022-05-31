@@ -5,7 +5,7 @@ const emailValidator = require("email-validator");
 exports.POST = (req, res) => {
   // Enforce authorization
   const usertype = req.user.usertype;
-  const allowedUsertypes = ["sysadmin"];
+  const allowedUsertypes = ["sysadmin", "user"];
   let isAuthorized = false;
   if (allowedUsertypes.includes(usertype)) isAuthorized = true;
   if (req.user.may_create_coupons) isAuthorized = true;
@@ -460,87 +460,39 @@ exports.POST = (req, res) => {
 
     const churchid = result[0].churchid;
 
-    const sqlStartDate = startdate.length ? momentTimeZone.tz(moment(`${startdate} ${starttime}`).format(), timezone) : null;
-    const sqlMultidayStart = multidayBeginDate.length ? momentTimeZone.tz(moment(`${multidayBeginDate} ${multidayBeginTime}`).format(), timezone) : null;
-    const sqlMultidayEnd = multidayEndDate.length ? momentTimeZone.tz(moment(`${multidayEndDate} ${multidayEndTime}`).format(), timezone) : null;
-    const sqlDates = {
-      startdate: sqlStartDate,
-      multidayStart: sqlMultidayStart,
-      multidayEnd: sqlMultidayEnd
-    };
+    if (duration === "multiple days") {
+      /********************/
+      /*  BEGIN MULTIDAY  */
+      /********************/
 
-    const sql = `
-      SELECT
-        eventid
-      FROM
-        events
-      WHERE
-        createdBy = ?
-      AND
-        churchid = ?
-      AND
-        type = ?
-      AND
-        title = ?
-      AND
-        startdate ${sqlDates.startdate === null ? "IS NULL" : "= ?"}
-      AND
-        multidaybegindate ${sqlDates.multidayStart === null ? "IS NULL" : "= ?"}
-      AND
-        multidayenddate ${sqlDates.multidayEnd === null ? "IS NULL" : "= ?"}
-      LIMIT 1
-      ;
-    `;
+      /********************/
+      /*  END MULTIDAY  */
+      /********************/
+    } else if (frequency === "once") {
+      /************************************/
+      /*  BEGIN SINGLE DAY NON-RECURRING  */
+      /************************************/
 
-    let sqlArray = [req.user.userid, churchid, eventtype, eventtitle];
-    if (sqlDates.startdate !== null) sqlArray.push(sqlDates.startdate);
-    if (sqlDates.multidayStart !== null) sqlArray.push(sqlDates.multidayStart);
-    if (sqlDates.multidayEnd !== null) sqlArray.push(sqlDates.multidayEnd);
+      /**********************************/
+      /*  END SINGLE DAY NON-RECURRING  */
+      /**********************************/
+    } else {
+      /*********************/
+      /*  BEGIN RECURRING  */
+      /*********************/
 
-    db.query(sql, sqlArray, (error, result) => {
-      if (error) {
-        console.log(error);
-        return res
-          .status(500)
-          .send({ msg: "unable to query for duplicate events", msgType: "error", error: error });
-      }
-      if (result.length) {
-        return res.status(400).send({ msg: "duplicate event", msgType: "error", eventid: result[0].eventid });
-      }
+      const sqlStartDate = momentTimeZone.tz(moment(`${startdate} ${starttime}`), timezone).format();
+      const sqlMultidayStart = null;
+      const sqlMultidayEnd = null;
+      const sqlDates = {
+        startdate: sqlStartDate,
+        multidayStart: sqlMultidayStart,
+        multidayEnd: sqlMultidayEnd
+      };
 
-      const momentStartDateTime = momentTimeZone.tz(moment(`${startdate} ${starttime}`).format(), timezone);
-      let sql = "";
-      let sqlWeekday = parseInt(momentStartDateTime.format("d"));
-
-      if (moment(startdate).isValid()) {
-        switch (sqlWeekday) {
-          case 0:
-            sqlWeekday = 6;
-            break;
-          case 1:
-            sqlWeekday = 0;
-            break;
-          case 2:
-            sqlWeekday = 1;
-            break;
-          case 3:
-            sqlWeekday = 2;
-            break;
-          case 4:
-            sqlWeekday = 3;
-            break;
-          case 5:
-            sqlWeekday = 4;
-            break;
-          case 6:
-            sqlWeekday = 5;
-            break;
-        }
-      }
-
-      sql = `
+      const sql = `
         SELECT
-          title
+          eventid
         FROM
           events
         WHERE
@@ -550,125 +502,186 @@ exports.POST = (req, res) => {
         AND
           type = ?
         AND
-          type <> 'other'
+          title = ?
         AND
-          frequency <> 'once'
+          startdate = ?
         AND
-          WEEKDAY(startdate) = ?
-      `;
-      if (frequency === "once") {
-        sql += `WHERE
-            eventid = 0
-        `;
-        sqlArray = [req.user.userid, churchid, eventtype, sqlWeekday];
-      }
-      sql += `
+          multidaybegindate IS NULL
+        AND
+          multidayenddate IS NULL
         LIMIT 1
         ;
       `;
 
-      db.query(sql, sqlArray, (error, result) => {
+      db.query(sql, [req.user.userid, churchid, eventtype, eventtitle, startdate], (error, result) => {
         if (error) {
           console.log(error);
           return res
             .status(500)
-            .send({ msg: "unable to query for overlapping recurring events", msgType: "error", error: error });
+            .send({ msg: "unable to query for duplicate events", msgType: "error", error: error });
         }
         if (result.length) {
-          return res.status(400).send({ msg: "overlapping recurring event", msgType: "error", title: result[0].title });
+          return res.status(400).send({ msg: "duplicate event", msgType: "error", eventid: result[0].eventid });
         }
 
-        const sql = `
-          INSERT INTO events(
-            churchid,
-            type,
-            title,
-            description,
-            frequency,
-            startdate,
-            duration,
-            durationInHours,
-            multidayBeginDate,
-            multidayEndDate,
-            locationvisibility,
-            locationaddressline1,
-            locationaddressline2,
-            locationaddressline3,
-            locationcoordinates,
-            otherlocationdetails,
-            virtualconnectiondetails,
-            hasvirtual,
-            contactfirstname,
-            contactlastname,
-            contactemail,
-            contactphone,
-            contactphonecountrydata,
-            country,
-            lang,
-            createdBy,
-            createdAt
-          ) VALUES (
-            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-            UTC_TIMESTAMP()
-          );
+        const momentStartDateTime = momentTimeZone.tz(moment(`${startdate} ${starttime}`).format(), timezone);
+        let sql = "";
+        let sqlWeekday = parseInt(momentStartDateTime.format("d"));
+
+        if (moment(momentStartDateTime).isValid()) {
+          switch (sqlWeekday) {
+            case 0:
+              sqlWeekday = 6;
+              break;
+            case 1:
+              sqlWeekday = 0;
+              break;
+            case 2:
+              sqlWeekday = 1;
+              break;
+            case 3:
+              sqlWeekday = 2;
+              break;
+            case 4:
+              sqlWeekday = 3;
+              break;
+            case 5:
+              sqlWeekday = 4;
+              break;
+            case 6:
+              sqlWeekday = 5;
+              break;
+          }
+        }
+
+        sql = `
+          SELECT
+            title
+          FROM
+            events
+          WHERE
+            createdBy = ?
+          AND
+            churchid = ?
+          AND
+            type = ?
+          AND
+            type <> 'other'
+          AND
+            frequency <> 'once'
+          AND
+            WEEKDAY(startdate) = ?
+          LIMIT 1
+          ;
         `;
 
-        const sqlDuration = duration.trim().length ? duration.trim() : null;
-        const sqlDurationInHours = (frequency !== "once") ? durationInHours : null;
-        const sqlAddress = {
-          line1: addressLine1.trim().length ? addressLine1.trim() : null,
-          line2: addressLine2.trim().length ? addressLine2.trim() : null,
-          line3: addressLine3.trim().length ? addressLine3.trim() : null,
-          coordinates: (latitude.trim().length && longitude.trim().length) ? `POINT(${latitude.trim()},${longitude.trim()})` : null
-        };
-        const virtualDetails = attendVirtuallyConnectionDetails.trim().length > 0 ? attendVirtuallyConnectionDetails.trim() : null;
-        const hasvirtual = attendVirtuallyConnectionDetails.trim().length ? 1 : 0;
-        const sqlOtherLocationDetails = otherLocationDetails.trim().length ? otherLocationDetails.trim() : null;
-        const contact = {
-          firstname: contactFirstName.trim(),
-          lastname: contactLastName.trim().length ? contactLastName.trim() : null,
-          phone: contactPhone.trim().length ? contactPhone.trim() : null,
-          phonedata: typeof contactPhoneCountryData === "object" ? JSON.stringify(contactPhoneCountryData) : null,
-          email: contactEmail.trim().length ? contactEmail.trim().toLowerCase() : null
-        };
-
-        db.query(sql, [
-          churchid,
-          eventtype,
-          eventtitle,
-          eventdescription,
-          frequency,
-          sqlDates.startdate,
-          sqlDuration,
-          sqlDurationInHours,
-          sqlDates.multidayStart,
-          sqlDates.multidayEnd,
-          locationvisibility,
-          sqlAddress.line1,
-          sqlAddress.line2,
-          sqlAddress.line3,
-          sqlAddress.coordinates,
-          sqlOtherLocationDetails,
-          virtualDetails,
-          hasvirtual,
-          contact.firstname,
-          contact.lastname,
-          contact.email,
-          contact.phone,
-          contact.phonedata,
-          country,
-          language,
-          req.user.userid
-        ], (error, result) => {
+        db.query(sql, [req.user.userid, churchid, eventtype, sqlWeekday], (error, result) => {
           if (error) {
             console.log(error);
             return res
               .status(500)
-              .send({ msg: "unable to insert new event", msgType: "error", error: error });
+              .send({ msg: "unable to query for overlapping recurring events", msgType: "error", error: error });
           }
-          return res.status(200).send({ msg: "event added", msgType: "success", id: result.insertId })
+          if (result.length) {
+            return res.status(400).send({ msg: "overlapping recurring event", msgType: "error", title: result[0].title });
+          }
+
+          const sql = `
+            INSERT INTO events(
+              churchid,
+              type,
+              title,
+              description,
+              frequency,
+              startdate,
+              duration,
+              durationInHours,
+              multidayBeginDate,
+              multidayEndDate,
+              locationvisibility,
+              locationaddressline1,
+              locationaddressline2,
+              locationaddressline3,
+              locationcoordinates,
+              otherlocationdetails,
+              virtualconnectiondetails,
+              hasvirtual,
+              contactfirstname,
+              contactlastname,
+              contactemail,
+              contactphone,
+              contactphonecountrydata,
+              country,
+              lang,
+              createdBy,
+              createdAt
+            ) VALUES (
+              ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+              UTC_TIMESTAMP()
+            );
+          `;
+
+          const sqlDuration = duration.trim().length ? duration.trim() : null;
+          const sqlDurationInHours = (frequency !== "once") ? durationInHours : null;
+          const sqlAddress = {
+            line1: addressLine1.trim().length ? addressLine1.trim() : null,
+            line2: addressLine2.trim().length ? addressLine2.trim() : null,
+            line3: addressLine3.trim().length ? addressLine3.trim() : null,
+            coordinates: (latitude.trim().length && longitude.trim().length) ? `POINT(${latitude.trim()},${longitude.trim()})` : null
+          };
+          const virtualDetails = attendVirtuallyConnectionDetails.trim().length > 0 ? attendVirtuallyConnectionDetails.trim() : null;
+          const hasvirtual = attendVirtuallyConnectionDetails.trim().length ? 1 : 0;
+          const sqlOtherLocationDetails = otherLocationDetails.trim().length ? otherLocationDetails.trim() : null;
+          const contact = {
+            firstname: contactFirstName.trim(),
+            lastname: contactLastName.trim().length ? contactLastName.trim() : null,
+            phone: contactPhone.trim().length ? contactPhone.trim() : null,
+            phonedata: typeof contactPhoneCountryData === "object" ? JSON.stringify(contactPhoneCountryData) : null,
+            email: contactEmail.trim().length ? contactEmail.trim().toLowerCase() : null
+          };
+
+          db.query(sql, [
+            churchid,
+            eventtype,
+            eventtitle,
+            eventdescription,
+            frequency,
+            sqlDates.startdate,
+            sqlDuration,
+            sqlDurationInHours,
+            sqlDates.multidayStart,
+            sqlDates.multidayEnd,
+            locationvisibility,
+            sqlAddress.line1,
+            sqlAddress.line2,
+            sqlAddress.line3,
+            sqlAddress.coordinates,
+            sqlOtherLocationDetails,
+            virtualDetails,
+            hasvirtual,
+            contact.firstname,
+            contact.lastname,
+            contact.email,
+            contact.phone,
+            contact.phonedata,
+            country,
+            language,
+            req.user.userid
+          ], (error, result) => {
+            if (error) {
+              console.log(error);
+              return res
+                .status(500)
+                .send({ msg: "unable to insert new event", msgType: "error", error: error });
+            }
+            return res.status(200).send({ msg: "event added", msgType: "success", id: result.insertId })
+          });
         });
       });
-    });
+
+      /*******************/
+      /*  END RECURRING  */
+      /*******************/
+    }
   });
 };
