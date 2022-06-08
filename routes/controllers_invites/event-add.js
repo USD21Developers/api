@@ -464,7 +464,128 @@ exports.POST = (req, res) => {
       /********************/
       /*  BEGIN MULTIDAY  */
       /********************/
+      const sqlStartDate = null;
+      const sqlMultidayStart = momentTimeZone.tz(moment(`${multidayBeginDate} ${multidayBeginTime}`), timezone).format();
+      const sqlMultidayEnd = momentTimeZone.tz(moment(`${multidayEndDate} ${multidayEndTime}`), timezone).format();
+      const sqlDates = {
+        startdate: sqlStartDate,
+        multidayStart: sqlMultidayStart,
+        multidayEnd: sqlMultidayEnd
+      };
+      const sqlDuration = null;
+      const sqlDurationInHours = null;
+      const sqlAddress = {
+        line1: addressLine1.trim().length ? addressLine1.trim() : null,
+        line2: addressLine2.trim().length ? addressLine2.trim() : null,
+        line3: addressLine3.trim().length ? addressLine3.trim() : null,
+        coordinates: (latitude.trim().length && longitude.trim().length) ? `${latitude.trim()},${longitude.trim()}` : null
+      };
+      const virtualDetails = attendVirtuallyConnectionDetails.trim().length > 0 ? attendVirtuallyConnectionDetails.trim() : null;
+      const hasvirtual = attendVirtuallyConnectionDetails.trim().length ? 1 : 0;
+      const sqlOtherLocationDetails = otherLocationDetails.trim().length ? otherLocationDetails.trim() : null;
+      const contact = {
+        firstname: contactFirstName.trim(),
+        lastname: contactLastName.trim().length ? contactLastName.trim() : null,
+        phone: contactPhone.trim().length ? contactPhone.trim() : null,
+        phonedata: (contactPhone.trim().length && typeof contactPhoneCountryData === "object") ? JSON.stringify(contactPhoneCountryData) : null,
+        email: contactEmail.trim().length ? contactEmail.trim().toLowerCase() : null
+      };
 
+      const sql = `
+        INSERT INTO events(
+          churchid,
+          type,
+          title,
+          description,
+          frequency,
+          startdate,
+          duration,
+          durationInHours,
+          multidayBeginDate,
+          multidayEndDate,
+          locationvisibility,
+          locationaddressline1,
+          locationaddressline2,
+          locationaddressline3,
+          locationcoordinates,
+          otherlocationdetails,
+          virtualconnectiondetails,
+          hasvirtual,
+          contactfirstname,
+          contactlastname,
+          contactemail,
+          contactphone,
+          contactphonecountrydata,
+          country,
+          lang,
+          createdBy,
+          createdAt
+        ) VALUES (
+          ?, 
+          ?, 
+          ?, 
+          ?, 
+          ?, 
+          ?, 
+          ?, 
+          ?, 
+          ?, 
+          ?, 
+          ?, 
+          ?, 
+          ?, 
+          ?, 
+          ${sqlAddress.coordinates && sqlAddress.coordinates.length ? "POINT(" + sqlAddress.coordinates + ")" : "NULL"}, 
+          ?, 
+          ?, 
+          ?, 
+          ?, 
+          ?, 
+          ?, 
+          ?, 
+          ?, 
+          ?,
+          ?,
+          ?,
+          UTC_TIMESTAMP()
+        );
+      `;
+
+      db.query(sql, [
+        churchid,
+        eventtype,
+        eventtitle,
+        eventdescription,
+        frequency,
+        sqlDates.startdate,
+        sqlDuration,
+        sqlDurationInHours,
+        sqlDates.multidayStart,
+        sqlDates.multidayEnd,
+        locationvisibility,
+        sqlAddress.line1,
+        sqlAddress.line2,
+        sqlAddress.line3,
+        sqlOtherLocationDetails,
+        virtualDetails,
+        hasvirtual,
+        contact.firstname,
+        contact.lastname,
+        contact.email,
+        contact.phone,
+        contact.phonedata,
+        country,
+        language,
+        req.user.userid
+      ], (error, result) => {
+        if (error) {
+          console.log(error);
+          return res
+            .status(500)
+            .send({ msg: "unable to insert new event", msgType: "error", error: error });
+        }
+        return res.status(200).send({ msg: "event added", msgType: "success", id: result.insertId })
+      });
       /********************/
       /*  END MULTIDAY  */
       /********************/
@@ -473,7 +594,7 @@ exports.POST = (req, res) => {
       /*  BEGIN SINGLE DAY NON-RECURRING  */
       /************************************/
 
-      const sqlStartDate = momentTimeZone.tz(moment(`${startdate} ${starttime}`), timezone).format();;
+      const sqlStartDate = momentTimeZone.tz(moment(`${startdate} ${starttime}`), timezone).format();
       const sqlMultidayStart = null;
       const sqlMultidayEnd = null;
       const sqlDates = {
@@ -496,7 +617,7 @@ exports.POST = (req, res) => {
         firstname: contactFirstName.trim(),
         lastname: contactLastName.trim().length ? contactLastName.trim() : null,
         phone: contactPhone.trim().length ? contactPhone.trim() : null,
-        phonedata: typeof contactPhoneCountryData === "object" ? JSON.stringify(contactPhoneCountryData) : null,
+        phonedata: (contactPhone.trim().length && typeof contactPhoneCountryData === "object") ? JSON.stringify(contactPhoneCountryData) : null,
         email: contactEmail.trim().length ? contactEmail.trim().toLowerCase() : null
       };
 
@@ -724,7 +845,7 @@ exports.POST = (req, res) => {
             firstname: contactFirstName.trim(),
             lastname: contactLastName.trim().length ? contactLastName.trim() : null,
             phone: contactPhone.trim().length ? contactPhone.trim() : null,
-            phonedata: typeof contactPhoneCountryData === "object" ? JSON.stringify(contactPhoneCountryData) : null,
+            phonedata: (contactPhone.trim().length && typeof contactPhoneCountryData === "object") ? JSON.stringify(contactPhoneCountryData) : null,
             email: contactEmail.trim().length ? contactEmail.trim().toLowerCase() : null
           };
 
@@ -780,7 +901,7 @@ exports.POST = (req, res) => {
               ?, 
               ?, 
               ?, 
-              ?, 
+              ?,
               ?, 
               ?, 
               ?,
