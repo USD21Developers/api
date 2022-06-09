@@ -586,7 +586,12 @@ exports.POST = (req, res) => {
             .status(500)
             .send({ msg: "unable to insert new event", msgType: "error", error: error });
         }
-        return res.status(200).send({ msg: "event added", msgType: "success", id: result.insertId })
+
+        const newEvent = {
+          eventid: result.insertId
+        };
+
+        return res.status(200).send({ msg: "event added", msgType: "success", newEvent: newEvent });
       });
       /********************/
       /*  END MULTIDAY  */
@@ -638,7 +643,12 @@ exports.POST = (req, res) => {
             .status(500)
             .send({ msg: "unable to insert new event", msgType: "error", error: error });
         }
-        return res.status(200).send({ msg: "event added", msgType: "success", id: result.insertId })
+
+        const newEvent = {
+          eventid: result.insertId
+        };
+
+        return res.status(200).send({ msg: "event added", msgType: "success", newEvent: newEvent });
       });
 
       /**********************************/
@@ -787,7 +797,12 @@ exports.POST = (req, res) => {
                 .status(500)
                 .send({ msg: "unable to insert new event", msgType: "error", error: error });
             }
-            return res.status(200).send({ msg: "event added", msgType: "success", id: result.insertId })
+
+            const newEvent = {
+              eventid: result.insertId
+            };
+
+            return res.status(200).send({ msg: "event added", msgType: "success", newEvent: newEvent });
           });
         });
       });
