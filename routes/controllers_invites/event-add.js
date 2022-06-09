@@ -460,38 +460,27 @@ exports.POST = (req, res) => {
 
     const churchid = result[0].churchid;
 
-    if (duration === "multiple days") {
-      /********************/
-      /*  BEGIN MULTIDAY  */
-      /********************/
-      const sqlStartDate = null;
-      const sqlMultidayStart = momentTimeZone.tz(moment(`${multidayBeginDate} ${multidayBeginTime}`), timezone).format();
-      const sqlMultidayEnd = momentTimeZone.tz(moment(`${multidayEndDate} ${multidayEndTime}`), timezone).format();
-      const sqlDates = {
-        startdate: sqlStartDate,
-        multidayStart: sqlMultidayStart,
-        multidayEnd: sqlMultidayEnd
-      };
-      const sqlDuration = null;
-      const sqlDurationInHours = null;
-      const sqlAddress = {
-        line1: addressLine1.trim().length ? addressLine1.trim() : null,
-        line2: addressLine2.trim().length ? addressLine2.trim() : null,
-        line3: addressLine3.trim().length ? addressLine3.trim() : null,
-        coordinates: (latitude.trim().length && longitude.trim().length) ? `${latitude.trim()},${longitude.trim()}` : null
-      };
-      const virtualDetails = attendVirtuallyConnectionDetails.trim().length > 0 ? attendVirtuallyConnectionDetails.trim() : null;
-      const hasvirtual = attendVirtuallyConnectionDetails.trim().length ? 1 : 0;
-      const sqlOtherLocationDetails = otherLocationDetails.trim().length ? otherLocationDetails.trim() : null;
-      const contact = {
-        firstname: contactFirstName.trim(),
-        lastname: contactLastName.trim().length ? contactLastName.trim() : null,
-        phone: contactPhone.trim().length ? contactPhone.trim() : null,
-        phonedata: (contactPhone.trim().length && typeof contactPhoneCountryData === "object") ? JSON.stringify(contactPhoneCountryData) : null,
-        email: contactEmail.trim().length ? contactEmail.trim().toLowerCase() : null
-      };
+    const sqlAddress = {
+      line1: addressLine1.trim().length ? addressLine1.trim() : null,
+      line2: addressLine2.trim().length ? addressLine2.trim() : null,
+      line3: addressLine3.trim().length ? addressLine3.trim() : null,
+      coordinates: (latitude.trim().length && longitude.trim().length) ? `${latitude.trim()},${longitude.trim()}` : null
+    };
 
-      const sql = `
+    const sqlDuration = duration.trim().length ? duration.trim() : null;
+    const sqlDurationInHours = typeof durationInHours === "number" ? durationInHours : null;
+    const virtualDetails = attendVirtuallyConnectionDetails.trim().length > 0 ? attendVirtuallyConnectionDetails.trim() : null;
+    const hasvirtual = attendVirtuallyConnectionDetails.trim().length ? 1 : 0;
+    const sqlOtherLocationDetails = otherLocationDetails.trim().length ? otherLocationDetails.trim() : null;
+    const contact = {
+      firstname: contactFirstName.trim(),
+      lastname: contactLastName.trim().length ? contactLastName.trim() : null,
+      phone: contactPhone.trim().length ? contactPhone.trim() : null,
+      phonedata: (contactPhone.trim().length && typeof contactPhoneCountryData === "object") ? JSON.stringify(contactPhoneCountryData) : null,
+      email: contactEmail.trim().length ? contactEmail.trim().toLowerCase() : null
+    };
+
+    const sqlInsertRecord = `
         INSERT INTO events(
           churchid,
           type,
@@ -528,7 +517,7 @@ exports.POST = (req, res) => {
           ?, 
           ?, 
           ?, 
-          ?, 
+          ?,
           ?, 
           ?, 
           ?, 
@@ -551,7 +540,20 @@ exports.POST = (req, res) => {
         );
       `;
 
-      db.query(sql, [
+    if (duration === "multiple days") {
+      /********************/
+      /*  BEGIN MULTIDAY  */
+      /********************/
+      const sqlStartDate = null;
+      const sqlMultidayStart = momentTimeZone.tz(moment(`${multidayBeginDate} ${multidayBeginTime}`), timezone).format();
+      const sqlMultidayEnd = momentTimeZone.tz(moment(`${multidayEndDate} ${multidayEndTime}`), timezone).format();
+      const sqlDates = {
+        startdate: sqlStartDate,
+        multidayStart: sqlMultidayStart,
+        multidayEnd: sqlMultidayEnd
+      };
+
+      db.query(sqlInsertRecord, [
         churchid,
         eventtype,
         eventtitle,
@@ -602,86 +604,8 @@ exports.POST = (req, res) => {
         multidayStart: sqlMultidayStart,
         multidayEnd: sqlMultidayEnd
       };
-      const sqlDuration = duration;
-      const sqlDurationInHours = null;
-      const sqlAddress = {
-        line1: addressLine1.trim().length ? addressLine1.trim() : null,
-        line2: addressLine2.trim().length ? addressLine2.trim() : null,
-        line3: addressLine3.trim().length ? addressLine3.trim() : null,
-        coordinates: (latitude.trim().length && longitude.trim().length) ? `${latitude.trim()},${longitude.trim()}` : null
-      };
-      const virtualDetails = attendVirtuallyConnectionDetails.trim().length > 0 ? attendVirtuallyConnectionDetails.trim() : null;
-      const hasvirtual = attendVirtuallyConnectionDetails.trim().length ? 1 : 0;
-      const sqlOtherLocationDetails = otherLocationDetails.trim().length ? otherLocationDetails.trim() : null;
-      const contact = {
-        firstname: contactFirstName.trim(),
-        lastname: contactLastName.trim().length ? contactLastName.trim() : null,
-        phone: contactPhone.trim().length ? contactPhone.trim() : null,
-        phonedata: (contactPhone.trim().length && typeof contactPhoneCountryData === "object") ? JSON.stringify(contactPhoneCountryData) : null,
-        email: contactEmail.trim().length ? contactEmail.trim().toLowerCase() : null
-      };
 
-      const sql = `
-        INSERT INTO events(
-          churchid,
-          type,
-          title,
-          description,
-          frequency,
-          startdate,
-          duration,
-          durationInHours,
-          multidayBeginDate,
-          multidayEndDate,
-          locationvisibility,
-          locationaddressline1,
-          locationaddressline2,
-          locationaddressline3,
-          locationcoordinates,
-          otherlocationdetails,
-          virtualconnectiondetails,
-          hasvirtual,
-          contactfirstname,
-          contactlastname,
-          contactemail,
-          contactphone,
-          contactphonecountrydata,
-          country,
-          lang,
-          createdBy,
-          createdAt
-        ) VALUES (
-          ?, 
-          ?, 
-          ?, 
-          ?, 
-          ?, 
-          ?, 
-          ?, 
-          ?, 
-          ?, 
-          ?, 
-          ?, 
-          ?, 
-          ?, 
-          ?, 
-          ${sqlAddress.coordinates && sqlAddress.coordinates.length ? "POINT(" + sqlAddress.coordinates + ")" : "NULL"}, 
-          ?, 
-          ?, 
-          ?, 
-          ?, 
-          ?, 
-          ?, 
-          ?, 
-          ?, 
-          ?,
-          ?,
-          ?,
-          UTC_TIMESTAMP()
-        );
-      `;
-
-      db.query(sql, [
+      db.query(sqlInsertRecord, [
         churchid,
         eventtype,
         eventtitle,
@@ -830,86 +754,7 @@ exports.POST = (req, res) => {
             return res.status(400).send({ msg: "overlapping recurring event", msgType: "error", title: result[0].title });
           }
 
-          const sqlDuration = duration.trim().length ? duration.trim() : null;
-          const sqlDurationInHours = (frequency !== "once") ? durationInHours : null;
-          const sqlAddress = {
-            line1: addressLine1.trim().length ? addressLine1.trim() : null,
-            line2: addressLine2.trim().length ? addressLine2.trim() : null,
-            line3: addressLine3.trim().length ? addressLine3.trim() : null,
-            coordinates: (latitude.trim().length && longitude.trim().length) ? `${latitude.trim()},${longitude.trim()}` : null
-          };
-          const virtualDetails = attendVirtuallyConnectionDetails.trim().length > 0 ? attendVirtuallyConnectionDetails.trim() : null;
-          const hasvirtual = attendVirtuallyConnectionDetails.trim().length ? 1 : 0;
-          const sqlOtherLocationDetails = otherLocationDetails.trim().length ? otherLocationDetails.trim() : null;
-          const contact = {
-            firstname: contactFirstName.trim(),
-            lastname: contactLastName.trim().length ? contactLastName.trim() : null,
-            phone: contactPhone.trim().length ? contactPhone.trim() : null,
-            phonedata: (contactPhone.trim().length && typeof contactPhoneCountryData === "object") ? JSON.stringify(contactPhoneCountryData) : null,
-            email: contactEmail.trim().length ? contactEmail.trim().toLowerCase() : null
-          };
-
-          const sql = `
-            INSERT INTO events(
-              churchid,
-              type,
-              title,
-              description,
-              frequency,
-              startdate,
-              duration,
-              durationInHours,
-              multidayBeginDate,
-              multidayEndDate,
-              locationvisibility,
-              locationaddressline1,
-              locationaddressline2,
-              locationaddressline3,
-              locationcoordinates,
-              otherlocationdetails,
-              virtualconnectiondetails,
-              hasvirtual,
-              contactfirstname,
-              contactlastname,
-              contactemail,
-              contactphone,
-              contactphonecountrydata,
-              country,
-              lang,
-              createdBy,
-              createdAt
-            ) VALUES (
-              ?, 
-              ?, 
-              ?, 
-              ?, 
-              ?, 
-              ?, 
-              ?, 
-              ?, 
-              ?, 
-              ?, 
-              ?, 
-              ?, 
-              ?, 
-              ?, 
-              ${sqlAddress.coordinates && sqlAddress.coordinates.length ? "POINT(" + sqlAddress.coordinates + ")" : "NULL"}, 
-              ?, 
-              ?, 
-              ?, 
-              ?, 
-              ?, 
-              ?, 
-              ?, 
-              ?,
-              ?, 
-              ?, 
-              ?,
-              UTC_TIMESTAMP()
-            );
-          `;
-
-          db.query(sql, [
+          db.query(sqlInsertRecord, [
             churchid,
             eventtype,
             eventtitle,
