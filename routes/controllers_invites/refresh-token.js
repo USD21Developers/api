@@ -32,9 +32,12 @@ exports.POST = (req, res) => {
       const userid = userdata.userid;
       const sql = `
         SELECT
+          userid,
+          churchid,
           firstname,
           lastname,
           usertype,
+          gender,
           lang,
           country,
           passwordmustchange,
@@ -60,9 +63,12 @@ exports.POST = (req, res) => {
             .status(404)
             .send({ msg: "user not found", msgType: "error" });
 
+        const userid = result[0].userid;
+        const churchid = result[0].churchid;
         const firstname = result[0].firstname;
         const lastname = result[0].lastname;
         const usertype = result[0].usertype;
+        const gender = result[0].gender;
         const lang = result[0].lang;
         const country = result[0].country;
         const passwordmustchange =
@@ -73,7 +79,14 @@ exports.POST = (req, res) => {
 
         const refreshToken = jsonwebtoken.sign(
           {
+            churchid: churchid,
+            country: country,
+            lang: lang,
             userid: userid,
+            usertype: usertype,
+            firstname: firstname,
+            lastname: lastname,
+            gender: gender
           },
           process.env.REFRESH_TOKEN_SECRET,
           { expiresIn: "30d" }
@@ -81,8 +94,7 @@ exports.POST = (req, res) => {
 
         const accessToken = jsonwebtoken.sign(
           {
-            firstname: firstname,
-            lastname: lastname,
+            churchid: churchid,
             userid: userid,
             usertype: usertype,
             lang: lang,
