@@ -799,7 +799,33 @@ exports.POST = (req, res) => {
             }
 
             const newEvent = {
-              eventid: result.insertId
+              eventid: result.insertId,
+              churchid: churchid,
+              type: eventtype,
+              title: eventtitle,
+              description: eventdescription,
+              frequency: frequency,
+              startdate: sqlDates.startdate,
+              duration: sqlDuration,
+              durationInHours: sqlDurationInHours,
+              multidayBeginDate: sqlDates.multidayStart,
+              multidayEndDate: sqlDates.multidayEnd,
+              locationvisibility: locationvisibility,
+              locationaddressline1: sqlAddress.line1,
+              locationaddressline2: sqlAddress.line2,
+              locationaddressline3: sqlAddress.line3,
+              locationcoordinates: sqlAddress.coordinates,
+              otherlocationdetails: sqlOtherLocationDetails,
+              virtualconnectiondetails: virtualDetails,
+              hasvirtual: hasvirtual,
+              contactfirstname: contact.firstname,
+              contactlastname: contact.lastname,
+              contactemail: contact.email,
+              contactphone: contact.phone,
+              contactphonecountrydata: contact.phonedata,
+              country: country,
+              lang: language,
+              createdBy: req.user.userid
             };
 
             return res.status(200).send({ msg: "event added", msgType: "success", newEvent: newEvent });
