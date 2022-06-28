@@ -42,4 +42,9 @@ router.post("/event-add", authenticateToken, eventAdd.POST);
 const authorize = require("./controllers_invites/authorize");
 router.post("/authorize", authorize.POST);
 
+// SYNC
+
+const syncEvents = require("./controllers_invites/sync-events");
+router.get("/sync-events", authenticateToken, syncEvents.GET);
+
 module.exports = router;
