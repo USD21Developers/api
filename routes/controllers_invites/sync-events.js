@@ -23,8 +23,42 @@ exports.GET = (req, res) => {
     : require("../../database-invites");
 
   // Test response
-  const eventsTest = [{ eventid: 1 }, { eventid: 2 }, { eventid: 3 }];
+  /* const eventsTest = [{ eventid: 1 }, { eventid: 2 }, { eventid: 3 }];
   return res.status(200).send({
     msg: "events synced", msgType: "success", events: eventsTest
+  }); */
+
+  const sql = `
+    SELECT
+      eventid,
+      frequency,
+      multidayBeginDate,
+      multidayEndDate,
+      startdate,
+      timezone,
+      title
+    FROM
+      events
+    WHERE
+      createdBy = ?
+    AND
+      isDeleted = 0
+    ORDER BY
+      eventid ASC
+    ;
+  `;
+
+  db.query(sql, [req.user.userid], (error, result) => {
+    if (error) {
+      console.log(error);
+      return res
+        .status(500)
+        .send({ msg: "unable to query for events", msgType: "error", error: error });
+    }
+    if (!result.length) {
+      return res.status(200).send({ msg: "no events found", msgType: "success", events: [] });
+    }
+
+    return res.status(200).send({ msg: "events retrieved", msgType: "success", events: result });
   });
 };
