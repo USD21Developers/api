@@ -1,5 +1,5 @@
-const moment = require("moment");
-const momentTimeZone = require("moment-timezone");
+// const moment = require("moment");
+const moment = require("moment-timezone");
 
 exports.GET = (req, res) => {
   // Enforce authorization
@@ -31,12 +31,34 @@ exports.GET = (req, res) => {
   const sql = `
     SELECT
       eventid,
+
       frequency,
-      multidayBeginDate,
-      multidayEndDate,
-      startdate,
+
+      CONCAT(
+        DATE_FORMAT(multidayBeginDate, '%Y-%m-%d'),
+            'T',
+            TIME_FORMAT(multidayBeginDate, '%T'),
+            'Z'
+      ) AS multidayBeginDate,
+
+      CONCAT(
+        DATE_FORMAT(multidayEndDate, '%Y-%m-%d'),
+            'T',
+            TIME_FORMAT(multidayEndDate, '%T'),
+            'Z'
+      ) AS multidayEndDate,
+
+      CONCAT(
+        DATE_FORMAT(startdate, '%Y-%m-%d'),
+            'T',
+            TIME_FORMAT(startdate, '%T'),
+            'Z'
+      ) AS startdate,
+
       timezone,
+
       title
+      
     FROM
       events
     WHERE
