@@ -684,7 +684,8 @@ exports.POST = (req, res) => {
         multidayEnd: sqlMultidayEnd
       };
 
-      return res.status(200).send(sqlDates);
+      const utc = moment().utc().format();
+      return res.status(200).send(utc);
 
       const sql = `
         SELECT
