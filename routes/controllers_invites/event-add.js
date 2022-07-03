@@ -684,8 +684,9 @@ exports.POST = (req, res) => {
         multidayEnd: sqlMultidayEnd
       };
 
-      const utc = moment().utc().format();
-      return res.status(200).send(utc);
+      const nonutc = moment("2022-07-10 10:00 AM").format();
+      const utc = moment("2022-07-10 10:00 AM").utc().format();
+      return res.status(200).send(utc, nonutc);
 
       const sql = `
         SELECT
