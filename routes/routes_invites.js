@@ -37,6 +37,9 @@ router.post(
 const eventAdd = require("./controllers_invites/event-add");
 router.post("/event-add", authenticateToken, eventAdd.POST);
 
+const testDates = require("./controllers_invites/test-dates");
+router.get("/test-dates", testDates.GET);
+
 // AUTHORIZATION
 
 const authorize = require("./controllers_invites/authorize");
