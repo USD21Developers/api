@@ -686,7 +686,7 @@ exports.POST = (req, res) => {
 
       const nonutc = moment("2022-07-10 10:00 AM").format();
       const utc = moment("2022-07-10 10:00 AM").utc().format();
-      return res.status(200).send(utc, nonutc);
+      return res.status(200).send({ utc: utc, nonutc: nonutc });
 
       const sql = `
         SELECT
