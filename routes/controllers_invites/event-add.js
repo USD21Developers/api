@@ -563,8 +563,6 @@ exports.POST = (req, res) => {
         multidayEnd: sqlMultidayEnd
       };
 
-      return res.status(200).send(sqlDates);
-
       db.query(sqlInsertRecord, [
         churchid,
         eventtype,
@@ -622,8 +620,6 @@ exports.POST = (req, res) => {
         multidayStart: sqlMultidayStart,
         multidayEnd: sqlMultidayEnd
       };
-
-      return res.status(200).send(sqlDates);
 
       db.query(sqlInsertRecord, [
         churchid,
@@ -683,10 +679,6 @@ exports.POST = (req, res) => {
         multidayStart: sqlMultidayStart,
         multidayEnd: sqlMultidayEnd
       };
-
-      const nonutc = moment("2022-07-10 10:00 AM").format();
-      const utc = moment("2022-07-10 10:00 AM").utc().format();
-      return res.status(200).send({ utc: utc, nonutc: nonutc });
 
       const sql = `
         SELECT
