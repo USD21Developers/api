@@ -675,7 +675,7 @@ exports.POST = (req, res) => {
       /*  BEGIN RECURRING  */
       /*********************/
 
-      const sqlStartDate = moment(`${startdate} ${starttime}`).tz(timezone).utc().format("YYYY-MM-DD HH:mm");
+      const sqlStartDate = moment(`${startdate} ${starttime}`).utc().format("YYYY-MM-DD HH:mm");
       const sqlMultidayStart = null;
       const sqlMultidayEnd = null;
       const sqlDates = {
