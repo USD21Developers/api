@@ -56,7 +56,7 @@ exports.POST = (req, res) => {
 
   // VALIDATE
 
-  const momentNow = moment().utc();
+  const momentNow = moment().tz(timezone);
 
   // language
   if (language.trim().length !== 2) {
@@ -563,6 +563,8 @@ exports.POST = (req, res) => {
         multidayEnd: sqlMultidayEnd
       };
 
+      return res.status(200).send(sqlDates);
+
       db.query(sqlInsertRecord, [
         churchid,
         eventtype,
@@ -620,6 +622,8 @@ exports.POST = (req, res) => {
         multidayStart: sqlMultidayStart,
         multidayEnd: sqlMultidayEnd
       };
+
+      return res.status(200).send(sqlDates);
 
       db.query(sqlInsertRecord, [
         churchid,
@@ -679,6 +683,8 @@ exports.POST = (req, res) => {
         multidayStart: sqlMultidayStart,
         multidayEnd: sqlMultidayEnd
       };
+
+      return res.status(200).send(sqlDates);
 
       const sql = `
         SELECT
