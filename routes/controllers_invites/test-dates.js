@@ -5,7 +5,7 @@ exports.GET = (req, res) => {
   const timezone = "America/Phoenix";
 
   dates.phx = moment("2022-07-10 10:00 AM").tz(timezone).local().format();
-  dates.utc = moment.tz(dates.phx, "utc").local().format();
+  dates.utc = moment.utc(dates.phx).format();
 
   return res.status(200).send(dates);
 };
