@@ -1,9 +1,10 @@
 const moment = require("moment-timezone");
 
 exports.GET = (req, res) => {
-  const timezone = "America/Phoenix";
-  const localDateTime = moment.tz("2022-07-10 10:00 AM", timezone);
-  const utcDateTime = moment.tz(localDateTime, "utc");
+  const passedDateTime = "2022-07-10 10:00 AM";
+  const passedTimezone = "America/Phoenix";
+  const local = moment.tz(passedDateTime, passedTimezone);
+  const utc = moment.tz(local, "utc");
 
-  return res.status(200).send({ local: localDateTime.format("YYYY-MM-DD HH:mm"), utc: utcDateTime.format("YYYY-MM-DD HH:mm") });
+  return res.status(200).send({ local: local.format("YYYY-MM-DD HH:mm"), utc: utc.format("YYYY-MM-DD HH:mm") });
 };
