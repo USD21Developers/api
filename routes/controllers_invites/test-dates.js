@@ -6,5 +6,5 @@ exports.GET = (req, res) => {
   const local = moment.tz(passedDateTime, passedTimezone);
   const utc = moment.tz(local, "utc");
 
-  return res.status(200).send({ local: local.format("YYYY-MM-DD HH:mm"), utc: utc.format("YYYY-MM-DD HH:mm") });
+  return res.status(200).send({ utc: utc.format("YYYY-MM-DD HH:mm") });
 };
