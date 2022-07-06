@@ -57,7 +57,11 @@ exports.GET = (req, res) => {
 
       timezone,
 
-      title
+      title,
+
+      country,
+
+      lang
       
     FROM
       events
