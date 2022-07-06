@@ -555,8 +555,8 @@ exports.POST = (req, res) => {
       /*  BEGIN MULTIDAY  */
       /********************/
       const sqlStartDate = null;
-      const sqlMultidayStart = moment(`${multidayBeginDate} ${multidayBeginTime}`).tz(timezone).utc().format("YYYY-MM-DD HH:mm");
-      const sqlMultidayEnd = moment(`${multidayEndDate} ${multidayEndTime}`).tz(timezone).utc().format("YYYY-MM-DD HH:mm");
+      const sqlMultidayStart = moment.tz(`${multidayBeginDate} ${multidayBeginTime}`, timezone).utc().format("YYYY-MM-DD HH:mm");
+      const sqlMultidayEnd = moment.tz(`${multidayEndDate} ${multidayEndTime}`, timezone).utc().format("YYYY-MM-DD HH:mm");
       const sqlDates = {
         startdate: sqlStartDate,
         multidayStart: sqlMultidayStart,
@@ -612,7 +612,7 @@ exports.POST = (req, res) => {
       /*  BEGIN SINGLE DAY NON-RECURRING  */
       /************************************/
 
-      const sqlStartDate = moment(`${startdate} ${starttime}`).tz(timezone).utc().format("YYYY-MM-DD HH:mm");
+      const sqlStartDate = moment.tz(`${startdate} ${starttime}`, timezone).utc().format("YYYY-MM-DD HH:mm");
       const sqlMultidayStart = null;
       const sqlMultidayEnd = null;
       const sqlDates = {
@@ -671,7 +671,7 @@ exports.POST = (req, res) => {
       /*  BEGIN RECURRING  */
       /*********************/
 
-      const sqlStartDate = moment(`${startdate} ${starttime}`).utc().format("YYYY-MM-DD HH:mm");
+      const sqlStartDate = moment.tz(`${startdate} ${starttime}`, timezone).utc().format("YYYY-MM-DD HH:mm");
       const sqlMultidayStart = null;
       const sqlMultidayEnd = null;
       const sqlDates = {
