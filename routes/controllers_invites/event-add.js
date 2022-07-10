@@ -811,38 +811,66 @@ exports.POST = (req, res) => {
                 .send({ msg: "unable to insert new event", msgType: "error", error: error });
             }
 
-            const newEvent = {
-              eventid: result.insertId,
-              churchid: churchid,
-              type: eventtype,
-              title: eventtitle,
-              description: eventdescription,
-              frequency: frequency,
-              timezone: timezone,
-              startdate: sqlDates.startdate,
-              duration: sqlDuration,
-              durationInHours: sqlDurationInHours,
-              multidayBeginDate: sqlDates.multidayStart,
-              multidayEndDate: sqlDates.multidayEnd,
-              locationvisibility: locationvisibility,
-              locationaddressline1: sqlAddress.line1,
-              locationaddressline2: sqlAddress.line2,
-              locationaddressline3: sqlAddress.line3,
-              locationcoordinates: sqlAddress.coordinates,
-              otherlocationdetails: sqlOtherLocationDetails,
-              virtualconnectiondetails: virtualDetails,
-              hasvirtual: hasvirtual,
-              contactfirstname: contact.firstname,
-              contactlastname: contact.lastname,
-              contactemail: contact.email,
-              contactphone: contact.phone,
-              contactphonecountrydata: contact.phonedata,
-              country: country,
-              lang: language,
-              createdBy: req.user.userid
-            };
+            const sql = `
+              SELECT
+                eventid,
 
-            return res.status(200).send({ msg: "event added", msgType: "success", newEvent: newEvent });
+                frequency,
+
+                CONCAT(
+                  DATE_FORMAT(multidayBeginDate, '%Y-%m-%d'),
+                      'T',
+                      TIME_FORMAT(multidayBeginDate, '%T'),
+                      'Z'
+                ) AS multidayBeginDate,
+
+                CONCAT(
+                  DATE_FORMAT(multidayEndDate, '%Y-%m-%d'),
+                      'T',
+                      TIME_FORMAT(multidayEndDate, '%T'),
+                      'Z'
+                ) AS multidayEndDate,
+
+                CONCAT(
+                  DATE_FORMAT(startdate, '%Y-%m-%d'),
+                      'T',
+                      TIME_FORMAT(startdate, '%T'),
+                      'Z'
+                ) AS startdate,
+
+                timezone,
+
+                title,
+
+                country,
+
+                lang
+                
+              FROM
+                events
+              WHERE
+                createdBy = ?
+              AND
+                isDeleted = 0
+              ORDER BY
+                eventid ASC
+              ;
+            `;
+
+            db.query(sql, [req.user.userid], (error, result) => {
+              if (error) {
+                console.log(error);
+                return res
+                  .status(500)
+                  .send({ msg: "unable to query for events", msgType: "error", error: error });
+              }
+
+              if (!result.length) {
+                return res.status(200).send({ msg: "no events found", msgType: "success", events: [] });
+              }
+
+              return res.status(200).send({ msg: "event added", msgType: "success", events: result });
+            });
           });
         });
       });
