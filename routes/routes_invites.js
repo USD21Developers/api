@@ -37,8 +37,11 @@ router.post(
 const eventAdd = require("./controllers_invites/event-add");
 router.post("/event-add", authenticateToken, eventAdd.POST);
 
-const testDates = require("./controllers_invites/test-dates");
-router.get("/test-dates", testDates.GET);
+const eventGet = require("./controllers_invites/event-get");
+router.post("/event-get", authenticateToken, eventGet.POST);
+
+const eventDelete = require("./controllers_invites/event-delete");
+router.post("/event-delete", authenticateToken, eventDelete.POST);
 
 // AUTHORIZATION
 
