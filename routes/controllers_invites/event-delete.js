@@ -22,5 +22,26 @@ exports.POST = (req, res) => {
   // Get request params
   const eventid = req.body.eventid || "";
 
-  res.status(200).send({ msg: "event deleted", msgType: "success" });
+  // Delete the event
+
+  const sql = `
+    DELETE FROM events
+    WHERE eventid = ?
+    ;
+  `;
+
+  db.query(sql, [eventid], (error, result) => {
+    if (error) {
+      console.log(error);
+      return res
+        .status(500)
+        .send({ msg: "unable to delete event", msgType: "error", error: error });
+    }
+
+    if (result.affectedRows !== eventid) {
+      return res.status(404).send({ msg: "event not found", msgType: "error" });
+    }
+
+    return res.status(200).send({ msg: "event deleted", msgType: "success" });
+  });
 };
