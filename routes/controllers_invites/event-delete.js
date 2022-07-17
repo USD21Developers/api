@@ -22,11 +22,18 @@ exports.POST = (req, res) => {
   // Get request params
   const eventid = req.body.eventid || "";
 
-  // Delete the event
+  // Check if user owns this event
 
   const sql = `
-    DELETE FROM events
-    WHERE eventid = ?
+    SELECT
+      eventid,
+      createdBy
+    FROM
+      events
+    WHERE
+      eventid = ?
+    LIMIT
+      1
     ;
   `;
 
@@ -35,13 +42,39 @@ exports.POST = (req, res) => {
       console.log(error);
       return res
         .status(500)
-        .send({ msg: "unable to delete event", msgType: "error", error: error });
+        .send({ msg: "unable to query for event", msgType: "error", error: error });
     }
 
-    if (result.affectedRows !== eventid) {
+    if (!result.length) {
       return res.status(404).send({ msg: "event not found", msgType: "error" });
     }
 
-    return res.status(200).send({ msg: "event deleted", msgType: "success" });
-  });
+    const eventid = result[0].eventid;
+    const createdBy = result[0].createdBy;
+
+    // Ensure that user created this event
+
+    if (createdBy !== req.user.userid) {
+      return res.status(404).send({ msg: "event not created by user", msgType: "error" });
+    }
+
+    // Delete the event
+
+    const sql = `
+      DELETE FROM events
+      WHERE eventid = ?
+      ;
+    `;
+
+    db.query(sql, [eventid], (error, result) => {
+      if (error) {
+        console.log(error);
+        return res
+          .status(500)
+          .send({ msg: "unable to delete event", msgType: "error", error: error });
+      }
+
+      return res.status(200).send({ msg: "event deleted", msgType: "success" });
+    });
+  })
 };
