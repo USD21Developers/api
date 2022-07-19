@@ -22,7 +22,7 @@ exports.POST = (req, res) => {
   // Get request params
   const eventid = req.body.eventid || "";
 
-  // Check if user owns this event
+  // Check if event exists
 
   const sql = `
     SELECT
@@ -58,29 +58,67 @@ exports.POST = (req, res) => {
       return res.status(404).send({ msg: "event not created by user", msgType: "error" });
     }
 
-    // Delete the event
+    // Check if any recipients have already been invited to this event
 
     const sql = `
-      DELETE FROM events
-      WHERE eventid = ?
+      SELECT
+        invitationid
+      FROM
+        invitations
+      WHERE
+        eventid = ?
+      LIMIT
+        1
       ;
     `;
 
-    db.query(sql, [eventid], async (error, result) => {
+    db.query(sql, [eventid], (error, result) => {
       if (error) {
         console.log(error);
         return res
           .status(500)
-          .send({ msg: "unable to delete event", msgType: "error" });
+          .send({ msg: "unable to query for invites sent for this event", msgType: "error" });
       }
 
-      const getEventsByUser = require("../controllers_invites/utils").getEventsByUser;
-      const events = await getEventsByUser(db, req.user.userid).catch((error) => {
-        console.log(error);
-        return res.status(500).send({ msg: "unable to return events", msgType: "error" });
-      });
+      const someoneWasInvitedToEvent = result.length || false;
+      let sql = "";
 
-      return res.status(200).send({ msg: "event deleted", msgType: "success", events: events });
+      if (someoneWasInvitedToEvent) {
+        sql = `
+          UPDATE
+            events
+          SET
+            isDeleted = 1
+          WHERE
+            eventid = ?
+          ;
+        `;
+      } else {
+        sql = `
+          DELETE FROM
+            events
+          WHERE
+            eventid = ?
+          ;
+        `;
+      }
+
+      db.query(sql, [eventid], (error, result) => {
+        if (error) {
+          console.log(error);
+          return res
+            .status(500)
+            .send({ msg: "unable to delete event", msgType: "error" });
+        }
+
+        const getEventsByUser = require("../controllers_invites/utils").getEventsByUser;
+        const events = await getEventsByUser(db, req.user.userid).catch((error) => {
+          console.log(error);
+          return res.status(500).send({ msg: "unable to return events", msgType: "error" });
+        });
+
+        return res.status(200).send({ msg: "event deleted", msgType: "success", events: events });
+      });
     });
   })
 };
