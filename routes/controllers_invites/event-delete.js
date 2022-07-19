@@ -103,7 +103,7 @@ exports.POST = (req, res) => {
         `;
       }
 
-      db.query(sql, [eventid], (error, result) => {
+      db.query(sql, [eventid], async (error, result) => {
         if (error) {
           console.log(error);
           return res
