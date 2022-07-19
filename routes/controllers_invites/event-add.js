@@ -803,7 +803,7 @@ exports.POST = (req, res) => {
             country,
             language,
             req.user.userid
-          ], (error, result) => {
+          ], async (error, result) => {
             if (error) {
               console.log(error);
               return res
@@ -811,66 +811,13 @@ exports.POST = (req, res) => {
                 .send({ msg: "unable to insert new event", msgType: "error", error: error });
             }
 
-            const sql = `
-              SELECT
-                eventid,
-
-                frequency,
-
-                CONCAT(
-                  DATE_FORMAT(multidayBeginDate, '%Y-%m-%d'),
-                      'T',
-                      TIME_FORMAT(multidayBeginDate, '%T'),
-                      'Z'
-                ) AS multidayBeginDate,
-
-                CONCAT(
-                  DATE_FORMAT(multidayEndDate, '%Y-%m-%d'),
-                      'T',
-                      TIME_FORMAT(multidayEndDate, '%T'),
-                      'Z'
-                ) AS multidayEndDate,
-
-                CONCAT(
-                  DATE_FORMAT(startdate, '%Y-%m-%d'),
-                      'T',
-                      TIME_FORMAT(startdate, '%T'),
-                      'Z'
-                ) AS startdate,
-
-                timezone,
-
-                title,
-
-                country,
-
-                lang
-                
-              FROM
-                events
-              WHERE
-                createdBy = ?
-              AND
-                isDeleted = 0
-              ORDER BY
-                eventid ASC
-              ;
-            `;
-
-            db.query(sql, [req.user.userid], (error, result) => {
-              if (error) {
-                console.log(error);
-                return res
-                  .status(500)
-                  .send({ msg: "unable to query for events", msgType: "error", error: error });
-              }
-
-              if (!result.length) {
-                return res.status(200).send({ msg: "no events found", msgType: "success", events: [] });
-              }
-
-              return res.status(200).send({ msg: "event added", msgType: "success", events: result });
+            const getEventsByUser = require("../controllers_invites/utils").getEventsByUser;
+            const events = await getEventsByUser(db, req.user.userid).catch((error) => {
+              console.log(error);
+              return res.status(500).send({ msg: "unable to return events", msgType: "error" });
             });
+
+            return res.status(200).send({ msg: "event added", msgType: "success", events: events });
           });
         });
       });

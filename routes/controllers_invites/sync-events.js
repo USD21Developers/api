@@ -1,7 +1,7 @@
 // const moment = require("moment");
 const moment = require("moment-timezone");
 
-exports.GET = (req, res) => {
+exports.GET = async (req, res) => {
   // Enforce authorization
   const usertype = req.user.usertype;
   const allowedUsertypes = ["sysadmin", "user"];
@@ -22,69 +22,16 @@ exports.GET = (req, res) => {
     ? require("../../database-invites-test")
     : require("../../database-invites");
 
-  // Test response
-  /* const eventsTest = [{ eventid: 1 }, { eventid: 2 }, { eventid: 3 }];
-  return res.status(200).send({
-    msg: "events synced", msgType: "success", events: eventsTest
-  }); */
-
-  const sql = `
-    SELECT
-      eventid,
-
-      frequency,
-
-      CONCAT(
-        DATE_FORMAT(multidayBeginDate, '%Y-%m-%d'),
-            'T',
-            TIME_FORMAT(multidayBeginDate, '%T'),
-            'Z'
-      ) AS multidayBeginDate,
-
-      CONCAT(
-        DATE_FORMAT(multidayEndDate, '%Y-%m-%d'),
-            'T',
-            TIME_FORMAT(multidayEndDate, '%T'),
-            'Z'
-      ) AS multidayEndDate,
-
-      CONCAT(
-        DATE_FORMAT(startdate, '%Y-%m-%d'),
-            'T',
-            TIME_FORMAT(startdate, '%T'),
-            'Z'
-      ) AS startdate,
-
-      timezone,
-
-      title,
-
-      country,
-
-      lang
-      
-    FROM
-      events
-    WHERE
-      createdBy = ?
-    AND
-      isDeleted = 0
-    ORDER BY
-      eventid ASC
-    ;
-  `;
-
-  db.query(sql, [req.user.userid], (error, result) => {
-    if (error) {
-      console.log(error);
-      return res
-        .status(500)
-        .send({ msg: "unable to query for events", msgType: "error", error: error });
-    }
-    if (!result.length) {
-      return res.status(200).send({ msg: "no events found", msgType: "success", events: [] });
-    }
-
-    return res.status(200).send({ msg: "events retrieved", msgType: "success", events: result });
+  // Query for events
+  const getEventsByUser = require("../controllers_invites/utils").getEventsByUser;
+  const events = await getEventsByUser(db, req.user.userid).catch((error) => {
+    console.log(error);
+    return res.status(500).send({ msg: "unable to return events", msgType: "error" });
   });
+
+  if (!events.length) {
+    return res.status(200).send({ msg: "no events found", msgType: "success", events: [] });
+  }
+
+  return res.status(200).send({ msg: "events retrieved", msgType: "success", events: events });
 };

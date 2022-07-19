@@ -66,15 +66,21 @@ exports.POST = (req, res) => {
       ;
     `;
 
-    db.query(sql, [eventid], (error, result) => {
+    db.query(sql, [eventid], async (error, result) => {
       if (error) {
         console.log(error);
         return res
           .status(500)
-          .send({ msg: "unable to delete event", msgType: "error", error: error });
+          .send({ msg: "unable to delete event", msgType: "error" });
       }
 
-      return res.status(200).send({ msg: "event deleted", msgType: "success" });
+      const getEventsByUser = require("../controllers_invites/utils").getEventsByUser;
+      const events = await getEventsByUser(db, req.user.userid).catch((error) => {
+        console.log(error);
+        return res.status(500).send({ msg: "unable to return events", msgType: "error" });
+      });
+
+      return res.status(200).send({ msg: "event deleted", msgType: "success", events: events });
     });
   })
 };

@@ -32,10 +32,10 @@ exports.isPrivilegedEmailAccount = (email = "") => {
 
   // Format
   const validEmail = email.trim().toLowerCase();
-  
+
   // Match
   privilegedDomains.forEach(item => {
-      if (validEmail.endsWith(`@${item}`)) isPrivilegedEmail = true;
+    if (validEmail.endsWith(`@${item}`)) isPrivilegedEmail = true;
   });
 
   return isPrivilegedEmail;
@@ -212,3 +212,72 @@ exports.validateNewPassword = (password) => {
 
   return isValid;
 };
+
+exports.getEventsByUser = (db, userid) => {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT
+        eventid,
+        churchid,
+        type,
+        title,
+        description,
+        frequency,
+        duration,
+        durationInHours,
+        timezone,
+
+        CONCAT(
+          DATE_FORMAT(startdate, '%Y-%m-%d'),
+              'T',
+              TIME_FORMAT(startdate, '%T'),
+              'Z'
+        ) AS startdate,
+
+        CONCAT(
+          DATE_FORMAT(multidaybegindate, '%Y-%m-%d'),
+              'T',
+              TIME_FORMAT(multidaybegindate, '%T'),
+              'Z'
+        ) AS multidaybegindate,
+
+        CONCAT(
+          DATE_FORMAT(multidayenddate, '%Y-%m-%d'),
+              'T',
+              TIME_FORMAT(multidayenddate, '%T'),
+              'Z'
+        ) AS multidayenddate,
+        
+        locationvisibility,
+        locationaddressline1,
+        locationaddressline2,
+        locationaddressline3,
+        locationcoordinates,
+        otherlocationdetails,
+        virtualconnectiondetails,
+        hasvirtual,
+        contactfirstname,
+        contactlastname,
+        contactemail,
+        contactphone,
+        contactphonecountrydata,
+        country,
+        lang
+      FROM
+        events
+      WHERE
+        createdBy = ?
+      AND
+        isDeleted = 0
+      LIMIT
+        1
+      ;
+    `;
+
+    db.query(sql, [userid], (error, result) => {
+      if (error) reject(error);
+
+      resolve(result);
+    });
+  });
+}
