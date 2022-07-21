@@ -39,6 +39,7 @@ exports.POST = (req, res) => {
   const timezone = req.body.timezone || "";
   const offset = req.body.offset || "";
   const locationvisibility = req.body.locationvisibility || "";
+  const locationname = req.body.locationname || "";
   const addressLine1 = req.body.addressLine1 || "";
   const addressLine2 = req.body.addressLine2 || "";
   const addressLine3 = req.body.addressLine3 || "";
@@ -502,6 +503,7 @@ exports.POST = (req, res) => {
           multidayBeginDate,
           multidayEndDate,
           locationvisibility,
+          locationname,
           locationaddressline1,
           locationaddressline2,
           locationaddressline3,
@@ -546,6 +548,7 @@ exports.POST = (req, res) => {
           ?,
           ?,
           ?,
+          ?,
           UTC_TIMESTAMP()
         );
       `;
@@ -576,6 +579,7 @@ exports.POST = (req, res) => {
         sqlDates.multidayStart,
         sqlDates.multidayEnd,
         locationvisibility,
+        locationname,
         sqlAddress.line1,
         sqlAddress.line2,
         sqlAddress.line3,
@@ -634,6 +638,7 @@ exports.POST = (req, res) => {
         sqlDates.multidayStart,
         sqlDates.multidayEnd,
         locationvisibility,
+        locationname,
         sqlAddress.line1,
         sqlAddress.line2,
         sqlAddress.line3,
@@ -789,6 +794,7 @@ exports.POST = (req, res) => {
             sqlDates.multidayStart,
             sqlDates.multidayEnd,
             locationvisibility,
+            locationname,
             sqlAddress.line1,
             sqlAddress.line2,
             sqlAddress.line3,

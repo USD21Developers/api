@@ -249,6 +249,7 @@ exports.getEventsByUser = (db, userid) => {
         ) AS multidayenddate,
         
         locationvisibility,
+        locationname,
         locationaddressline1,
         locationaddressline2,
         locationaddressline3,
