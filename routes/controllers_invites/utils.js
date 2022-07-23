@@ -270,8 +270,6 @@ exports.getEventsByUser = (db, userid) => {
         createdBy = ?
       AND
         isDeleted = 0
-      LIMIT
-        1
       ;
     `;
 

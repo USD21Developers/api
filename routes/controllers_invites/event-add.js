@@ -708,7 +708,7 @@ exports.POST = (req, res) => {
         ;
       `;
 
-      db.query(sql, [req.user.userid, churchid, eventtype, eventtitle, startdate], (error, result) => {
+      db.query(sql, [req.user.userid, churchid, eventtype, eventtitle, sqlStartDate], (error, result) => {
         if (error) {
           console.log(error);
           return res
