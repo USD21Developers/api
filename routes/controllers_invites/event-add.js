@@ -473,7 +473,7 @@ exports.POST = (req, res) => {
       line1: addressLine1.trim().length ? addressLine1.trim() : null,
       line2: addressLine2.trim().length ? addressLine2.trim() : null,
       line3: addressLine3.trim().length ? addressLine3.trim() : null,
-      coordinates: (latitude.trim().length && longitude.trim().length) ? `POINT(${latitude.trim()},${longitude.trim()})` : `POINT(0,0)`
+      coordinates: (latitude.trim().length && longitude.trim().length) ? `POINT(${latitude.trim()} ${longitude.trim()})` : `POINT(0,0)`
     };
 
     const sqlDuration = duration.trim().length ? duration.trim() : null;
