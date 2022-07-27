@@ -473,7 +473,7 @@ exports.POST = (req, res) => {
       line1: addressLine1.trim().length ? addressLine1.trim() : null,
       line2: addressLine2.trim().length ? addressLine2.trim() : null,
       line3: addressLine3.trim().length ? addressLine3.trim() : null,
-      coordinates: (latitude.trim().length && longitude.trim().length) ? `${latitude.trim()},${longitude.trim()}` : null
+      coordinates: (latitude.trim().length && longitude.trim().length) ? `ST_GeomFromText( 'POINT(${latitude.trim()},${longitude.trim()})' )` : null
     };
 
     const sqlDuration = duration.trim().length ? duration.trim() : null;
@@ -536,7 +536,7 @@ exports.POST = (req, res) => {
           ?, 
           ?, 
           ?, 
-          ${sqlAddress.coordinates && sqlAddress.coordinates.length ? "POINT(" + sqlAddress.coordinates + ")" : "NULL"}, 
+          ?,
           ?, 
           ?, 
           ?, 
@@ -583,6 +583,7 @@ exports.POST = (req, res) => {
         sqlAddress.line1,
         sqlAddress.line2,
         sqlAddress.line3,
+        sqlAddress.coordinates,
         sqlOtherLocationDetails,
         virtualDetails,
         hasvirtual,
@@ -642,6 +643,7 @@ exports.POST = (req, res) => {
         sqlAddress.line1,
         sqlAddress.line2,
         sqlAddress.line3,
+        sqlAddress.coordinates,
         sqlOtherLocationDetails,
         virtualDetails,
         hasvirtual,
@@ -798,6 +800,7 @@ exports.POST = (req, res) => {
             sqlAddress.line1,
             sqlAddress.line2,
             sqlAddress.line3,
+            sqlAddress.coordinates,
             sqlOtherLocationDetails,
             virtualDetails,
             hasvirtual,
