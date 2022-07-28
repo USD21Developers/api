@@ -456,7 +456,7 @@ exports.POST = (req, res) => {
     ;
   `;
 
-  db.query(sql, [req.user.userid], (error, result) => {
+  db.query(sql, [req.user.userid], async (error, result) => {
     if (error) {
       console.log(error);
       return res
@@ -475,6 +475,20 @@ exports.POST = (req, res) => {
       line3: addressLine3.trim().length ? addressLine3.trim() : null,
       coordinates: (latitude.trim().length && longitude.trim().length) ? `POINT(${latitude.trim()} ${longitude.trim()})` : null
     };
+
+    if (!sqlAddress.coordinates) {
+      const getAddressCoordinates = require("utils").getAddressCoordinates;
+      const geocodedAddress = await getAddressCoordinates({
+        line1: line1,
+        line2: line2,
+        line3: line3,
+        country: country
+      });
+      if (typeof geocodedAddress === "object") {
+        const { lat, lng } = geocodedAddress;
+        sqlAddress.coordinates = `POINT(${lat} ${lng})`;
+      }
+    }
 
     const sqlDuration = duration.trim().length ? duration.trim() : null;
     const sqlDurationInHours = typeof durationInHours === "number" ? durationInHours : null;

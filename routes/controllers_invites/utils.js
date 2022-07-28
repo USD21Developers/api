@@ -280,3 +280,33 @@ exports.getEventsByUser = (db, userid) => {
     });
   });
 }
+
+exports.getAddressCoordinates = (db, addressObj) => {
+  return new Promise((resolve, reject) => {
+    if (!db) reject(new Error("db is a required argument to getAddressCoordinates"));
+    if (!address) reject(new Error("address is a required argument to getAddressCoordinates"));
+    if (typeof address !== "object") reject(new Error("address argument to getAddressCoordinates must be an object"));
+    if (typeof process.env.GOOGLE_MAPS_API_KEY !== "string") reject(new Error("Missing environment variable for Google Maps API key"));
+    if (!process.env.GOOGLE_MAPS_API_KEY.length) reject(new Error("Environment variable for Google Maps API key must not be blank"));
+
+    const { line1, line2, line3, country } = addressObj;
+    let address = "";
+    if (line1.length) address = encodeURIComponent(line1);
+    if (line2.length) address += "," + encodeURIComponent(line2);
+    if (line3.length) address += "," + encodeURIComponent(line3);
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    const endpoint = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&region=${country}&key=${apiKey}`;
+    const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+
+    fetch(endpoint)
+      .then(res => res.json())
+      .then(data => {
+        const coordinates = data.geometry.location;
+        resolve(coordinates);
+      })
+      .catch(err => {
+        console.log(err);
+        reject(err);
+      });
+  });
+}
