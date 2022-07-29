@@ -476,17 +476,25 @@ exports.POST = (req, res) => {
       coordinates: (latitude.trim().length && longitude.trim().length) ? `POINT(${latitude.trim()} ${longitude.trim()})` : null
     };
 
+    // If no coordinates passed from the form, then geocode the address
     if (!sqlAddress.coordinates) {
-      const getAddressCoordinates = require("utils").getAddressCoordinates;
-      const geocodedAddress = await getAddressCoordinates({
-        line1: line1,
-        line2: line2,
-        line3: line3,
+      const getAddressCoordinates = require("./utils").getAddressCoordinates;
+      const geocodedAddress = await getAddressCoordinates(db, {
+        line1: sqlAddress.line1,
+        line2: sqlAddress.line2,
+        line3: sqlAddress.line3,
         country: country
+      }).catch(err => {
+        console.log(err);
+        return "";
       });
       if (typeof geocodedAddress === "object") {
         const { lat, lng } = geocodedAddress;
-        sqlAddress.coordinates = `POINT(${lat} ${lng})`;
+        if (typeof lat === "number" && typeof lng === "number") {
+          sqlAddress.coordinates = `POINT(${lat} ${lng})`;
+        } else {
+          sqlAddress.coordinates = null;
+        }
       }
     }
 
