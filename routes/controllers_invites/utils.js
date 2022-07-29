@@ -301,7 +301,13 @@ exports.getAddressCoordinates = (db, addressObj) => {
     fetch(endpoint)
       .then(res => res.json())
       .then(data => {
-        if (!data.results || !data.results.length) resolve("");
+        if (!data.results) {
+          console.log(data);
+          resolve("");
+        } else if (!data.results.length) {
+          console.log(data);
+          resolve("");
+        }
         const coordinates = data.results[0].geometry.location;
         resolve(coordinates);
       })
