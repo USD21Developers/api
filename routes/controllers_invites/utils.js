@@ -302,10 +302,8 @@ exports.getAddressCoordinates = (db, addressObj) => {
       .then(res => res.json())
       .then(data => {
         if (!data.results) {
-          console.log(data);
           resolve("");
         } else if (!data.results.length) {
-          console.log(data);
           resolve("");
         }
         const coordinates = data.results[0].geometry.location;
