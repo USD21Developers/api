@@ -2,7 +2,7 @@ function nextSession() {
   const el = document.querySelector("#nextsession");
   if (!el) return;
 
-  const upcomingEventsHTML = `&lt; There are no upcoming events. &gt;`;
+  const upcomingEventsHTML = `&lt; No upcoming events. &gt;`;
 
   el.innerHTML = upcomingEventsHTML;
 }
