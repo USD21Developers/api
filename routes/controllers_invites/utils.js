@@ -315,3 +315,61 @@ exports.getAddressCoordinates = (db, addressObj) => {
       });
   });
 }
+
+exports.getDistance = (db, originObj, destinationObj) => {
+  return new Promise((resolve, reject) => {
+    if (!db) reject(new Error("db is a required argument to getAddressCoordinates"));
+    if (!originObj) reject(new Error("originObj is a required argument to getDistance"));
+    if (!destinationObj) reject(new Error("destinationObj is a required argument to getDistance"));
+    if (typeof originObj !== "object") reject(new Error("originObj argument to getDistance must be an object"));
+    if (typeof destinationObj !== "object") reject(new Error("destinationObj argument to getDistance must be an object"));
+    if (typeof process.env.GOOGLE_MAPS_API_KEY !== "string") reject(new Error("Missing environment variable for Google Maps API key"));
+    if (!process.env.GOOGLE_MAPS_API_KEY.length) reject(new Error("Environment variable for Google Maps API key must not be blank"));
+
+    const { line1: originLine1, line2: originLine2, line3: originLine3, latitude: originLatitude, longitude: originLongitude, country: originCountry } = originObj;
+    const { line1: destinationLine1, line2: destinationLine2, line3: destinationLine3, latitude: destinationLatitude, longitude: destinationLongitude, country: destinationCountry } = destinationObj;
+
+    let origin = "";
+    if (typeof originLatitude === "number" && typeof originLongitude === "number") {
+      origin = `${originLatitude},${originLongitude}`;
+    } else {
+      if (typeof originLine1 === "string" && originLine1.length) origin = encodeURIComponent(originLine1);
+      if (typeof originLine2 === "string" && originLine2.length) origin += "," + encodeURIComponent(originLine2);
+      if (typeof originLine3 === "string" && originLine3.length) origin += "," + encodeURIComponent(originLine3);
+    }
+
+    let destination = "";
+    if (typeof destinationLatitude === "number" && typeof destinationLongitude === "number") {
+      destination = `${destinationLatitude},${destinationLongitude}`;
+    } else {
+      if (typeof destinationLine1 === "string" && destinationLine1.length) destination = encodeURIComponent(destinationLine1);
+      if (typeof destinationLine2 === "string" && destinationLine2.length) destination += "," + encodeURIComponent(destinationLine2);
+      if (typeof destinationLine3 === "string" && destinationLine3.length) destination += "," + encodeURIComponent(destinationLine3);
+    }
+
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    const endpoint = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin}&destinations=${destination}&key=${apiKey}`;
+    const fetch = require("node-fetch");
+
+    fetch(endpoint)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.rows) {
+          resolve("");
+        } else if (!data.rows.length) {
+          resolve("");
+        }
+
+        const distanceObj = data.rows[0].distance;
+        if (typeof distanceObj !== "object") return reject(new Error("invalid distance object from distance API"));
+        if (typeof distance.text !== "string") return reject(new Error("invalid distance text from distance API"));
+        if (typeof distance.value !== "number") return reject(new Error("invalid distance value from distance API"));
+
+        resolve(distance);
+      })
+      .catch(err => {
+        console.log(err);
+        reject(err);
+      })
+  });
+}
