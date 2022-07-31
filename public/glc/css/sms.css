@@ -1,0 +1,17 @@
+.invalid-feedback {
+  font-weight: bold;
+}
+
+.scrollPad10 {
+  scroll-padding: -50px 0 0 0;
+}
+
+.iti__flag {
+  background-image: url("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.18/img/flags.png");
+}
+
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .iti__flag {
+    background-image: url("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.18/img/flags@2x.png");
+  }
+}
