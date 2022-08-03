@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.0/css/bootstrap.min.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <title>GLC Admin</title>
+  </head>
+  <body class="bs-gray-200">
+    <div class="container mb-5">
+      <div class="row">
+        <div class="col col-md-6 offset-md-3 bg-dark text-light">
+          <header class="my-3">
+            <h1 class="text-center">GLC Admin</h1>
+          </header>
+        </div>
+      </div>
+
+      <!-- VERIFY -->
+      <form id="verify" class="view" novalidate>
+        <div class="row bs-gray-200">
+          <div
+            class="col col-md-6 offset-md-3 bg-secondary text-white py-3 border-start border-end border-dark"
+          >
+            <h2 class="text-center px-0">Verify my E-mail</h2>
+          </div>
+        </div>
+        <div class="row d-none scrollPad10" id="alert_verify">
+          <div
+            class="col col-md-6 offset-md-3 border-start border-end border-dark"
+          >
+            <div class="alert alert-danger mt-4 mb-2" role="alert">
+              <strong class="alert-text">Invalid e-mail address.</strong> Try
+              again.
+            </div>
+          </div>
+        </div>
+        <div class="row bs-gray-200">
+          <div
+            class="col col-md-6 offset-md-3 p-3 bg-white border-start border-end border-dark"
+          >
+            <label for="email" class="form-label fw-bold">
+              USD21 e-mail address:
+            </label>
+            <input
+              id="email"
+              type="email"
+              maxlength="100"
+              class="form-control"
+              autocomplete="email"
+              autofocus
+            />
+            <div class="invalid-feedback fw-bold">E-mail is required</div>
+          </div>
+        </div>
+        <div class="row bs-gray-200">
+          <div
+            class="col col-md-6 offset-md-3 p-3 pb-4 bg-white border-start border-end border-bottom border-dark text-center"
+          >
+            <button type="submit" id="submit_verify" class="btn btn-primary">
+              Verify
+            </button>
+            <div
+              class="spinner-border d-none"
+              role="status"
+              id="spinner_verify"
+            >
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </form>
+      <!-- /VERIFY -->
+
+      <!-- CHECK EMAIL -->
+      <div id="checkemail" class="d-none view">
+        <div class="row bs-gray-200">
+          <div
+            class="col col-md-6 offset-md-3 bg-secondary text-white py-3 border-start border-end border-dark"
+          >
+            <h2 class="text-center px-0">Check Your E-mail</h2>
+          </div>
+        </div>
+        <div class="row bs-gray-200">
+          <div
+            class="col col-md-6 offset-md-3 border-start border-end border-bottom border-dark py-4 bg-white"
+          >
+            Please check your e-mail. We have just sent you a message containing
+            a special link. In order to verify your e-mail address,
+            <strong>you must click on that link.</strong>
+          </div>
+        </div>
+      </div>
+      <!-- /CHECK EMAIL -->
+
+      <!-- SEND SMS -->
+      <form id="sendsms" class="d-none view" novalidate>
+        <div class="row bs-gray-200">
+          <div
+            class="col col-md-6 offset-md-3 bg-secondary text-white py-3 border-start border-end border-dark"
+          >
+            <h2 class="text-center px-0">Send an SMS</h2>
+          </div>
+        </div>
+        <div class="row d-none scrollPad10 bs-gray-200" id="alert_sendsms">
+          <div
+            class="col col-md-6 offset-md-3 border-start border-end border-dark bg-white"
+          >
+            <div class="alert alert-success mt-4 mb-2" role="alert">
+              <strong class="alert-text">Message Sent.</strong>
+            </div>
+          </div>
+        </div>
+        <div class="row bs-gray-200">
+          <div
+            class="col col-md-6 offset-md-3 p-3 bg-white border-start border-end border-dark bg-white"
+          >
+            <!-- Category -->
+            <div class="mb-4">
+              <h3 class="text-dark">Category:</h3>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="category"
+                  id="category_nextsession"
+                />
+                <label class="form-check-label" for="category_nextsession">
+                  Next session
+                </label>
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="category"
+                  id="category_announcement"
+                />
+                <label class="form-check-label" for="category_announcement">
+                  Announcement
+                </label>
+              </div>
+            </div>
+
+            <!-- Gender -->
+            <div class="mb-4">
+              <h3 class="text-dark">Gender:</h3>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="gender"
+                  id="gender_both"
+                  checked
+                />
+                <label class="form-check-label" for="gender_both"> Both </label>
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="gender"
+                  id="gender_men"
+                />
+                <label class="form-check-label" for="gender_men"> Men </label>
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="gender"
+                  id="gender_women"
+                />
+                <label class="form-check-label" for="gender_women">
+                  Women
+                </label>
+              </div>
+            </div>
+
+            <div class="mb-2">
+              <h3 class="text-dark">Message:</h3>
+              <textarea class="form-control" id="message" rows="5"></textarea>
+              <div class="bg-dark text-light p-1 mt-2" id="charsLeftContainer">
+                <strong id="charsleft" class="fw-bolder mx-1">160</strong>
+                characters left
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row bs-gray-200">
+          <div
+            class="col col-md-6 offset-md-3 p-3 bg-white border-start border-end border-bottom border-dark text-center"
+          >
+            <button type="submit" id="submit_sms" class="btn btn-primary mb-4">
+              Send SMS
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.0/js/bootstrap.min.js"></script>
+    <script src="logic.js"></script>
+  </body>
+</html>

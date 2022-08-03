@@ -1,0 +1,7 @@
+.view {
+  background-color: white;
+}
+
+.bs-gray-200 {
+  background-color: var(--bs-gray-200);
+}
