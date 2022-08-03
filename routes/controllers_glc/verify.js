@@ -11,7 +11,7 @@ exports.POST = (req, res) => {
   const isValidEmail = validator.validate(email);
   const isPrivilegedEmailAccount = utils.isPrivilegedEmailAccount;
   let protocol = "https:";
-  let host = "glc.usd21.org";
+  let host = "api.usd21.org";
 
   if (process.env.ENV === "development") {
     protocol = "http:";
