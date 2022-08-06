@@ -51,10 +51,17 @@ function validateToken() {
           const confirmingEl = document.querySelector("#confirming");
           const confirmedEl = document.querySelector("#confirmed");
           const confirmedText = "Confirmed!";
+          const reconfirmedText = "Already Confirmed";
+          const accessToken = data.accessToken;
+          const refreshToken = data.refreshToken;
+          const reconfirmed = data.reconfirmed;
+
+          sessionStorage.setItem("accessToken", accessToken);
+          localStorage.setItem("refreshToken", refreshToken);
           spinnerEl.classList.add("d-none");
           confirmedEl.classList.remove("d-none");
-          confirmingEl.querySelector("h2").innerText = confirmedText;
-          document.title = confirmedText;
+          confirmingEl.querySelector("h2").innerText = reconfirmed ? reconfirmedText : confirmedText;
+          document.title = reconfirmed ? reconfirmedText : confirmedText;
           break;
       }
     })
