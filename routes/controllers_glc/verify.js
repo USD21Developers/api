@@ -12,10 +12,12 @@ exports.POST = (req, res) => {
   const isPrivilegedEmailAccount = utils.isPrivilegedEmailAccount;
   let protocol = "https:";
   let host = "api.usd21.org";
+  let urlPrefix = `${protocol}//${host}`;
 
   if (process.env.ENV === "development") {
     protocol = "http:";
-    host = "localhost:5000";
+    host = "localhost:4000";
+    urlPrefix = `${protocol}//${host}/glc`;
   }
 
   if (!email.length)
@@ -94,7 +96,7 @@ exports.POST = (req, res) => {
 
       const emailParagraph1 = `This message is for ${fullname}. In order to verify your e-mail address, please click on the link below:`;
 
-      const confirmationUrl = `${protocol}//${host}/admin/confirm/#${loginToken}`;
+      const confirmationUrl = `${urlPrefix}/admin/confirm/#${loginToken}`;
 
       const emailLinkText = `Verify my e-mail`;
 
@@ -136,8 +138,5 @@ exports.POST = (req, res) => {
           });
         });
     });
-
-    // TODO:  Build verified landing page, to extract the token from the URL and verify it
-    // TODO:  Build token verification API, and send back JWT if token is verified  
   });
 }

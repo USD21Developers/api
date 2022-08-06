@@ -11,4 +11,8 @@ router.post("/subscribe", subscribe.POST);
 const verify = require("./controllers_glc/verify");
 router.post("/verify", verify.POST);
 
+// CONFIRM ADMIN E-MAIL
+const confirm = require("./controllers_glc/confirm");
+router.post("/confirm", confirm.POST);
+
 module.exports = router;

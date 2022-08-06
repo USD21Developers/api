@@ -4,10 +4,63 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.0/css/bootstrap.min.css"
+    />
+    <link rel="stylesheet" href="../style.css" />
     <title>Confirming...</title>
   </head>
-  <body>
-    Confirming...
+  <body class="bs-gray-200">
+    <div class="container mb-5">
+      <div class="row">
+        <div class="col col-md-6 offset-md-3 bg-dark text-light">
+          <header class="my-3">
+            <h1 class="text-center">GLC Admin</h1>
+          </header>
+        </div>
+      </div>
+
+      <!-- CONFIRMING -->
+      <div id="confirming" class="view" novalidate>
+        <div class="row bs-gray-200">
+          <div
+            class="col col-md-6 offset-md-3 bg-secondary text-white py-3 border-start border-end border-dark"
+          >
+            <h2 class="text-center px-0">Confirming...</h2>
+          </div>
+        </div>
+        <div class="row bs-gray-200" id="spinner">
+          <div
+            class="col col-md-6 offset-md-3 bg-white text-center text-white py-3 border-start border-end border-dark border-bottom"
+          >
+            <img
+              src="/_assets/spinner.svg"
+              width="200"
+              height="200"
+              alt="Loading..."
+            />
+          </div>
+        </div>
+        <div class="row bs-gray-200 d-none" id="confirmed">
+          <div
+            class="col col-md-6 offset-md-3 bg-white text-center text-white py-3 border-start border-end border-dark border-bottom"
+          >
+            <img
+              src="/_assets/animated_checkmark.gif"
+              width="164"
+              height="164"
+              alt=""
+              style="margin-left: -30px; margin-bottom: 30px"
+            />
+
+            <div class="mt-1 mb-4">
+              <a href="../" class="btn btn-primary">Continue</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <script src="logic.js"></script>
   </body>

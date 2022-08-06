@@ -73,7 +73,7 @@ function getApiHost() {
       host = "https://api.usd21.org/glc";
       break;
     default:
-      host = `http://${window.location.hostname}:4000/glc`;
+      host = `http://${window.location.host}/glc`;
       break;
   }
 
