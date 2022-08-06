@@ -85,6 +85,9 @@ async function onVerify(e) {
   document.querySelectorAll(".is-invalid").forEach(item => item.classList.remove("is-invalid"));
   alert("#alert_verify", "hide");
 
+  sessionStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+
   const emailEl = document.querySelector("#email");
   const email = e.target.email.value.trim();
 
@@ -136,6 +139,9 @@ async function onVerify(e) {
           break;
         case "confirmation e-mail could not be sent":
           alert("#alert_verify", "show", "An error occurred.  Please try again.");
+          break;
+        case "e-mail not found":
+          alert("#alert_verify", "show", "This is not a recognized GLC Admin e-mail address.");
           break;
         case "confirmation e-mail sent":
           document.querySelectorAll(".view").forEach(item => item.classList.add("d-none"));
