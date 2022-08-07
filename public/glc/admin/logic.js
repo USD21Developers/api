@@ -73,15 +73,36 @@ function getApiHost() {
   let host;
 
   switch (window.location.hostname) {
-    case "glc.usd21.org":
+    case "api.usd21.org":
       host = "https://api.usd21.org/glc";
       break;
     default:
-      host = `http://${window.location.host}/glc`;
+      host = `${window.location.protocol}//${window.location.host}/glc`;
       break;
   }
 
   return host;
+}
+
+async function onSmsSubmit(e) {
+  e.preventDefault();
+}
+
+function onTyped(e) {
+  const charsMax = 160;
+  const charsTyped = e.target.value.length;
+  const charsLeft = charsMax - charsTyped;
+  const charsLeftEl = document.querySelector("#charsleft");
+  const charsLeftContainer = document.querySelector("#charsLeftContainer");
+
+  charsLeftEl.innerHTML = charsLeft;
+  if (charsLeft < 0) {
+    charsLeftContainer.classList.remove("bg-dark");
+    charsLeftContainer.classList.add("bg-danger");
+  } else {
+    charsLeftContainer.classList.add("bg-dark");
+    charsLeftContainer.classList.remove("bg-danger");
+  }
 }
 
 async function onVerify(e) {
@@ -164,27 +185,6 @@ async function onVerify(e) {
     spinner.classList.add("d-none");
     submitBtn.classList.remove("d-none");
   }, 8000);
-}
-
-async function onSmsSubmit(e) {
-  e.preventDefault();
-}
-
-function onTyped(e) {
-  const charsMax = 160;
-  const charsTyped = e.target.value.length;
-  const charsLeft = charsMax - charsTyped;
-  const charsLeftEl = document.querySelector("#charsleft");
-  const charsLeftContainer = document.querySelector("#charsLeftContainer");
-
-  charsLeftEl.innerHTML = charsLeft;
-  if (charsLeft < 0) {
-    charsLeftContainer.classList.remove("bg-dark");
-    charsLeftContainer.classList.add("bg-danger");
-  } else {
-    charsLeftContainer.classList.add("bg-dark");
-    charsLeftContainer.classList.remove("bg-danger");
-  }
 }
 
 async function setInitialView() {
