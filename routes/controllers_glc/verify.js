@@ -94,6 +94,9 @@ exports.POST = (req, res) => {
         });
       }
 
+      const uuid = require("uuid");
+      const messageID = uuid.v4();
+
       const emailParagraph1 = `This message is for ${fullname}. In order to verify your e-mail address, please click on the link below:`;
 
       const confirmationUrl = `${urlPrefix}/admin/confirm/#${loginToken}`;
@@ -116,6 +119,8 @@ exports.POST = (req, res) => {
           </strong>
         </p>
         <p>${emailSignature}</p>
+        <hr noshade />
+        <font color="#cccccc"><small style="color: #cccccc">Message ID: ${messageID}</small></font>
       `;
 
       const recipient = `"${fullname}" <${email}>`;
