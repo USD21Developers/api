@@ -65,6 +65,17 @@ exports.POST = (req, res) => {
     const email = result[0].email;
     const fullname = `${result[0].firstname} ${result[0].lastname}`;
 
+    let iPhoneGmailAdvisory = "";
+    if (email.indexOf("@gmail.com") >= 0) {
+      iPhoneGmailAdvisory = `
+        <br />
+        <br />
+        <strong>iPhone users:</strong>
+        <br /><small>You must <nobr><strong>press and hold</strong></nobr> on the link above, then select "Open Link." Otherwise verification may not succeed.</small>
+        <br />
+      `;
+    }
+
     // TODO:  Add token to tokens table
 
     const loginToken = require("crypto")
@@ -105,17 +116,6 @@ exports.POST = (req, res) => {
 
       const emailSignature = `The Cyberministry`;
 
-      let iPhoneGmailAdvisory = "";
-      if (email.indexOf("@gmail.com") >= 0) {
-        iPhoneGmailAdvisory = `
-          <br />
-          <br />
-          <strong>iPhone users:</strong>
-          <br /><small>You must <nobr><strong>press and hold</strong></nobr> on the link above, then select "Open Link." Otherwise verification may not succeed.
-          <br />
-        `;
-      }
-
       const body = `
         <p>
           ${emailParagraph1}
@@ -133,7 +133,7 @@ exports.POST = (req, res) => {
         <p>${emailSignature}</p>
         <br />
         <hr noshade />
-        <font color="#cccccc"><small style="color: #cccccc">Message ID: ${messageID}</small></font>
+        <font color="#cccccc"><small style="color: #cccccc">Message ID:<br />${messageID}</small></font>
       `;
 
       const recipient = `"${fullname}" <${email}>`;
