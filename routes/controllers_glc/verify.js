@@ -116,10 +116,11 @@ exports.POST = (req, res) => {
                 ${emailLinkText}
               </a>
             </big>
-            <div>
-              <small><strong>iPhone users:</strong>  You must <strong>press and hold</strong> on the link above, then select "Open Link."
-            </div>
-          </strong>
+          </strong>          
+          <br />
+          <br />
+          <small><strong>iPhone users:</strong>  You must <nobr><strong>press and hold</strong></nobr> on the link above, then select "Open Link."
+          <br />
         </p>
         <p>${emailSignature}</p>
         <br />
