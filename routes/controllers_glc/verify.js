@@ -111,6 +111,7 @@ exports.POST = (req, res) => {
           <br />
           <br /><small>You may need to <nobr><strong>press and hold</strong></nobr> on the link above, then select "Open Link." Otherwise verification may not succeed.</small>
         </div>
+        <br />
       `;
 
       const emailSignature = `The Cyberministry`;
@@ -133,6 +134,8 @@ exports.POST = (req, res) => {
         <br />
         <hr noshade />
         <font color="#cccccc"><small style="color: #cccccc">Message ID:<br />${messageID}</small></font>
+        <br />
+        <br />
       `;
 
       const recipient = `"${fullname}" <${email}>`;
