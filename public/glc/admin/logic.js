@@ -14,6 +14,10 @@ function alert(selector, action = "show", message = "") {
   }
 }
 
+function clearViews() {
+  document.querySelectorAll(".view").forEach(item => item.classList.add("d-none"));
+}
+
 function getAccessToken() {
   let needToRefresh = false;
   const accessToken = sessionStorage.getItem("accessToken") || "";
@@ -144,7 +148,7 @@ async function onVerify(e) {
           alert("#alert_verify", "show", "This is not a recognized GLC Admin e-mail address.");
           break;
         case "confirmation e-mail sent":
-          document.querySelectorAll(".view").forEach(item => item.classList.add("d-none"));
+          clearViews();
           document.querySelector("#checkemail").classList.remove("d-none");
           break;
       }
@@ -183,6 +187,35 @@ function onTyped(e) {
   }
 }
 
+async function setInitialView() {
+  const verifyEl = document.querySelector("#verify");
+  const sendSmsEl = document.querySelector("#sendsms");
+  const refreshToken = localStorage.getItem("refreshToken") || "";
+  let isValidRefreshToken = true;
+
+  if (!refreshToken) {
+    isValidRefreshToken = false;
+  } else if (!refreshToken.length) {
+    isValidRefreshToken = false;
+  } else if (refreshToken.split(".").length !== 3) {
+    isValidRefreshToken = false;
+  } else {
+    const now = Date.now().valueOf() / 1000;
+    const expiry = JSON.parse(atob(localStorage.getItem("refreshToken").split(".")[1])).exp || 0;
+    if (now > expiry) {
+      isValidRefreshToken = false;
+    }
+  };
+
+  if (!isValidRefreshToken) {
+    clearViews();
+    verifyEl.classList.remove("d-none");
+  } else {
+    clearViews();
+    sendSmsEl.classList.remove("d-none");
+  }
+}
+
 function setListeners() {
   document.querySelector("#verify").addEventListener("submit", onVerify);
   document.querySelector("#sendsms").addEventListener("submit", onSmsSubmit);
@@ -190,6 +223,7 @@ function setListeners() {
 }
 
 function init() {
+  setInitialView();
   setListeners();
 }
 
