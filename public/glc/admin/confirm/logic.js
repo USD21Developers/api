@@ -2,11 +2,11 @@ function getApiHost() {
   let host;
 
   switch (window.location.hostname) {
-    case "glc.usd21.org":
+    case "api.usd21.org":
       host = "https://api.usd21.org/glc";
       break;
     default:
-      host = `http://${window.location.host}/glc`;
+      host = `${window.location.protocol}//${window.location.host}/glc`;
       break;
   }
 
