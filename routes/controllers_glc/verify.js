@@ -106,7 +106,7 @@ exports.POST = (req, res) => {
       const iPhoneAdvisory = `
         <br />
         <br />
-          <blockquote style="border: 1px solid #999; background-color: #eee; padding: 12px">
+          <blockquote style="border: 1px solid #999; background-color: #eee; padding: 12px; border-radius: 4px">
             <small><strong><u>iPhone users:</u></strong></small>
             <br /><small>You must <nobr><strong>press and hold</strong></nobr> on the link above, then select "Open Link." Otherwise verification may not succeed.</small>
           </blockquote>
