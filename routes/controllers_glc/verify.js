@@ -105,6 +105,17 @@ exports.POST = (req, res) => {
 
       const emailSignature = `The Cyberministry`;
 
+      let iPhoneGmailAdvisory = "";
+      if (email.indexOf("@gmail.com") >= 0) {
+        iPhoneGmailAdvisory = `
+          <br />
+          <br />
+          <strong>iPhone users:</strong>
+          <br /><small>You must <nobr><strong>press and hold</strong></nobr> on the link above, then select "Open Link." Otherwise verification may not succeed.
+          <br />
+        `;
+      }
+
       const body = `
         <p>
           ${emailParagraph1}
@@ -117,11 +128,7 @@ exports.POST = (req, res) => {
               </a>
             </big>
           </strong>          
-          <br />
-          <br />
-          <strong>iPhone users:</strong>
-          <br /><small>You must <nobr><strong>press and hold</strong></nobr> on the link above, then select "Open Link." Otherwise verification may not succeed.
-          <br />
+          ${iPhoneGmailAdvisory}
         </p>
         <p>${emailSignature}</p>
         <br />
