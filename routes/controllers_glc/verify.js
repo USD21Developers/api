@@ -119,6 +119,7 @@ exports.POST = (req, res) => {
           </strong>
         </p>
         <p>${emailSignature}</p>
+        <br />
         <hr noshade />
         <font color="#cccccc"><small style="color: #cccccc">Message ID: ${messageID}</small></font>
       `;
