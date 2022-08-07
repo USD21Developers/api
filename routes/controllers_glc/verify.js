@@ -116,6 +116,9 @@ exports.POST = (req, res) => {
                 ${emailLinkText}
               </a>
             </big>
+            <div>
+              <small><strong>iPhone users:</strong>  You must <strong>press and hold</strong> on the link above, then select "Open Link."
+            </div>
           </strong>
         </p>
         <p>${emailSignature}</p>
