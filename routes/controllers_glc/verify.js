@@ -12,7 +12,7 @@ exports.POST = (req, res) => {
   const isPrivilegedEmailAccount = utils.isPrivilegedEmailAccount;
   let protocol = "https:";
   let host = "api.usd21.org";
-  let urlPrefix = `${protocol}//${host}`;
+  let urlPrefix = `${protocol}//${host}/glc`;
 
   if (process.env.ENV === "development") {
     protocol = "http:";
