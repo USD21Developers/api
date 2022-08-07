@@ -154,10 +154,10 @@ async function onVerify(e) {
           alert("#alert_verify", "show", "E-mail is required.");
           break;
         case "invalid e-mail format":
-          alert("#alert_verify", "show", "A valid e-mail address is required.");
+          alert("#alert_verify", "show", "A valid <nobr>e-mail</nobr> address is required.");
           break;
         case "usd21 e-mail account is required":
-          alert("#alert_verify", "show", "You must use a USD21 e-mail address to access this page.");
+          alert("#alert_verify", "show", "You must use a <strong>USD21</strong> <nobr>e-mail</nobr> address to access this page.");
           break;
         case "unable to insert login token":
           alert("#alert_verify", "show", "An error occurred. Please try again.");
@@ -166,7 +166,7 @@ async function onVerify(e) {
           alert("#alert_verify", "show", "An error occurred.  Please try again.");
           break;
         case "e-mail not found":
-          alert("#alert_verify", "show", "This is not a recognized GLC Admin e-mail address.");
+          alert("#alert_verify", "show", "This is not a recognized GLC Admin <nobr>e-mail</nobr> address.");
           break;
         case "confirmation e-mail sent":
           clearViews();
