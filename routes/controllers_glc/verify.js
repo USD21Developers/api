@@ -107,8 +107,8 @@ exports.POST = (req, res) => {
         <br />
         <br />
         <br />
-        <strong>iPhone users:</strong>
-        <br /><small>You must <nobr><strong>press and hold</strong></nobr> on the link above, then select "Open Link." Otherwise verification may not succeed.</small>
+        <small><strong>iPhone users:</strong></small>
+        <br />You must <nobr><strong>press and hold</strong></nobr> on the link above, then select "Open Link." Otherwise verification may not succeed.</small>
         <br />
       `;
 
