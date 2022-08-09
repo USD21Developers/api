@@ -41,23 +41,22 @@ exports.isPrivilegedEmailAccount = (email = "") => {
   return isPrivilegedEmail;
 }
 
-exports.sendSms = (recipient, content) => {
+exports.sendSms = (recipient, message) => {
   const twilio = require("twilio");
   const client = new twilio(
     process.env.TWILIO_ACCOUNT_SID,
     process.env.TWILIO_AUTH_TOKEN
   );
-  let sender = TWILIO_PHONE_NUMBER;
+  let sender = process.env.TWILIO_PHONE_NUM;
   return new Promise((resolve, reject) => {
     client.messages
       .create({
         from: sender,
         to: recipient,
-        body: content,
+        body: message,
       })
-      .then((message) => {
-        console.log(require("util").inspect(message, true, 7, true));
-        resolve(message);
+      .then((twilioResponse) => {
+        resolve(twilioResponse);
       })
       .catch((error) => {
         reject(error);
