@@ -18,74 +18,44 @@ function clearViews() {
   document.querySelectorAll(".view").forEach(item => item.classList.add("d-none"));
 }
 
-function getAccessToken() {
-  let needToRefresh = false;
-  const accessToken = sessionStorage.getItem("accessToken") || "";
-  const now = Date.now().valueOf() / 1000;
-  let expiry = now;
-  try {
-    expiry = JSON.parse(atob(accessToken.split(".")[1])).exp;
-    if (expiry < now) needToRefresh = true;
-  } catch (err) {
-    needToRefresh = true;
-  }
-  return new Promise((resolve, reject) => {
-    if (!needToRefresh) return resolve(accessToken);
-    const refreshToken = localStorage.getItem("refreshToken") || "";
-    if (!refreshToken.length) return reject("refresh token missing");
-
-    const endpoint = `${getAPIHost()}/invites/refresh-token`;
-
-    fetch(endpoint, {
-      mode: "cors",
-      method: "POST",
-      body: JSON.stringify({
-        refreshToken: refreshToken,
-      }),
-      headers: new Headers({
-        "Content-Type": "application/json",
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        switch (data.msg) {
-          case "tokens renewed":
-            const { accessToken, refreshToken } = data;
-            localStorage.setItem("refreshToken", refreshToken);
-            sessionStorage.setItem("accessToken", accessToken);
-            const country =
-              JSON.parse(atob(accessToken.split(".")[1])).country || "us";
-            setCountry(country);
-            resolve(accessToken);
-            break;
-          default:
-            resolve("could not get access token");
-            break;
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  });
-}
-
-function getApiHost() {
-  let host;
-
-  switch (window.location.hostname) {
-    case "api.usd21.org":
-      host = "https://api.usd21.org/glc";
-      break;
-    default:
-      host = `${window.location.protocol}//${window.location.host}/glc`;
-      break;
-  }
-
-  return host;
-}
-
 async function onSmsSubmit(e) {
   e.preventDefault();
+
+  const accessToken = await getAccessToken();
+  const endpoint = `${getApiHost()}/sendsms`;
+  const category = document.querySelector("input[name=category]:checked").value;
+  const gender = document.querySelector("input[name=gender]:checked").value;
+  const message = document.querySelector("#message").value;
+
+  // TODO:  Make these validations more robust
+  if (!category || !category.length) return;
+  if (!gender || !gender.length) return;
+  if (!message.length) return;
+
+  // TODO:  Add a spinner
+
+  fetch(endpoint, {
+    mode: "cors",
+    method: "POST",
+    body: JSON.stringify({
+      category: category,
+      gender: gender,
+      message: message
+    }),
+    headers: new Headers({
+      "Content-Type": "application/json",
+      authorization: `Bearer ${accessToken}`
+    })
+  })
+    .then(res => res.json())
+    .then(data => {
+      console.log(data);
+      // TODO:  handle response in UI
+    })
+    .catch(err => {
+      console.error(err);
+      // TODO:  handle error in UI
+    });
 }
 
 function onTyped(e) {
