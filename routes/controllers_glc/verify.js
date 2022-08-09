@@ -97,7 +97,7 @@ exports.POST = (req, res) => {
       const uuid = require("uuid");
       const messageID = uuid.v4();
 
-      const emailParagraph1 = `This message is for ${fullname}. In order to verify your e-mail address, please click on the link below:`;
+      const emailParagraph1 = `This message is for ${fullname}. In order to verify your e-mail address, please visit the link below:`;
 
       const confirmationUrl = `${urlPrefix}/admin/confirm/#${loginToken}`;
 
@@ -109,7 +109,7 @@ exports.POST = (req, res) => {
         <div style="border: 1px solid #999; background-color: #eee; padding: 12px; border-radius: 4px">
           <small><strong><u>Mobile device users:</u></strong></small>
           <br />
-          <br /><small>You may need to <nobr><strong>press and hold</strong></nobr> on the link above, then select open the link in your Web browser. Otherwise verification may not succeed.</small>
+          <br /><small>You may need to <nobr><strong>press and hold</strong></nobr> on the link above, then select whatever option that opens the link directly in your Web browser. Otherwise verification may not succeed.</small>
         </div>
         <br />
       `;
