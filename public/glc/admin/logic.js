@@ -32,7 +32,11 @@ async function onSmsSubmit(e) {
   if (!gender || !gender.length) return;
   if (!message.length) return;
 
-  // TODO:  Add a spinner
+  const spinner = document.querySelector("#spinner");
+  const submitBtn = document.querySelector("#submit_sms");
+
+  submitBtn.classList.add("d-none");
+  spinner.classList.remove("d-none");
 
   fetch(endpoint, {
     mode: "cors",
@@ -48,13 +52,22 @@ async function onSmsSubmit(e) {
     })
   })
     .then(res => res.json())
-    .then(data => {
+    .then(async (data) => {
+      const viewEl = document.querySelector("#app");
+      const formEl = document.querySelector("#sendsms");
+
       console.log(data);
-      // TODO:  handle response in UI
+      submitBtn.classList.remove("d-none");
+      spinner.classList.add("d-none");
+
+      formEl.reset();
+      viewEl.scrollIntoView();
+      await showToast("Message sent.");
     })
     .catch(err => {
       console.error(err);
-      // TODO:  handle error in UI
+      submitBtn.classList.remove("d-none");
+      spinner.classList.add("d-none");
     });
 }
 

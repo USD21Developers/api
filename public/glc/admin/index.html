@@ -12,7 +12,7 @@
     <title>GLC Admin</title>
   </head>
   <body class="bs-gray-200">
-    <div class="container mb-5">
+    <div class="container mb-5" id="app">
       <div class="row">
         <div class="col col-md-6 offset-md-3 bg-dark text-light">
           <header class="my-3">
@@ -221,9 +221,23 @@
             <button type="submit" id="submit_sms" class="btn btn-primary mb-4">
               Send SMS
             </button>
+            <div id="spinner" class="d-none spinner-border mb-4" role="status"">
+              <span class="visually-hidden">Loading...</span>
+            </div>
           </div>
         </div>
       </form>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+      <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-success text-white">
+          <strong class="me-auto"></strong>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body"></div>
+      </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.0/js/bootstrap.min.js"></script>

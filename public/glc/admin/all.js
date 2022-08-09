@@ -60,3 +60,32 @@ function getApiHost() {
 
   return host;
 }
+
+function showToast(message = "", headText = "GLC Admin", delay = "4000", bgClass = "bg-success") {
+  return new Promise((resolve, reject) => {
+    const toastEl = document.querySelector("#liveToast");
+    const messageTextEl = toastEl.querySelector(".toast-body");
+    const headEl = toastEl.querySelector(".toast-header");
+    const headTextEl = headEl.querySelector("strong");
+    const toast = new bootstrap.Toast(toastEl);
+
+    ["bg-primary", "bg-secondary", "bg-success", "bg-danger", "bg-warning", "bg-info", "bg-dark"].forEach(item => {
+      headEl.classList.remove(item);
+    });
+    headEl.classList.add(bgClass);
+
+    headTextEl.innerText = headText;
+    messageTextEl.innerText = message;
+
+    toast.show();
+
+    if (delay > 0) {
+      setTimeout(() => {
+        toast.hide();
+        resolve();
+      }, delay);
+    } else {
+      resolve();
+    }
+  });
+}
