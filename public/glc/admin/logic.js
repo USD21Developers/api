@@ -23,14 +23,36 @@ async function onSmsSubmit(e) {
 
   const accessToken = await getAccessToken();
   const endpoint = `${getApiHost()}/sendsms`;
-  const category = document.querySelector("input[name=category]:checked").value;
-  const gender = document.querySelector("input[name=gender]:checked").value;
+  const category = document.querySelector("input[name=category]:checked")?.value;
+  const gender = document.querySelector("input[name=gender]:checked")?.value;
   const message = document.querySelector("#message").value;
 
-  // TODO:  Make these validations more robust
-  if (!category || !category.length) return;
-  if (!gender || !gender.length) return;
-  if (!message.length) return;
+  document.querySelector("#sendsms").querySelectorAll(".is-invalid").forEach(item => item.classList.remove("is-invalid"));
+
+  // Validate
+
+  // Validate category
+  const categoryEls = document.querySelectorAll("input[name=category]");
+  if (!category || !category.length) {
+    categoryEls.forEach(item => item.classList.add("is-invalid"));
+    document.querySelector("#sendsms_category").scrollIntoView();
+    return false;
+  };
+
+  // Validate gender
+  const genderEls = document.querySelectorAll("input[name=gender]");
+  if (!gender || !gender.length) {
+    genderEls.forEach(item => item.classList.add("is-invalid"));
+    document.querySelector("#sendsms_gender").scrollIntoView();
+    return false;
+  };
+
+  // Validate message
+  const messageEl = document.querySelector("#message");
+  if (!message.length) {
+    messageEl.classList.add("is-invalid");
+    return false;
+  };
 
   const spinner = document.querySelector("#spinner");
   const submitBtn = document.querySelector("#submit_sms");
@@ -55,12 +77,15 @@ async function onSmsSubmit(e) {
     .then(async (data) => {
       const viewEl = document.querySelector("#app");
       const formEl = document.querySelector("#sendsms");
+      const charsLeftEl = document.querySelector("#charsleft");
 
       console.log(data);
       submitBtn.classList.remove("d-none");
       spinner.classList.add("d-none");
 
       formEl.reset();
+      charsLeftEl.innerText = charsLeftEl.getAttribute("data-original-value");
+
       viewEl.scrollIntoView();
       await showToast("Message sent.");
     })

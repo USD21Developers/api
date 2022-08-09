@@ -138,7 +138,7 @@
             class="col col-md-6 offset-md-3 p-3 bg-white border-start border-end border-dark bg-white"
           >
             <!-- Category -->
-            <div class="mb-4">
+            <div class="mb-4 scrollPad10" id="sendsms_category">
               <h3 class="text-dark">Category:</h3>
               <div class="form-check">
                 <input
@@ -163,11 +163,14 @@
                 <label class="form-check-label" for="category_announcement">
                   Announcement
                 </label>
+                <div class="invalid-feedback">
+                  Category is required.
+                </div>
               </div>
             </div>
 
             <!-- Gender -->
-            <div class="mb-4">
+            <div class="mb-4" id="sendsms_gender">
               <h3 class="text-dark">Gender:</h3>
               <div class="form-check">
                 <input
@@ -201,14 +204,20 @@
                 <label class="form-check-label" for="gender_women">
                   Women
                 </label>
+                <div class="invalid-feedback">
+                  Gender is required.
+                </div>
               </div>
             </div>
 
             <div class="mb-2">
               <h3 class="text-dark">Message:</h3>
               <textarea class="form-control" id="message" rows="5"></textarea>
+              <div class="invalid-feedback">
+                Message is required.
+              </div>
               <div class="bg-dark text-light p-1 mt-2" id="charsLeftContainer">
-                <strong id="charsleft" class="fw-bolder mx-1">160</strong>
+                <strong id="charsleft" class="fw-bolder mx-1" data-original-value="160">160</strong>
                 characters left
               </div>
             </div>
