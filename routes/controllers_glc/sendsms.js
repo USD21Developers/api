@@ -19,7 +19,7 @@ exports.POST = (req, res) => {
     return res.status(400).send({ msg: "invalid message body", msgType: "error" });
   }
 
-  const sql = `
+  let sql = `
     SELECT
       phone
     FROM
