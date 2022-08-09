@@ -107,9 +107,9 @@ exports.POST = (req, res) => {
         <br />
         <br />
         <div style="border: 1px solid #999; background-color: #eee; padding: 12px; border-radius: 4px">
-          <small><strong><u>iPhone users:</u></strong></small>
+          <small><strong><u>Mobile device users:</u></strong></small>
           <br />
-          <br /><small>You may need to <nobr><strong>press and hold</strong></nobr> on the link above, then select "Open Link." Otherwise verification may not succeed.</small>
+          <br /><small>You may need to <nobr><strong>press and hold</strong></nobr> on the link above, then select open the link in your Web browser. Otherwise verification may not succeed.</small>
         </div>
         <br />
       `;
