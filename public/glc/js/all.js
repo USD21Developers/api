@@ -2,9 +2,17 @@ function nextSession() {
   const el = document.querySelector("#nextsession");
   if (!el) return;
 
-  const upcomingEventsHTML = `&lt; No upcoming events. &gt;`;
+  el.parentElement.setAttribute("id", "realnextsession");
 
-  el.innerHTML = upcomingEventsHTML;
+  const upcomingEventsHTML = `<div align="center">
+  Coming soon!
+  </div>`;
+
+  const realEl = document.querySelector("#realnextsession");
+
+  realEl.innerHTML = upcomingEventsHTML;
+
+  realEl.previousElementSibling.style.marginBottom = "15px";
 }
 
 function init() {
