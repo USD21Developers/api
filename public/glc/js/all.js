@@ -270,6 +270,44 @@ function nextSession() {
   contentEl.innerHTML = `Coming soon!`;
   el.append(contentEl);
 
+  let nextSessionHTML = `<div align="center">Conference Concluded</div>`;
+
+  let nextGLCEvents = [];
+  const myTimeZone = moment.tz.guess();
+  const now = moment.tz(moment(), myTimeZone);
+
+  for (let i = 0; i < program.length; i++) {
+    const item = program[i];
+    const dateTime = moment.tz(moment(item.datetime), "America/Los_Angeles");
+    const minutesFromNow = dateTime.diff(now, "minutes");
+
+    if (minutesFromNow < 0) {
+      continue;
+    } else {
+      nextGLCEvents = program.filter(item2 => item2.datetime === item.datetime);
+      break;
+    }
+  }
+
+  if (nextGLCEvents.length) {
+    nextGLCEvents.forEach(evt => {
+      nextSessionHTML += `<li>${evt.title}<br>${evt.location}</li>`;
+    });
+
+    const evtTime = nextGLCEvents[0].time;
+    nextSessionHTML = `
+      <p>
+        Time: <strong>${evtTime}</strong>
+      </p>
+
+      <ul>
+        ${nextSessionHTML}
+      </ul>
+    `;
+  }
+
+  const nextSessionContentEl = document.getElementById("#nextSessionContent");
+  nextSessionContentEl.innerHTML = nextSessionHTML;
 }
 
 function init() {
