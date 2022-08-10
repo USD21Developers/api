@@ -309,6 +309,7 @@ function nextSession() {
 
   const nextSessionContentEl = document.querySelector("#nextSessionContent")
   if (nextSessionContentEl) {
+    nextSessionContent.removeAttribute("align");
     nextSessionContentEl.innerHTML = nextSessionHTML;
   }
 }
