@@ -306,8 +306,10 @@ function nextSession() {
     `;
   }
 
-  const nextSessionContentEl = document.getElementById("#nextSessionContent");
-  nextSessionContentEl.innerHTML = nextSessionHTML;
+  const nextSessionContentEl = document.querySelector("#nextSessionContent")
+  if (nextSessionContentEl) {
+    nextSessionContentEl.innerHTML = nextSessionHTML;
+  }
 }
 
 function init() {
