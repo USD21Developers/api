@@ -267,7 +267,6 @@ function nextSession() {
   const contentEl = document.createElement("div");
   contentEl.setAttribute("id", "nextSessionContent");
   contentEl.setAttribute("align", "center");
-  contentEl.innerHTML = `Coming soon!`;
   el.append(contentEl);
 
   let nextSessionHTML = `<div align="center">Conference Concluded</div>`;
