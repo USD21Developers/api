@@ -290,6 +290,7 @@ function nextSession() {
   }
 
   if (nextGLCEvents.length) {
+    nextSessionHTML = "";
     nextGLCEvents.forEach(evt => {
       nextSessionHTML += `<li>${evt.title}<br>${evt.location}</li>`;
     });
