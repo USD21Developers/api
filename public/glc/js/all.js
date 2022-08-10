@@ -310,6 +310,10 @@ function nextSession() {
   if (nextSessionContentEl) {
     nextSessionContent.removeAttribute("align");
     nextSessionContentEl.innerHTML = nextSessionHTML;
+
+    if (nextGLCEvents.length >= 2) {
+      nextSessionContentEl.previousElementSibling.querySelector("strong").innerHTML = "NEXT SESSIONS:";
+    }
   }
 }
 
