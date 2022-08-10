@@ -4,6 +4,10 @@
   text-align: left;
 }
 
+#nextSessionContent ul {
+  margin-top: 20px;
+}
+
 #nextSessionContent li {
-  margin-bottom: 20px;
+  margin-left: 25px;
 }
