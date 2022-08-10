@@ -1,18 +1,13 @@
 function nextSession() {
-  const el = document.querySelector("#nextsession");
+  const el = document.querySelector(".nextsession");
   if (!el) return;
 
-  el.parentElement.setAttribute("id", "realnextsession");
+  const contentEl = document.createElement("div");
+  contentEl.setAttribute("id", "nextSessionContent");
+  contentEl.setAttribute("align", "center");
+  contentEl.innerHTML = `Coming soon!`;
+  el.append(contentEl);
 
-  const upcomingEventsHTML = `<div align="center">
-  Coming soon!
-  </div>`;
-
-  const realEl = document.querySelector("#realnextsession");
-
-  realEl.innerHTML = upcomingEventsHTML;
-
-  realEl.previousElementSibling.style.marginBottom = "15px";
 }
 
 function init() {
