@@ -292,7 +292,7 @@ function nextSession() {
   if (nextGLCEvents.length) {
     nextSessionHTML = "";
     nextGLCEvents.forEach(evt => {
-      nextSessionHTML += `<li>${evt.title}<br>${evt.location}</li>`;
+      nextSessionHTML += `<li><strong><em>${evt.title}</em></strong><br>${evt.location}</li>`;
     });
 
     const evtTime = nextGLCEvents[0].time;
