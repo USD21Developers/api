@@ -2,6 +2,7 @@ const program = [
   {
     title: "The ICCM Chancellor’s Gala",
     location: "Anaheim Convention Center  Level 201A",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0810_Wednesday_630PM_Level2-980x757.jpg",
     date: "Wednesday - August 10th",
     time: "6:30 PM",
     datetime: new Date("2022-08-10T18:30:00")
@@ -9,6 +10,7 @@ const program = [
   {
     title: "Church Builders Workshop",
     location: "Anaheim Hilton - Level 2 - California Promenade Ballroom",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0811_Thursday_9AM_Hilton-1024x747.jpg",
     date: "Thursday - August 11th",
     time: "9:00 AM",
     datetime: new Date("2022-08-11T09:00:00")
@@ -16,6 +18,7 @@ const program = [
   {
     title: "MERCYWORLDWIDE Summit",
     location: "Anaheim Convention Center - Level 2 - Room 204B",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0811_Thursday_2PM_200Level-980x757.jpg",
     date: "Thursday - August 11th",
     time: "2:00 PM",
     datetime: new Date("2022-08-11T14:00:00")
@@ -23,6 +26,7 @@ const program = [
   {
     title: "CyberMinistry Seminar",
     location: "Anaheim Convention Center - Level 2 - Room 207AB",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0811_Thursday_2PM_200Level-980x757.jpg",
     date: "Thursday - August 11th",
     time: "2:00 PM",
     datetime: new Date("2022-08-11T14:00:00")
@@ -30,6 +34,7 @@ const program = [
   {
     title: "Administration And Law Congress",
     location: "Anaheim Convention Center - Level 2 - Room 204 C",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0811_Thursday_2PM_200Level-980x757.jpg",
     date: "Thursday - August 11th",
     time: "2:00 PM",
     datetime: new Date("2022-08-11T14:00:00")
@@ -37,6 +42,7 @@ const program = [
   {
     title: "Great Physician Ministry (Formerly Refined By Fire Ministry)",
     location: "Anaheim Convention Center - Level 2 - Room 207 CD",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0811_Thursday_2PM_200Level-980x757.jpg",
     date: "Thursday - August 11th",
     time: "2:00 PM",
     datetime: new Date("2022-08-11T14:00:00")
@@ -44,6 +50,7 @@ const program = [
   {
     title: "GLC First General Session",
     location: "Anaheim Convention Center - North 100 Level - Exhibition Hall",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0811_Thursday_730PM_100Level-980x757.jpg",
     date: "Thursday - August 11th",
     time: "7:30 PM",
     datetime: new Date("2022-08-11T19:30:00")
@@ -51,6 +58,7 @@ const program = [
   {
     title: "ICCM Commencement Rehearsal And Pictures",
     location: "Anaheim Convention Center - North 100 Level - Exhibition Hall",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0812_Friday_630AM_100Level-980x757.jpg",
     date: "Friday - August 12th",
     time: "6:30 AM",
     datetime: new Date("2022-08-12T06:30:00")
@@ -58,6 +66,7 @@ const program = [
   {
     title: "Africanus World Sector",
     location: "Anaheim Convention Center - North 200 Level - Rooms 259 AB",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0812_Friday_930AM_200Level-1-980x757.jpg",
     date: "Friday - August 12th",
     time: "9:30 AM",
     datetime: new Date("2022-08-12T09:30:00")
@@ -65,6 +74,7 @@ const program = [
   {
     title: "Austral-China World Sector",
     location: "Anaheim Convention Center - North 200 Level - Rooms 262 ABC",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0812_Friday_930AM_200Level-1-980x757.jpg",
     date: "Friday - August 12th",
     time: "9:30 AM",
     datetime: new Date("2022-08-12T09:30:00")
@@ -72,6 +82,7 @@ const program = [
   {
     title: "European World Sector",
     location: "Anaheim Convention Center - North 200 Level - Rooms 253 ABC",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0812_Friday_930AM_200Level-1-980x757.jpg",
     date: "Friday - August 12th",
     time: "9:30 AM",
     datetime: new Date("2022-08-12T09:30:00")
@@ -79,6 +90,7 @@ const program = [
   {
     title: "Latin America World Sector",
     location: "Anaheim Convention Center - North 200 Level - Rooms 261 ABC",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0812_Friday_930AM_200Level-1-980x757.jpg",
     date: "Friday - August 12th",
     time: "9:30 AM",
     datetime: new Date("2022-08-12T09:30:00")
@@ -86,6 +98,7 @@ const program = [
   {
     title: "Middle East World Sector",
     location: "Anaheim Convention Center - North 200 Level - Rooms 264 ABC",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0812_Friday_930AM_200Level-1-980x757.jpg",
     date: "Friday - August 12th",
     time: "9:30 AM",
     datetime: new Date("2022-08-12T09:30:00")
@@ -93,6 +106,7 @@ const program = [
   {
     title: "PACK And Eurasian World Sectors",
     location: "Anaheim Convention Center - North 200 Level - Rooms 255, 257 ABC",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0812_Friday_930AM_200Level-1-980x757.jpg",
     date: "Friday - August 12th",
     time: "9:30 AM",
     datetime: new Date("2022-08-12T09:30:00")
@@ -100,6 +114,7 @@ const program = [
   {
     title: "SAGES World Sector",
     location: "Anaheim Convention Center - North 200 Level - Rooms 251 ABC",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0812_Friday_930AM_200Level-1-980x757.jpg",
     date: "Friday - August 12th",
     time: "9:30 AM",
     datetime: new Date("2022-08-12T09:30:00")
@@ -107,6 +122,7 @@ const program = [
   {
     title: "Tribe Pacific Rim World Sector",
     location: "Anaheim Convention Center - North 100 Level - Exhibition Hall",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0812_Friday_930AM_200Level-1-980x757.jpg",
     date: "Friday - August 12th",
     time: "9:30 AM",
     datetime: new Date("2022-08-12T09:30:00")
@@ -114,6 +130,7 @@ const program = [
   {
     title: "AMS Session",
     location: "Anaheim Convention Center - North 100 Level - Exhibition Hall",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0812_Friday_200PM_200Level-2-980x757.jpg",
     date: "Friday - August 12th",
     time: "2:00 PM",
     datetime: new Date("2022-08-12T14:00:00")
@@ -121,6 +138,7 @@ const program = [
   {
     title: "Song Leaders Session",
     location: "Anaheim Convention Center - North 200 Level - Rooms 264 ABC",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0812_Friday_200PM_200Level-2-980x757.jpg",
     date: "Friday - August 12th",
     time: "2:00 PM",
     datetime: new Date("2022-08-12T14:00:00")
@@ -128,6 +146,7 @@ const program = [
   {
     title: "Chemical Recovery Session",
     location: "Anaheim Convention Center - North 200 Level - Rooms 262 ABC",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0812_Friday_200PM_200Level-2-980x757.jpg",
     date: "Friday - August 12th",
     time: "2:00 PM",
     datetime: new Date("2022-08-12T14:00:00")
@@ -135,6 +154,7 @@ const program = [
   {
     title: "Emotional Recovery Session",
     location: "Anaheim Convention Center - North 200 Level - Rooms 253 ABC",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0812_Friday_200PM_200Level-2-980x757.jpg",
     date: "Friday - August 12th",
     time: "2:00 PM",
     datetime: new Date("2022-08-12T14:00:00")
@@ -142,6 +162,7 @@ const program = [
   {
     title: "Life Skills Session",
     location: "Anaheim Convention Center - North 200 Level - Rooms 259 AB",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0812_Friday_200PM_200Level-2-980x757.jpg",
     date: "Friday - August 12th",
     time: "2:00 PM",
     datetime: new Date("2022-08-12T14:00:00")
@@ -149,6 +170,7 @@ const program = [
   {
     title: "Single Parents Session",
     location: "Anaheim Convention Center - North 200 Level - Rooms 251 ABC",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0812_Friday_200PM_200Level-2-980x757.jpg",
     date: "Friday - August 12th",
     time: "2:00 PM",
     datetime: new Date("2022-08-12T14:00:00")
@@ -156,6 +178,7 @@ const program = [
   {
     title: "Kingdom Kids Session",
     location: "Anaheim Convention Center - North 200 Level - Rooms 263 B",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0812_Friday_200PM_200Level-2-980x757.jpg",
     date: "Friday - August 12th",
     time: "2:00 PM",
     datetime: new Date("2022-08-12T14:00:00")
@@ -163,6 +186,7 @@ const program = [
   {
     title: "GLC MERCY Night - Second General Session",
     location: "Friday - August 12th",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0812_Friday_730PM_100Level-980x757.jpg",
     date: "Anaheim Convention Center - North 100 Level - Exhibition Hall",
     time: "7:30 PM",
     datetime: new Date("2022-08-12T19:30:00")
@@ -170,6 +194,7 @@ const program = [
   {
     title: "Teen Ministry",
     location: "Anaheim Convention Center - North 200 Level - Rooms 262 ABC",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0813_Saturday_10AM_200Level-3-980x757.jpg",
     date: "Saturday - August 13th",
     time: "10:00 AM",
     datetime: new Date("2022-08-13T10:00:00")
@@ -177,6 +202,7 @@ const program = [
   {
     title: "Campus Ministry",
     location: "Anaheim Convention Center - North 200 Level - Rooms 255 ABC / 257",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0813_Saturday_10AM_200Level-3-980x757.jpg",
     date: "Saturday - August 13th",
     time: "10:00 AM",
     datetime: new Date("2022-08-13T10:00:00")
@@ -184,6 +210,7 @@ const program = [
   {
     title: "Singles Ministry",
     location: "Anaheim Convention Center - North 200 Level - Rooms 251 ABC / 252 ABC",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0813_Saturday_10AM_200Level-3-980x757.jpg",
     date: "Saturday - August 13th",
     time: "10:00 AM",
     datetime: new Date("2022-08-13T10:00:00")
@@ -191,6 +218,7 @@ const program = [
   {
     title: "Marrieds Ministry",
     location: "Anaheim Convention Center - North 200 Level - Rooms 261 AB / 258 AB / 256 AB",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0813_Saturday_10AM_200Level-3-980x757.jpg",
     date: "Saturday - August 13th",
     time: "10:00 AM",
     datetime: new Date("2022-08-13T10:00:00")
@@ -198,6 +226,7 @@ const program = [
   {
     title: "Spanish-Speaking Disciples Ministry",
     location: "Anaheim Convention Center - North 200 Level - Rooms 264 ABC",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0813_Saturday_10AM_200Level-3-980x757.jpg",
     date: "Saturday - August 13th",
     time: "10:00 AM",
     datetime: new Date("2022-08-13T10:00:00")
@@ -205,6 +234,7 @@ const program = [
   {
     title: "Disciples Of Wisdom Ministry",
     location: "Anaheim Convention Center - North 200 Level - Rooms 263B",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0813_Saturday_10AM_200Level-3-980x757.jpg",
     date: "Saturday - August 13th",
     time: "10:00 AM",
     datetime: new Date("2022-08-13T10:00:00")
@@ -212,6 +242,7 @@ const program = [
   {
     title: "Shepherding Conclave",
     location: "Anaheim Convention Center - North 200 Level - Rooms 253 ABC",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0813_Saturday_2PM_200Level-1-980x757.jpg",
     date: "Saturday - August 13th",
     time: "2:00 PM",
     datetime: new Date("2022-08-13T14:00:00")
@@ -219,6 +250,7 @@ const program = [
   {
     title: "Coming Home Ministry (Versus 'Coming Out')",
     location: "Anaheim Convention Center - North 200 Level - Rooms 259 AB",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0813_Saturday_2PM_200Level-1-980x757.jpg",
     date: "Saturday - August 13th",
     time: "2:00 PM",
     datetime: new Date("2022-08-13T14:00:00")
@@ -226,6 +258,7 @@ const program = [
   {
     title: "Kingdom Banquet",
     location: "Anaheim Convention Center - North 100 Level - Exhibition Hall",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0813_Saturday_6PM_200Level-980x757.jpg",
     date: "Saturday - August 13th",
     time: "6:00 PM",
     datetime: new Date("2022-08-13T18:00:00")
@@ -233,6 +266,7 @@ const program = [
   {
     title: "Dancing With The Stars - Kingdom Pure Dance",
     location: "Anaheim Convention Center - North 100 Level - Exhibition Hall",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0813_Saturday_6PM_200Level-980x757.jpg",
     date: "Saturday - August 13th",
     time: "9:00 PM",
     datetime: new Date("2022-08-13T21:00:00")
@@ -240,6 +274,8 @@ const program = [
   {
     title: "Congregational Sunday Worship Service",
     location: "Anaheim Convention Center - North 100 Level - Exhibition Hall",
+    map: "https://glc.usd21.org/wp-content/uploads/2022/07/0811_Sunday_10AM_100Level-980x757.jpg",
+    map_kids_kingdom: "https://glc.usd21.org/wp-content/uploads/2022/08/0814_Sunday_KingdomKids-980x757.jpg",
     date: "Sunday - August 14th",
     time: "10:00 AM",
     datetime: new Date("2022-08-14T10:00:00")
@@ -291,7 +327,14 @@ function nextSession() {
   if (nextGLCEvents.length) {
     nextSessionHTML = "";
     nextGLCEvents.forEach(evt => {
-      nextSessionHTML += `<li><strong><em>${evt.title}</em></strong><br>${evt.location}</li>`;
+      nextSessionHTML += `
+        <li>
+          <strong><em>${evt.title}</em></strong><br>
+          ${evt.location}<br>
+          <a href="${evt.map}">Map</a><br>
+          ${evt.title === "Congregational Sunday Worship Service" ? '<a href="' + evt.map_kids_kingdom + '">Kids Kingdom Map</a>' : ''}
+        </li>
+      `;
     });
 
     const evtTime = nextGLCEvents[0].time;
