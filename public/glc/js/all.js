@@ -342,7 +342,7 @@ function nextSession() {
       </p>
 
       <p>
-        <a href="/maps/"><button>Maps</buttons></a>
+        <a href="/maps/"><button>Maps</button></a>
       </p>
 
       <ul>
