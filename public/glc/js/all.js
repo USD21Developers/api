@@ -331,8 +331,8 @@ function nextSession() {
         <li>
           <strong><em>${evt.title}</em></strong><br>
           ${evt.location}<br>
-          <a href="${evt.map}">Map</a><br>
-          ${evt.title === "Congregational Sunday Worship Service" ? '<a href="' + evt.map_kids_kingdom + '">Kids Kingdom Map</a>' : ''}
+          <a href="${evt.map}"><button>Map</button></a><br>
+          ${evt.title === "Congregational Sunday Worship Service" ? '<a href="' + evt.map_kids_kingdom + '"><button>Kids Kingdom Map</button></a>' : ''}
         </li>
       `;
     });
