@@ -341,11 +341,11 @@ function nextSession() {
         Time: <strong>${evtTime}</strong>
       </p>
 
-      <p>
+      <p style="margin-bottom: 20px">
         <a href="/maps/"><button>Maps</button></a>
       </p>
 
-      <ul>
+      <ul>  
         ${nextSessionHTML}
       </ul>
     `;
