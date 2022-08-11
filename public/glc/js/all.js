@@ -8,7 +8,7 @@ const program = [
   },
   {
     title: "Church Builders Workshop",
-    location: "Anaheim Hilton - Pacific Ballroom C & D ",
+    location: "Anaheim Hilton - Level 2 - California Promenade Ballroom",
     date: "Thursday - August 11th",
     time: "9:00 AM",
     datetime: new Date("2022-08-11T09:00:00")
