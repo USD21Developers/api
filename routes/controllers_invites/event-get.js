@@ -38,6 +38,7 @@ exports.POST = (req, res) => {
   const sql = `
     SELECT
       eventid,
+      churchid,
       type,
       title,
       description,
@@ -45,9 +46,42 @@ exports.POST = (req, res) => {
       duration,
       durationInHours,
       timezone,
-      startdate,
-      multidaybegindate,
-      multidayenddate,
+
+      CONCAT(
+        DATE_FORMAT(startdate, '%Y-%m-%d'),
+            'T',
+            TIME_FORMAT(startdate, '%T'),
+            'Z'
+      ) AS startdate,
+
+      CONCAT(
+        DATE_FORMAT(multidaybegindate, '%Y-%m-%d'),
+            'T',
+            TIME_FORMAT(multidaybegindate, '%T'),
+            'Z'
+      ) AS multidaybegindate,
+
+      CONCAT(
+        DATE_FORMAT(multidayenddate, '%Y-%m-%d'),
+            'T',
+            TIME_FORMAT(multidayenddate, '%T'),
+            'Z'
+      ) AS multidayenddate,
+      
+      locationvisibility,
+      locationname,
+      locationaddressline1,
+      locationaddressline2,
+      locationaddressline3,
+      locationcoordinates,
+      otherlocationdetails,
+      virtualconnectiondetails,
+      hasvirtual,
+      contactfirstname,
+      contactlastname,
+      contactemail,
+      contactphone,
+      contactphonecountrydata,
       country,
       lang
     FROM
@@ -56,8 +90,6 @@ exports.POST = (req, res) => {
       eventid = ?
     AND
       isDeleted = 0
-    LIMIT
-      1
     ;
   `;
 
