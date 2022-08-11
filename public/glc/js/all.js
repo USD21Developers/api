@@ -341,6 +341,10 @@ function nextSession() {
         Time: <strong>${evtTime}</strong>
       </p>
 
+      <p>
+        <a href="/maps/"><button>Maps</buttons></a>
+      </p>
+
       <ul>
         ${nextSessionHTML}
       </ul>
