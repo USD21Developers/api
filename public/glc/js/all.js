@@ -283,7 +283,7 @@ function nextSession() {
     if (minutesFromNow < 0) {
       continue;
     } else {
-      nextGLCEvents = program.filter(item2 => item2.datetime === item.datetime);
+      nextGLCEvents = program.filter(item2 => ((item2.date === item.date) && (item2.time === item.time)))
       break;
     }
   }
