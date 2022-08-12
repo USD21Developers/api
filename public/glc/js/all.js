@@ -292,14 +292,6 @@ function nextSession() {
   linkTag.setAttribute("href", "https://api.usd21.org/glc/css/nextsession.css");
   head.append(linkTag);
 
-  const momentJS = document.querySelector("script");
-  momentJS.src = "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js";
-  linkTag.append(momentJS);
-
-  momentTimezone = document.querySelector("script");
-  momentTimezone.src = "https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.34/moment-timezone.min.js";
-  linkTag.append(momentTimezone);
-
   const contentEl = document.createElement("div");
   contentEl.setAttribute("id", "nextSessionContent");
   contentEl.setAttribute("align", "center");
