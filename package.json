@@ -29,7 +29,7 @@
     "email-validator": "^2.0.4",
     "express": "^4.17.1",
     "google-libphonenumber": "^3.2.15",
-    "googleapis": "^39.2.0",
+    "googleapis": "^105.0.0",
     "got": "^11.8.2",
     "http-errors": "^1.8.0",
     "jsonwebtoken": "^8.5.1",
