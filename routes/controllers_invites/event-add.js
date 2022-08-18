@@ -107,7 +107,7 @@ exports.POST = (req, res) => {
   if (!validDurations.includes(duration)) {
     durationIsValid = false;
   }
-  if (duration === "" && frequency !== "once") {
+  if (duration === "" && frequency === "once") {
     durationIsValid = false;
   }
   if (!durationIsValid) {
