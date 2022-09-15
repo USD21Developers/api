@@ -316,6 +316,17 @@ exports.getAddressCoordinates = (db, addressObj) => {
   });
 }
 
+exports.getChurches = () => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const churches = await require("../controllers_services/churches").GET();
+      resolve(churches);  
+    } catch(err) {
+      reject(new Error("unable to get churches", err))
+    }
+  });
+}
+
 exports.getDistance = (db, originObj, destinationObj) => {
   return new Promise((resolve, reject) => {
     if (!db) reject(new Error("db is a required argument to getAddressCoordinates"));

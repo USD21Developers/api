@@ -1,6 +1,7 @@
 exports.GET = (req, res) => {
   const db = require("../../database-services");
-  const sql = `
+
+  const sqlChurchesByCountry = `
     SELECT 
       churchID,
       church_name,
@@ -18,7 +19,8 @@ exports.GET = (req, res) => {
     ;
   `;
 
-  db.query(sql, [], (err, result) => {
+  db.query(sqlChurchesByCountry, [], (err, result) => {
+
     if (err) {
       console.log(err);
       return res.status(500).send({
@@ -110,3 +112,38 @@ exports.GET = (req, res) => {
     return res.status(200).send(churches);
   });
 };
+
+exports.FETCH = async () => {
+  const db = require("../../database-services");
+
+  const sqlChurches = `
+    SELECT
+      churchID,
+      church_name,
+      mailing_city,
+      mailing_state,
+      mailing_country,
+      country_iso
+    FROM
+      churches
+    ORDER BY
+      country_iso,
+      mailing_country,
+      mailing_state,
+      mailing_city,
+      church_name,
+      churchID
+    ;
+  `;
+
+  return new Promise((resolve, reject) => {
+    db.query(sqlChurches, [], (err, result) => {
+      if (err) {
+        console.log(err);
+        return reject(new Error("unable to query service for churches"));
+      }
+
+      resolve(result);
+    });
+  });
+}

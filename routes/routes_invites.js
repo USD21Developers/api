@@ -56,4 +56,9 @@ router.post("/authorize", authorize.POST);
 const syncEvents = require("./controllers_invites/sync-events");
 router.get("/sync-events", authenticateToken, syncEvents.GET);
 
+// USERS
+
+const usersInCongregation = require("./controllers_invites/users-in-congregation");
+router.post("/users-in-congregation", authenticateToken, usersInCongregation.POST);
+
 module.exports = router;
