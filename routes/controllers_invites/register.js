@@ -296,7 +296,7 @@ exports.POST = (req, res) => {
                 <p style="margin: 30px 0">
                   <strong>
                     <big>
-                      <a href="${confirmationUrl}" style="text-decoration: underline">
+                      <a href="${confirmationUrl}" style="text-decoration: underline" target="_blank" rel="noopener noreferrer">
                         ${emailLinkText}
                       </a>
                     </big>
