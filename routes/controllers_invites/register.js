@@ -12,6 +12,7 @@ exports.POST = (req, res) => {
   const firstname = req.body.firstname || "";
   const lastname = req.body.lastname || "";
   const gender = req.body.gender || "";
+  const profileImage = req.body.profileImage || "";
   const lang = req.body.lang || "en";
   const country = req.body.country.substring(0, 2).toLowerCase() || "";
   const churchid = req.body.churchid || "";
@@ -78,6 +79,8 @@ exports.POST = (req, res) => {
   if (gender !== "male" && gender !== "female") {
     return res.status(400).send({ msg: "gender missing", msgType: "error" });
   }
+
+  if (!profileImage.length) return res.status(400).send({ msg: "profile photo missing", msgType: "error" });
 
   if (!lang.length)
     return res.status(400).send({ msg: "language missing", msgType: "error" });
@@ -251,7 +254,7 @@ exports.POST = (req, res) => {
               canAuthorize,
               canAuthToAuth,
             ],
-            (err, result) => {
+            async (err, result) => {
               if (err) {
                 console.log(err);
                 return res.status(500).send({
@@ -261,66 +264,113 @@ exports.POST = (req, res) => {
               }
 
               const userid = result.insertId;
-              const registrationToken = crypto.randomBytes(32).toString("hex");
-              const sql = `
-              INSERT INTO tokens(
-                token,
-                expiry,
-                purpose,
-                userid,
-                createdAt
-              ) VALUES (
-                ?,
-                ADDTIME(utc_timestamp(), "24:0:0"),
-                'registration',
-                ?,
-                utc_timestamp()
-              );
-            `;
 
-              db.query(sql, [registrationToken, userid], (err, result) => {
+              const profileImageURL = await require("./utils").storeProfileImage(userid, profileImage) || "";
+
+              if (!profileImageURL.length) {
+                return res.status(500).send({
+                  msg: "unable to store profile photo",
+                  msgType: "error",
+                });
+              }
+              
+              const sql = `
+                UPDATE invites
+                SET profilephoto = ?
+                WHERE userid = ?
+                ;
+              `;
+
+              db.query(sql, [profileImageURL, userid], (err, result) => {
                 if (err) {
                   console.log(err);
                   return res.status(500).send({
-                    msg: "unable to insert registration token",
+                    msg: "unable to update user with profile photo",
                     msgType: "error",
                   });
                 }
 
-                const confirmationUrl = `${protocol}//${host}/register/confirm/#${registrationToken}`;
+                const sql = `
+                  INSERT INTO unapprovedphotos(
+                    userid,
+                    createdAt
+                  ) VALUES (
+                    ?,
+                    utc_timestamp()
+                  ) 
+                `;
 
-                const body = `
-                <p>
-                  ${emailParagraph1}
-                </p>
-                <p style="margin: 30px 0">
-                  <strong>
-                    <big>
-                      <a href="${confirmationUrl}" style="text-decoration: underline" target="_blank" rel="noopener noreferrer">
-                        ${emailLinkText}
-                      </a>
-                    </big>
-                  </strong>
-                </p>
-                <p>${emailSignature}</p>
-              `;
-
-                const recipient = `"${firstname} ${lastname}" <${email}>`;
-                require("./utils")
-                  .sendEmail(recipient, emailSenderText, emailSubject, body)
-                  .then((result) => {
-                    return res.status(result[0].statusCode || 200).send({
-                      msg: "confirmation e-mail sent",
-                      msgType: "success",
-                    });
-                  })
-                  .catch((err) => {
+                db.query(sql, [userid], (err, result) => {
+                  if (err) {
                     console.log(err);
                     return res.status(500).send({
-                      msg: "confirmation e-mail could not be sent",
+                      msg: "unable to submit photo for approval",
                       msgType: "error",
                     });
+                  }
+
+                  const registrationToken = crypto.randomBytes(32).toString("hex");
+                  const sql = `
+                    INSERT INTO tokens(
+                      token,
+                      expiry,
+                      purpose,
+                      userid,
+                      createdAt
+                    ) VALUES (
+                      ?,
+                      ADDTIME(utc_timestamp(), "24:0:0"),
+                      'registration',
+                      ?,
+                      utc_timestamp()
+                    );
+                  `;
+    
+                  db.query(sql, [registrationToken, userid], (err, result) => {
+                    if (err) {
+                      console.log(err);
+                      return res.status(500).send({
+                        msg: "unable to insert registration token",
+                        msgType: "error",
+                      });
+                    }
+    
+                    const confirmationUrl = `${protocol}//${host}/register/confirm/#${registrationToken}`;
+    
+                    const body = `
+                    <p>
+                      ${emailParagraph1}
+                    </p>
+                    <p style="margin: 30px 0">
+                      <strong>
+                        <big>
+                          <a href="${confirmationUrl}" style="text-decoration: underline" target="_blank" rel="noopener noreferrer">
+                            ${emailLinkText}
+                          </a>
+                        </big>
+                      </strong>
+                    </p>
+                    <p>${emailSignature}</p>
+                  `;
+    
+                    const recipient = `"${firstname} ${lastname}" <${email}>`;
+                    require("./utils")
+                      .sendEmail(recipient, emailSenderText, emailSubject, body)
+                      .then((result) => {
+                        return res.status(result[0].statusCode || 200).send({
+                          msg: "confirmation e-mail sent",
+                          msgType: "success",
+                        });
+                      })
+                      .catch((err) => {
+                        console.log(err);
+                        return res.status(500).send({
+                          msg: "confirmation e-mail could not be sent",
+                          msgType: "error",
+                        });
+                      });
                   });
+                });
               });
             }
           );
