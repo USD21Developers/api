@@ -392,7 +392,7 @@ exports.storeProfileImage = (userid, base64Image) => {
       accessKeyId: process.env.INVITES_AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.INVITES_AWS_SECRET_ACCESS_KEY
     });
-    const filename = `${userid}_400.jpg`;
+    const filename = `${userid}/400/profile.webp`;
     const fileContent = new Buffer.from(base64Image.replace(/^data:image\/\w+;base64,/, ""), "base64");
     const params = {
       Bucket: process.env.INVITES_AWS_BUCKET_NAME,
