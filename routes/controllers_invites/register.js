@@ -275,7 +275,7 @@ exports.POST = (req, res) => {
               }
               
               const sql = `
-                UPDATE invites
+                UPDATE users
                 SET profilephoto = ?
                 WHERE userid = ?
                 ;
