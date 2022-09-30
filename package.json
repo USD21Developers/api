@@ -23,6 +23,7 @@
     "@sendgrid/mail": "^7.4.0",
     "aws-sdk": "^2.1226.0",
     "bcrypt": "^5.0.1",
+    "canvacord": "^5.4.8",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "debug": "^4.3.1",
