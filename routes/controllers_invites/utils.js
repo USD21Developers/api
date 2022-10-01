@@ -385,19 +385,23 @@ exports.getDistance = (db, originObj, destinationObj) => {
   });
 }
 
-exports.storeProfileImage = (userid, base64Image) => {
-  return new Promise((resolve, reject) => {
-    const AWS = require("aws-sdk");
-    const s3 = new AWS.S3({
-      accessKeyId: process.env.INVITES_AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.INVITES_AWS_SECRET_ACCESS_KEY
-    });
-    const filename = `${userid}/400/profile.jpg`;
-    const fileContent = new Buffer.from(base64Image.replace(/^data:image\/\w+;base64,/, ""), "base64");
+exports.storeProfileImage = async (userid, base64Image) => {
+  const canvacord = require("canvacord");
+  const AWS = require("aws-sdk");
+  const s3 = new AWS.S3({
+    accessKeyId: process.env.INVITES_AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.INVITES_AWS_SECRET_ACCESS_KEY
+  });
+  const fileContent400 = new Buffer.from(base64Image.replace(/^data:image\/\w+;base64,/, ""), "base64");
+  const fileContent200 = await canvacord.Canvacord.resize(fileContent400, 200, 200);
+  const fileName400= `${userid}/400/profile.jpg`;
+  const fileName200= `${userid}/200/profile.jpg`;
+
+  const upload400 = new Promise((resolve, reject) => {
     const params = {
       Bucket: process.env.INVITES_AWS_BUCKET_NAME,
-      Key: filename,
-      Body: fileContent
+      Key: fileName400,
+      Body: fileContent400
     };
 
     s3.upload(params, (err, data) => {
@@ -407,5 +411,25 @@ exports.storeProfileImage = (userid, base64Image) => {
 
       resolve(data.Location);
     });
+  });
+
+  const upload200 = new Promise((resolve, reject) => {
+    const params = {
+      Bucket: process.env.INVITES_AWS_BUCKET_NAME,
+      Key: fileName200,
+      Body: fileContent200
+    };
+
+    s3.upload(params, (err, data) => {
+      if (err) {
+        reject(err);
+      }
+
+      resolve(data.Location);
+    });
+  });
+
+  Promise.all([upload400, upload200]).then((values) => {
+    return values[0];
   });
 }
