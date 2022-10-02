@@ -392,10 +392,12 @@ exports.storeProfileImage = async (userid, base64Image) => {
     accessKeyId: process.env.INVITES_AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.INVITES_AWS_SECRET_ACCESS_KEY
   });
+
+  const fileName400= `profile/${userid}/400.jpg`;
   const fileContent400 = new Buffer.from(base64Image.replace(/^data:image\/\w+;base64,/, ""), "base64");
-  const fileContent120 = await canvacord.Canvacord.resize(fileContent400, 120, 120);
-  const fileName400= `images/profile/${userid}/400.jpg`;
-  const fileName120= `images/profile/${userid}/120.jpg`;
+
+  const fileName140= `profile/${userid}/140.jpg`;
+  const fileContent140 = await canvacord.Canvacord.resize(fileContent400, 140, 140);
 
   const upload400 = new Promise((resolve, reject) => {
     const params = {
@@ -413,11 +415,11 @@ exports.storeProfileImage = async (userid, base64Image) => {
     });
   });
 
-  const upload120 = new Promise((resolve, reject) => {
+  const upload140 = new Promise((resolve, reject) => {
     const params = {
       Bucket: process.env.INVITES_AWS_BUCKET_NAME,
-      Key: fileName120,
-      Body: fileContent120
+      Key: fileName140,
+      Body: fileContent140
     };
 
     s3.upload(params, (err, data) => {
@@ -429,7 +431,7 @@ exports.storeProfileImage = async (userid, base64Image) => {
     });
   });
 
-  Promise.all([upload400, upload120]).then((values) => {
+  Promise.all([upload400, upload140]).then((values) => {
     return values[0];
   });
 }
