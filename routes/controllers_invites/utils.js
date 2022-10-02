@@ -385,7 +385,7 @@ exports.getDistance = (db, originObj, destinationObj) => {
   });
 }
 
-exports.storeProfileImage = async (userid, base64Image) => {
+exports.storeProfileImage = async (userid, base64Image, db) => {
   const canvacord = require("canvacord");
   const AWS = require("aws-sdk");
   const s3 = new AWS.S3({
@@ -393,10 +393,10 @@ exports.storeProfileImage = async (userid, base64Image) => {
     secretAccessKey: process.env.INVITES_AWS_SECRET_ACCESS_KEY
   });
 
-  const fileName400= `profile/${userid}/400.jpg`;
+  const fileName400= `profiles/${userid}/400.jpg`;
   const fileContent400 = new Buffer.from(base64Image.replace(/^data:image\/\w+;base64,/, ""), "base64");
 
-  const fileName140= `profile/${userid}/140.jpg`;
+  const fileName140= `profiles/${userid}/140.jpg`;
   const fileContent140 = await canvacord.Canvacord.resize(fileContent400, 140, 140);
 
   const upload400 = new Promise((resolve, reject) => {
@@ -432,6 +432,27 @@ exports.storeProfileImage = async (userid, base64Image) => {
   });
 
   Promise.all([upload400, upload140]).then((values) => {
-    return values[0];
+    return new Promise((resolve, reject) => {
+
+      if (!values || !values.length) {
+        reject(new Error("unable to store profile photo"));
+      }
+
+      const sql = `
+        UPDATE users
+        SET profilephoto = ?
+        WHERE userid = ?
+        ;
+      `;
+
+      db.query(sql, [profileImageURL, userid], (err, result) => {
+        if (err) {
+          console.log(err);
+          reject(new Error("unable to update user record with profile photo"));
+        }
+
+        resolve(values);
+      });
+    });
   });
 }
