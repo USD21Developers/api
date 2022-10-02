@@ -431,28 +431,24 @@ exports.storeProfileImage = async (userid, base64Image, db) => {
     });
   });
 
-  Promise.all([upload400, upload140]).then((values) => {
-    return new Promise((resolve, reject) => {
+  Promise.all([upload400, upload140]).then((urls) => {
+    if (!Array.isArray(urls)) {
+      console.log(`unable to store profile photo for user ${userid}`);
+      return new Error("unable to store profile photo");
+    }
 
-      if (!values || !values.length) {
-        reject(new Error("unable to store profile photo"));
+    const sql = `
+      UPDATE users
+      SET profilephoto = ?
+      WHERE userid = ?
+      ;
+    `;
+
+    db.query(sql, [urls[0], userid], (err, result) => {
+      if (err) {
+        console.log(err);
+        reject(new Error("unable to update user record with profile photo"));
       }
-
-      const sql = `
-        UPDATE users
-        SET profilephoto = ?
-        WHERE userid = ?
-        ;
-      `;
-
-      db.query(sql, [profileImageURL, userid], (err, result) => {
-        if (err) {
-          console.log(err);
-          reject(new Error("unable to update user record with profile photo"));
-        }
-
-        resolve(values);
-      });
     });
   });
 }

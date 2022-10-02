@@ -264,11 +264,8 @@ exports.POST = (req, res) => {
               }
 
               const userid = result.insertId;
-              const storeProfileImage = require("./utils").storeProfileImage;
-
-              storeProfileImage(userid, profileImage, db).then(data => {
-                console.log(data);
-              });
+              
+              require("./utils").storeProfileImage(userid, profileImage, db);
 
               const sql = `
                 INSERT INTO unapprovedphotos(
