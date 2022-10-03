@@ -386,7 +386,6 @@ exports.getDistance = (db, originObj, destinationObj) => {
 }
 
 exports.storeProfileImage = async (userid, base64Image, db) => {
-  const canvacord = require("canvacord");
   const AWS = require("aws-sdk");
   const s3 = new AWS.S3({
     accessKeyId: process.env.INVITES_AWS_ACCESS_KEY_ID,
@@ -411,6 +410,7 @@ exports.storeProfileImage = async (userid, base64Image, db) => {
     });
   });
 
+  const canvacord = require("canvacord");
   const fileName140= `profiles/${userid}/140.jpg`;
   const fileContent140 = await canvacord.Canvacord.resize(fileContent400, 140, 140);
   const upload140 = new Promise((resolve, reject) => {
