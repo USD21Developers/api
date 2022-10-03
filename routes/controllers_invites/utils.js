@@ -395,10 +395,6 @@ exports.storeProfileImage = async (userid, base64Image, db) => {
 
   const fileName400= `profiles/${userid}/400.jpg`;
   const fileContent400 = new Buffer.from(base64Image.replace(/^data:image\/\w+;base64,/, ""), "base64");
-
-  const fileName140= `profiles/${userid}/140.jpg`;
-  const fileContent140 = await canvacord.Canvacord.resize(fileContent400, 140, 140);
-
   const upload400 = new Promise((resolve, reject) => {
     const params = {
       Bucket: process.env.INVITES_AWS_BUCKET_NAME,
@@ -415,6 +411,8 @@ exports.storeProfileImage = async (userid, base64Image, db) => {
     });
   });
 
+  const fileName140= `profiles/${userid}/140.jpg`;
+  const fileContent140 = await canvacord.Canvacord.resize(fileContent400, 140, 140);
   const upload140 = new Promise((resolve, reject) => {
     const params = {
       Bucket: process.env.INVITES_AWS_BUCKET_NAME,
