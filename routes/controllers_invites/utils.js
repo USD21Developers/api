@@ -444,11 +444,17 @@ exports.storeProfileImage = async (userid, base64Image, db) => {
       ;
     `;
 
-    db.query(sql, [urls[0], userid], (err, result) => {
-      if (err) {
-        console.log(err);
-        reject(new Error("unable to update user record with profile photo"));
-      }
+    const profile400Url = urls[0];
+
+    db.query(sql, [profile400Url, userid], (err, result) => {
+      return new Promise((resolve, reject) => {
+        if (err) {
+          console.log(err);
+          reject(new Error("unable to update user record with profile photo"));
+        }
+
+        resolve(urls);
+      })
     });
   });
 }
