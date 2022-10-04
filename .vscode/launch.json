@@ -11,7 +11,7 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "/Users/jasonmcneill/Documents/Projects/api/app.js"
+      "program": "../api/app.js"
     }
   ]
 }
