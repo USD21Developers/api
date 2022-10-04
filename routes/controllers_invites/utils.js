@@ -432,7 +432,6 @@ exports.storeProfileImage = async (userid, base64Image, db) => {
   Promise.all([upload400, upload140]).then((urls) => {
     if (!Array.isArray(urls)) {
       console.log(`unable to store profile photo for user ${userid}`);
-      return new Error("unable to store profile photo");
     }
 
     const sql = `
@@ -445,14 +444,41 @@ exports.storeProfileImage = async (userid, base64Image, db) => {
     const profile400Url = urls[0];
 
     db.query(sql, [profile400Url, userid], (err, result) => {
-      return new Promise((resolve, reject) => {
+      if (err) {
+        console.log(err);
+      }
+
+      const sql = `
+        DELETE FROM photoreview
+        WHERE userid = ?
+        ;
+      `;
+
+      db.query(sql, [userid], (err, result) => {
         if (err) {
           console.log(err);
-          reject(new Error("unable to update user record with profile photo"));
         }
 
-        resolve(urls);
-      })
+        const sql = `
+          INSERT INTO photoreview(
+            userid,
+            createdAt
+          ) VALUES (
+            ?,
+            utc_timestamp()
+          ) 
+        `;
+
+        db.query(sql, [userid], (err, result) => {
+          if (err) {
+            console.log(err);
+            return res.status(500).send({
+              msg: "unable to submit photo for review",
+              msgType: "error",
+            });
+          }
+        });
+      });
     });
   });
 }

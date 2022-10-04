@@ -267,26 +267,7 @@ exports.POST = (req, res) => {
               
               require("./utils").storeProfileImage(userid, profileImage, db);
 
-              const sql = `
-                INSERT INTO unapprovedphotos(
-                  userid,
-                  createdAt
-                ) VALUES (
-                  ?,
-                  utc_timestamp()
-                ) 
-              `;
-
-              db.query(sql, [userid], (err, result) => {
-                if (err) {
-                  console.log(err);
-                  return res.status(500).send({
-                    msg: "unable to submit photo for approval",
-                    msgType: "error",
-                  });
-                }
-
-                const registrationToken = crypto.randomBytes(32).toString("hex");
+              const registrationToken = crypto.randomBytes(32).toString("hex");
                 const sql = `
                   INSERT INTO tokens(
                     token,
@@ -315,38 +296,37 @@ exports.POST = (req, res) => {
                   const confirmationUrl = `${protocol}//${host}/register/confirm/#${registrationToken}`;
   
                   const body = `
-                  <p>
-                    ${emailParagraph1}
-                  </p>
-                  <p style="margin: 30px 0">
-                    <strong>
-                      <big>
-                        <a href="${confirmationUrl}" style="text-decoration: underline" target="_blank" rel="noopener noreferrer">
-                          ${emailLinkText}
-                        </a>
-                      </big>
-                    </strong>
-                  </p>
-                  <p>${emailSignature}</p>
-                `;
+                    <p>
+                      ${emailParagraph1}
+                    </p>
+                    <p style="margin: 30px 0">
+                      <strong>
+                        <big>
+                          <a href="${confirmationUrl}" style="text-decoration: underline" target="_blank" rel="noopener noreferrer">
+                            ${emailLinkText}
+                          </a>
+                        </big>
+                      </strong>
+                    </p>
+                    <p>${emailSignature}</p>
+                  `;
   
-                  const recipient = `"${firstname} ${lastname}" <${email}>`;
-                  require("./utils")
-                    .sendEmail(recipient, emailSenderText, emailSubject, body)
-                    .then((result) => {
-                      return res.status(result[0].statusCode || 200).send({
-                        msg: "confirmation e-mail sent",
-                        msgType: "success",
-                      });
-                    })
-                    .catch((err) => {
-                      console.log(err);
-                      return res.status(500).send({
-                        msg: "confirmation e-mail could not be sent",
-                        msgType: "error",
-                      });
+                const recipient = `"${firstname} ${lastname}" <${email}>`;
+                require("./utils")
+                  .sendEmail(recipient, emailSenderText, emailSubject, body)
+                  .then((result) => {
+                    return res.status(result[0].statusCode || 200).send({
+                      msg: "confirmation e-mail sent",
+                      msgType: "success",
                     });
-                });
+                  })
+                  .catch((err) => {
+                    console.log(err);
+                    return res.status(500).send({
+                      msg: "confirmation e-mail could not be sent",
+                      msgType: "error",
+                    });
+                  });
               });
             }
           );
