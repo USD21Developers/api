@@ -53,8 +53,7 @@ exports.POST = async (req, res) => {
         userstatus = 'registered'
       AND
         userid <> ?
-      AND
-        churchid = ?`;
+    `;
 
     let sqlPlaceholders;
 
@@ -100,12 +99,12 @@ exports.POST = async (req, res) => {
       if (err) {
         console.log(err);
         return res.status(500).send({
-          msg: "unable to query other users in same congregation",
+          msg: "unable to query all users",
           msgType: "error",
         });
       }
 
-      return res.status(200).send({msg: "users within same congregation queried", msgType: "success", matches: result});
+      return res.status(200).send({msg: "all users queried", msgType: "success", matches: result});
     });
   };
   
