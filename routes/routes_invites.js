@@ -50,6 +50,10 @@ router.post("/event-delete", authenticateToken, eventDelete.POST);
 
 const authorize = require("./controllers_invites/authorize");
 router.post("/authorize", authorize.POST);
+const ipMiddleware = function (req, res, next) {
+  const clientIp = requestIp.getClientIp(req);
+  next();
+};
 
 // SYNC
 
@@ -62,6 +66,10 @@ const usersAll = require("./controllers_invites/users-all");
 router.post("/users-all", authenticateToken, usersAll.POST);
 
 const usersInCongregation = require("./controllers_invites/users-in-congregation");
-router.post("/users-in-congregation", authenticateToken, usersInCongregation.POST);
+router.post(
+  "/users-in-congregation",
+  authenticateToken,
+  usersInCongregation.POST
+);
 
 module.exports = router;
