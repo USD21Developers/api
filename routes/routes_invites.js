@@ -72,4 +72,7 @@ router.post(
   usersInCongregation.POST
 );
 
+const followUser = require("./controllers_invites/follow-user");
+router.post("/follow-user", authenticateToken, followUser.POST);
+
 module.exports = router;
