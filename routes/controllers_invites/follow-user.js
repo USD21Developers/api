@@ -120,7 +120,7 @@ exports.POST = async (req, res) => {
         return res.status(200).send({
           msg: "follow successful",
           msgType: "success",
-          following: userid,
+          followedid: userid,
         });
       });
     });
