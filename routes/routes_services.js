@@ -7,4 +7,7 @@ router.get("/churches", churches.GET);
 const geotagip = require("./controllers_services/geotagip");
 router.get("/geotagip", geotagip.GET);
 
+const churchDirectory = require("./controllers_services/church-directory");
+router.get("/church-directory", churchDirectory.GET);
+
 module.exports = router;
