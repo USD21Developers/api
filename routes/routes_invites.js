@@ -75,4 +75,7 @@ router.post(
 const followUser = require("./controllers_invites/follow-user");
 router.post("/follow-user", authenticateToken, followUser.POST);
 
+const unfollowUser = require("./controllers_invites/unfollow-user");
+router.post("/unfollow-user", authenticateToken, unfollowUser.POST);
+
 module.exports = router;
