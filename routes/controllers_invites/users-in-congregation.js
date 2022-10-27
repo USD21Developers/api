@@ -50,19 +50,22 @@ exports.POST = async (req, res) => {
 
   let sql = `
       SELECT
-        userid,
-        firstname,
-        lastname,
-        gender,
-        profilephoto
+        u.userid,
+        u.firstname,
+        u.lastname,
+        u.gender,
+        u.profilephoto,
+        f.id AS followid
       FROM
-        users
+        users u
+      LEFT OUTER JOIN follow f ON (u.userid = f.followed)
       WHERE
-        userstatus = 'registered'
+        u.userstatus = 'registered'
       AND
-        userid <> ?
+        u.userid <> ?
       AND
-        churchid = ?`;
+        u.churchid = ?
+      `;
 
   let sqlPlaceholders;
 
@@ -118,12 +121,10 @@ exports.POST = async (req, res) => {
       });
     }
 
-    return res
-      .status(200)
-      .send({
-        msg: "users within same congregation queried",
-        msgType: "success",
-        matches: result,
-      });
+    return res.status(200).send({
+      msg: "users within same congregation queried",
+      msgType: "success",
+      matches: result,
+    });
   });
 };
