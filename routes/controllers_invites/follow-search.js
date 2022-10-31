@@ -29,7 +29,7 @@ exports.POST = async (req, res) => {
 
   const firstName = req.body.searchedFirstName || "";
   const lastName = req.body.searchedLastName || "";
-  const churchid = req.body.churchid || "";
+  let churchid = req.body.churchid || "";
 
   if (typeof firstName !== "string") {
     return res
@@ -49,10 +49,22 @@ exports.POST = async (req, res) => {
       .send({ msg: "name must not be blank", msgType: "error" });
   }
 
-  if (typeof churchid !== "number") {
+  if (churchid === "") {
     return res
       .status(400)
       .send({ msg: "churchid is required", msgType: "error" });
+  } else {
+    try {
+      churchid = Math.abs(parseInt(churchid));
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  if (typeof churchid !== "number") {
+    return res
+      .status(400)
+      .send({ msg: "churchid must be numeric", msgType: "error" });
   }
 
   let sql = `
