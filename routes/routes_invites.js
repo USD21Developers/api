@@ -65,17 +65,13 @@ router.get("/sync-events", authenticateToken, syncEvents.GET);
 const usersAll = require("./controllers_invites/users-all");
 router.post("/users-all", authenticateToken, usersAll.POST);
 
-const usersInCongregation = require("./controllers_invites/users-in-congregation");
-router.post(
-  "/users-in-congregation",
-  authenticateToken,
-  usersInCongregation.POST
-);
-
 const followUser = require("./controllers_invites/follow-user");
 router.post("/follow-user", authenticateToken, followUser.POST);
 
 const unfollowUser = require("./controllers_invites/unfollow-user");
 router.post("/unfollow-user", authenticateToken, unfollowUser.POST);
+
+const followSearch = require("./controllers_invites/follow-search");
+router.post("/follow-search", authenticateToken, followSearch.POST);
 
 module.exports = router;

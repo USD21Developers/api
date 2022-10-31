@@ -29,6 +29,7 @@ exports.POST = async (req, res) => {
 
   const firstName = req.body.searchedFirstName || "";
   const lastName = req.body.searchedLastName || "";
+  const churchid = req.body.churchid || "";
 
   if (typeof firstName !== "string") {
     return res
@@ -46,6 +47,12 @@ exports.POST = async (req, res) => {
     return res
       .status(400)
       .send({ msg: "name must not be blank", msgType: "error" });
+  }
+
+  if (typeof churchid !== "number") {
+    return res
+      .status(400)
+      .send({ msg: "churchid is required", msgType: "error" });
   }
 
   let sql = `
