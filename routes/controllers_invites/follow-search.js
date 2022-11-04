@@ -29,6 +29,7 @@ exports.POST = async (req, res) => {
 
   const firstName = req.body.searchedFirstName || "";
   const lastName = req.body.searchedLastName || "";
+  let churchid = req.body.churchid || "";
 
   if (typeof firstName !== "string") {
     return res
@@ -46,6 +47,24 @@ exports.POST = async (req, res) => {
     return res
       .status(400)
       .send({ msg: "name must not be blank", msgType: "error" });
+  }
+
+  if (churchid === "") {
+    return res
+      .status(400)
+      .send({ msg: "churchid is required", msgType: "error" });
+  } else {
+    try {
+      churchid = Math.abs(parseInt(churchid));
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  if (typeof churchid !== "number") {
+    return res
+      .status(400)
+      .send({ msg: "churchid must be numeric", msgType: "error" });
   }
 
   let sql = `
@@ -72,7 +91,7 @@ exports.POST = async (req, res) => {
   if (firstName.trim().length && lastName.trim().length) {
     sqlPlaceholders = [
       req.user.userid,
-      req.user.churchid,
+      churchid,
       `%${firstName}%`,
       `%${lastName}%`,
     ];
@@ -91,7 +110,7 @@ exports.POST = async (req, res) => {
         ;
       `;
   } else if (firstName.trim().length) {
-    sqlPlaceholders = [req.user.userid, req.user.churchid, `${firstName}%`];
+    sqlPlaceholders = [req.user.userid, churchid, `${firstName}%`];
     sql += `
         AND
           firstname LIKE ?
@@ -101,7 +120,7 @@ exports.POST = async (req, res) => {
         ;
       `;
   } else if (lastName.trim().length) {
-    sqlPlaceholders = [req.user.userid, req.user.churchid, `${lastName}%`];
+    sqlPlaceholders = [req.user.userid, churchid, `${lastName}%`];
     sql += `
         AND
           lastname LIKE ?
