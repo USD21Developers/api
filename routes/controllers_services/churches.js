@@ -48,7 +48,7 @@ exports.GET = (req, res) => {
         churches.push({
           country: {
             iso: country_iso,
-            name: countryName,
+            name: "",
             churches: [
               {
                 id: churchID,
