@@ -14,13 +14,13 @@ exports.GET = (req, res) => {
     FROM 
       churches
     ORDER BY
-      mailing_country,
-      identifying_place
+      country_iso,
+      identifying_place,
+      church_name
     ;
   `;
 
   db.query(sqlChurchesByCountry, [], (err, result) => {
-
     if (err) {
       console.log(err);
       return res.status(500).send({
@@ -146,4 +146,4 @@ exports.FETCH = async () => {
       resolve(result);
     });
   });
-}
+};
