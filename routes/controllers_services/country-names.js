@@ -1,13 +1,8 @@
-exports.POST = (req, res) => {
-  const fs = require("fs");
-  let lang = req.body.lang || "en";
-  const pathDefault =
-    "../../node_modules/world_countries_lists/data/countries/en/countries.json";
-  const pathTried = `../../node_modules/world_countries_lists/data/countries/${lang
-    .toLowerCase()
-    .trim()}/countries.json`;
-  let filePath = pathTried;
+exports.GET = (req, res) => {
+  let lang = req.params["lang"] || "";
+  let data = [];
 
+  // Validate: lang must be 2 characters
   if (lang.length !== 2) {
     return res.status(400).send({
       msg: "language code must be exactly 2 characters",
@@ -15,27 +10,32 @@ exports.POST = (req, res) => {
     });
   }
 
-  fs.stat(filePath, (err) => {
-    if (err) {
-      filePath = pathDefault;
-    }
+  // Attempt to load language, defaulting to English
+  try {
+    data = require(`world_countries_lists/data/countries/${lang
+      .toLowerCase()
+      .trim()}/countries.json`);
+  } catch (e) {
+    console.log(e);
+    lang = "en";
+    data = require(`world_countries_lists/data/countries/${lang}/countries.json`);
+  }
 
-    const countryNames = {
-      lang: lang,
-      names: [],
+  // Use only the data we need
+  const names = data.map((item) => {
+    return {
+      iso: item.alpha2,
+      name: item.name,
     };
+  });
 
-    countryNames.names = require(filePath).map((item) => {
-      return {
-        iso: item.alpha2,
-        name: item.name,
-      };
-    });
-
-    res.status(200).send({
-      msg: "country names retrieved",
-      msgType: "success",
-      countryNames: countryNames,
-    });
+  // Return
+  return res.status(200).send({
+    msg: "country names retrieved",
+    msgType: "success",
+    countryNames: {
+      lang: lang,
+      names: names,
+    },
   });
 };

@@ -11,6 +11,6 @@ const churchDirectory = require("./controllers_services/church-directory");
 router.get("/church-directory", churchDirectory.GET);
 
 const countryNames = require("./controllers_services/country-names");
-router.post("/country-names", countryNames.POST);
+router.get("/country-names/:lang", countryNames.GET);
 
 module.exports = router;
