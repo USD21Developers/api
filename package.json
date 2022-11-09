@@ -18,6 +18,9 @@
     "url": "https://github.com/USD21Developers/api/issues"
   },
   "homepage": "https://github.com/USD21Developers/api#readme",
+  "engines": {
+    "node": "^16.17"
+  },
   "dependencies": {
     "@mysql/xdevapi": "8.0.22",
     "@sendgrid/mail": "^7.4.0",
