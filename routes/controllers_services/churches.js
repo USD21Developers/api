@@ -44,6 +44,10 @@ exports.GET = (req, res) => {
       };
     });
 
-    return res.status(200).send(data);
+    return res.status(200).send({
+      msg: "churches retrieved",
+      msgType: "success",
+      churches: data,
+    });
   });
 };
