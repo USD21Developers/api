@@ -74,4 +74,11 @@ router.post("/unfollow-user", authenticateToken, unfollowUser.POST);
 const followSearch = require("./controllers_invites/follow-search");
 router.post("/follow-search", authenticateToken, followSearch.POST);
 
+const followingQuantity = require("./controllers_invites/following-quantity");
+router.get(
+  "/following-quantity/:userid",
+  authenticateToken,
+  followingQuantity.GET
+);
+
 module.exports = router;

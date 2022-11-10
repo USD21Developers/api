@@ -117,10 +117,36 @@ exports.POST = async (req, res) => {
           });
         }
 
-        return res.status(200).send({
-          msg: "follow successful",
-          msgType: "success",
-          followedid: userid,
+        const sql = `
+          SELECT
+            COUNT(*) AS following
+          FROM
+            follow
+          WHERE
+            follower = ?
+          AND
+            followed <> ?
+          LIMIT 1
+          ;
+        `;
+
+        db.query(sql, [req.user.userid, req.user.userid], (err, result) => {
+          if (err) {
+            console.log(err);
+            return res.status(400).send({
+              msg: "unable to retrieve quantity of users currently following",
+              msgType: "error",
+            });
+          }
+
+          const quantity = result[0].following;
+
+          return res.status(200).send({
+            msg: "follow successful",
+            msgType: "success",
+            followedid: userid,
+            quantityNowFollowing: quantity,
+          });
         });
       });
     });
