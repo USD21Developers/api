@@ -51,3 +51,34 @@ exports.GET = (req, res) => {
     });
   });
 };
+
+exports.FETCH = async () => {
+  const db = require("../../database-services");
+
+  const sql = `
+    SELECT 
+      churchID,
+      church_name,
+      church_URL,
+      identifying_place,
+      country_iso
+    FROM 
+      churches
+    ORDER BY
+      country_iso,
+      identifying_place,
+      church_name
+    ;
+  `;
+
+  return new Promise((resolve, reject) => {
+    db.query(sql, [], (err, result) => {
+      if (err) {
+        console.log(err);
+        return reject(new Error("unable to query service for churches"));
+      }
+
+      resolve(result);
+    });
+  });
+};
