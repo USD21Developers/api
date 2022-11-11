@@ -32,17 +32,21 @@ exports.GET = async (req, res) => {
 
   const sql = `
     SELECT
-      COUNT(*) AS following
+      u.userid,
+      u.firstname,
+      u.lastname,
+      u.gender,
+      u.profilephoto,
+      f.id AS followid
     FROM
-      follow f
-    INNER JOIN users u ON (u.userid = f.followed)
+      users u
+    LEFT OUTER JOIN follow f ON (u.userid = f.followed)
     WHERE
+      u.userstatus = 'registered'
+    AND
       f.follower = ?
     AND
       f.followed <> ?
-    AND
-      u.userstatus = 'registered'
-    LIMIT 1
     ;
   `;
 
@@ -55,12 +59,10 @@ exports.GET = async (req, res) => {
       });
     }
 
-    const quantity = result[0].following;
-
     return res.status(200).send({
       msg: "retrieved quantity of users following",
       msgType: "success",
-      quantity: quantity,
+      following: result,
     });
   });
 };

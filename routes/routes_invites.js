@@ -81,4 +81,7 @@ router.get(
   followingQuantity.GET
 );
 
+const following = require("./controllers_invites/following");
+router.get("/following/:userid", authenticateToken, following.GET);
+
 module.exports = router;
