@@ -47,6 +47,10 @@ exports.GET = async (req, res) => {
       f.follower = ?
     AND
       f.followed <> ?
+    ORDER BY
+      u.lastname,
+      u.firstname,
+      f.id
     ;
   `;
 
