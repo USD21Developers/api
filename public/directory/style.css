@@ -1,0 +1,46 @@
+#global-church-directory .country {
+  border-bottom: 1px solid #aaa;
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+  margin-top: 10px;
+}
+
+#global-church-directory .country:first-child {
+  margin-top: 0;
+}
+
+#global-church-directory .country .quantitychurches {
+  background-color: #eee;
+  border: 2px solid #bbb;
+  border-radius: 50%;
+  color: #555;
+  display: block;
+  float: right;
+  font-size: .8rem;
+  font-weight: bolder;
+  margin-left: 20px;
+  margin-top: 3px;
+  min-width: 1.2rem;
+  padding: 0 3px;
+  text-align: center;
+  visibility: hidden;
+}
+
+#global-church-directory .church {
+  display: table-row;
+  word-break: break-word;
+}
+
+#global-church-directory .photo {
+  display: table-cell;
+  padding-bottom: 30px;
+  padding-right: 20px;
+}
+
+#global-church-directory .info {
+  display: table-cell;
+  font-size: 1rem;
+  padding-bottom: 30px;
+  vertical-align: top;
+}
