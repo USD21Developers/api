@@ -53,8 +53,14 @@ function getLang() {
 async function showChurches() {
   const directory = document.querySelector("#global-church-directory");
   const storedChurches = localStorage.getItem("churches");
-  const storedCountries = localStorage.getItem("countries");
+  let storedCountries = localStorage.getItem("countries");
+  const detectedLang = getLang();
   let lang = "en";
+
+  if (detectedLang !== lang) {
+    localStorage.removeItem("countries");
+    storedCountries = localStorage.getItem("countries");
+  }
 
   let countryData;
   let countries;
