@@ -24,9 +24,7 @@ function getChurches() {
       .then((res) => res.json())
       .then(async (data) => {
         const churchesToStore = JSON.stringify(data.churches);
-        const churchesHash = await getHash(churchesToStore);
         localStorage.setItem("churches", churchesToStore);
-        localStorage.setItem("churchesHash", churchesHash);
         resolve(data.churches);
       })
       .catch((err) => reject(new Error(err)));
