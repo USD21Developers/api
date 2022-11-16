@@ -117,7 +117,6 @@ async function showChurches() {
 
     churchesHtml += `
       <div class="country">
-        <div class="quantitychurches">${churchesInCountry.length}</div>
         <strong>${countryName.toUpperCase()}:</strong>
       </div>
     `;
