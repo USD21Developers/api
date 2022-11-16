@@ -29,13 +29,22 @@
 
 #global-church-directory .church {
   display: table-row;
+  min-width: 60%;
   word-break: break-word;
 }
 
 #global-church-directory .photo {
   display: table-cell;
+  max-width: 220px;
   padding-bottom: 30px;
   padding-right: 20px;
+  width: 40%;
+}
+
+#global-church-directory .photo img {
+  height: auto;
+  max-width: 200px;
+  width: 100%;
 }
 
 #global-church-directory .info {
