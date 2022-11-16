@@ -57,15 +57,14 @@ async function showChurches() {
   const detectedLang = getLang();
   let lang = "en";
 
-  if (detectedLang !== lang) {
-    localStorage.removeItem("countries");
-    storedCountries = localStorage.getItem("countries");
-  }
-
   let countryData;
   let countries;
   if (storedCountries) {
     countryData = JSON.parse(storedCountries);
+
+    if (countryData.lang !== detectedLang) {
+      countryData = await getCountries(detectedLang);
+    }
   } else {
     countryData = await JSON.parse(getCountries(getLang()));
   }
