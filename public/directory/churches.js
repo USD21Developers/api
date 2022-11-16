@@ -72,7 +72,7 @@ async function showChurches() {
       countryData = await getCountries(detectedLang);
     }
   } else {
-    countryData = await JSON.parse(getCountries(getLang()));
+    countryData = await getCountries(getLang());
   }
   lang = countryData.lang;
   countries = countryData.names;
