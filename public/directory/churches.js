@@ -1,6 +1,6 @@
 function addSpinner() {
   const directory = document.querySelector("#global-church-directory");
-  const spinnerHtml = `<div align="center"><img src="https://api.usd21.org/_assets/spinner.svg" width="100" height="100" style="max-width: 100%" /></div>`;
+  const spinnerHtml = `<div align="center"><img src="https://api.usd21.org/_assets/spinner.svg" width="100" height="100" style="max-width: 100%; margin-bottom: 40px" /></div>`;
   directory.innerHTML = spinnerHtml;
 }
 
