@@ -70,6 +70,8 @@ async function showChurches() {
 
     if (countryData.lang !== detectedLang) {
       countryData = await getCountries(detectedLang);
+    } else {
+      getCountries(detectedLang); // Silently updates countries in localStorage for next reload
     }
   } else {
     countryData = await getCountries(getLang());
@@ -81,6 +83,7 @@ async function showChurches() {
   let churches;
   if (storedChurches) {
     churches = JSON.parse(storedChurches);
+    getChurches(); // Silently updates churches in localStorage for next reload
   } else {
     churches = await getChurches();
   }
