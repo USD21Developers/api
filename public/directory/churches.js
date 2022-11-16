@@ -1,3 +1,9 @@
+function addSpinner() {
+  const directory = document.querySelector("#global-church-directory");
+  const spinnerHtml = `<div align="center"><img src="https://api.usd21.org/_assets/spinner.svg" width="100" height="100" style="max-width: 100%" /></div>`;
+  directory.innerHTML = spinnerHtml;
+}
+
 function addStylesheet() {
   const url = `${getApiPrefix()}/../directory/style.css`;
   const link = document.createElement("link");
@@ -167,6 +173,7 @@ async function showChurches() {
 
 function init() {
   addStylesheet();
+  addSpinner();
   showChurches();
 }
 
