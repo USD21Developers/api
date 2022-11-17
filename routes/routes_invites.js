@@ -84,4 +84,7 @@ router.get(
 const following = require("./controllers_invites/following");
 router.get("/following/:userid", authenticateToken, following.GET);
 
+const userprofile = require("./controllers_invites/user-profile");
+router.get("/userprofile/:userid", authenticateToken, userprofile.GET);
+
 module.exports = router;
