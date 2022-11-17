@@ -63,33 +63,44 @@ exports.POST = async (req, res) => {
 
     const sql = `
       SELECT
-        COUNT(*) AS following
+        COUNT(*) AS following,
+        (SELECT COUNT(*) FROM follow WHERE follower = ? LIMIT 1) AS otherUserFollowing,
+        (SELECT COUNT(*) FROM follow WHERE followed = ? LIMIT 1) AS otherUserFollowers
       FROM
         follow
       WHERE
         follower = ?
       AND
         followed <> ?
-      LIMIT 1
       ;
     `;
 
-    db.query(sql, [req.user.userid, req.user.userid], (err, result) => {
-      if (err) {
-        console.log(err);
-        return res.status(400).send({
-          msg: "unable to retrieve quantity of users currently following",
-          msgType: "error",
+    db.query(
+      sql,
+      [req.body.userid, req.body.userid, req.user.userid, req.user.userid],
+      (err, result) => {
+        if (err) {
+          console.log(err);
+          return res.status(400).send({
+            msg: "unable to retrieve quantity of users currently following",
+            msgType: "error",
+          });
+        }
+
+        const quantity = result[0].quantity || 0;
+        const otherUserFollowing = result[0].otherUserFollowing || 0;
+        const otherUserFollowers = result[0].otherUserFollowers || 0;
+
+        return res.status(200).send({
+          msg: "unfollow successful",
+          msgType: "success",
+          quantityNowFollowing: quantity,
+          otherUserNow: {
+            following: otherUserFollowing,
+            followers: otherUserFollowers,
+          },
         });
       }
-
-      const quantity = result[0].following;
-
-      return res.status(200).send({
-        msg: "unfollow successful",
-        msgType: "success",
-        quantityNowFollowing: quantity,
-      });
-    });
+    );
   });
 };
