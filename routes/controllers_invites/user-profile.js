@@ -49,6 +49,7 @@ exports.GET = async (req, res) => {
   const sql = `
     SELECT
         userid,
+        churchid,
         username,
         firstname,
         lastname,
