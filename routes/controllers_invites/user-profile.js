@@ -62,7 +62,9 @@ exports.GET = async (req, res) => {
         createdAt,
         (SELECT COUNT(*) FROM follow WHERE follower = ?) AS numFollowing,
         (SELECT COUNT(*) FROM follow WHERE followed = ?) AS numFollowedBy,
-        (SELECT 1 FROM follow WHERE follower = ? AND followed = ? LIMIT 1) AS followed
+        (SELECT 1 FROM follow WHERE follower = ? AND followed = ? LIMIT 1) AS followed,
+        (SELECT COUNT(*) FROM events WHERE createdBy = ? LIMIT 1) AS numEvents,
+        (SELECT COUNT(*) FROM invitations WHERE userid = ? LIMIT 1) AS numInvitesSent
     FROM
         users
     WHERE
@@ -72,7 +74,7 @@ exports.GET = async (req, res) => {
   `;
   db.query(
     sql,
-    [userid, userid, req.user.userid, userid, userid],
+    [userid, userid, req.user.userid, userid, userid, userid, userid],
     (err, result) => {
       if (err) {
         console.log(err);
