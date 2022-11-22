@@ -84,8 +84,8 @@ router.get(
 const following = require("./controllers_invites/following");
 router.get("/following/:userid", authenticateToken, following.GET);
 
-const isFollowing = require("./controllers_invites/isfollowing");
-router.post("/isfollowing", authenticateToken, isFollowing.POST);
+const followStatus = require("./controllers_invites/follow-status");
+router.post("/follow-status", authenticateToken, followStatus.POST);
 
 const userprofile = require("./controllers_invites/user-profile");
 router.get("/userprofile/:userid", authenticateToken, userprofile.GET);

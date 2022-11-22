@@ -94,6 +94,7 @@ exports.POST = async (req, res) => {
         return res.status(200).send({
           msg: "unfollow successful",
           msgType: "success",
+          unfollowedid: userid,
           quantityNowFollowing: quantity,
           otherUserNow: {
             following: otherUserFollowing,
