@@ -64,7 +64,7 @@ exports.GET = async (req, res) => {
     }
 
     return res.status(200).send({
-      msg: "retrieved followers",
+      msg: "followers retrieved",
       msgType: "success",
       followers: result,
     });
