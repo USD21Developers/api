@@ -32,6 +32,7 @@ exports.GET = async (req, res) => {
 
   const sql = `
     SELECT
+      u.churchid,
       u.userid,
       u.firstname,
       u.lastname,
@@ -40,17 +41,16 @@ exports.GET = async (req, res) => {
       f.id AS followid
     FROM
       users u
-    LEFT OUTER JOIN follow f ON (u.userid = f.followed)
+    INNER JOIN follow f ON (u.userid = f.follower)
     WHERE
-      u.userstatus = 'registered'
-    AND
       f.followed = ?
     AND
       f.follower <> ?
+    AND
+      u.userstatus = 'registered'
     ORDER BY
       u.lastname,
-      u.firstname,
-      f.id
+      u.firstname
     ;
   `;
 
