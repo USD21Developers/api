@@ -45,8 +45,6 @@ exports.GET = async (req, res) => {
     WHERE
       f.followed = ?
     AND
-      f.follower <> ?
-    AND
       u.userstatus = 'registered'
     ORDER BY
       u.lastname,
@@ -54,7 +52,7 @@ exports.GET = async (req, res) => {
     ;
   `;
 
-  db.query(sql, [userid, userid], (err, result) => {
+  db.query(sql, [userid], (err, result) => {
     if (err) {
       console.log(err);
       return res.status(400).send({
