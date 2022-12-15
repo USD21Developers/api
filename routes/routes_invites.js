@@ -90,12 +90,12 @@ router.get("/followers/:userid", authenticateToken, followers.GET);
 const followStatus = require("./controllers_invites/follow-status");
 router.post("/follow-status", authenticateToken, followStatus.POST);
 
-const userprofile = require("./controllers_invites/user-profile");
-router.get("/userprofile/:userid", authenticateToken, userprofile.GET);
+const userProfile = require("./controllers_invites/user-profile");
+router.get("/userprofile/:userid", authenticateToken, userProfile.GET);
 
 // EVENTS
 
 const eventList = require("./controllers_invites/event-list");
-router.get("/events/:userid", authenticateToken, eventList.GET);
+router.get("/event-list/:userid", authenticateToken, eventList.GET);
 
 module.exports = router;

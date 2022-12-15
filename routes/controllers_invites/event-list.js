@@ -53,6 +53,12 @@ exports.GET = (req, res) => {
       startdate,
       multidaybegindate,
       multidayenddate,
+      locationvisibility,
+      locationaddressline1,
+      locationaddressline2,
+      locationaddressline3,
+      locationcoordinates,
+      locationname,
       hasvirtual,
       country,
       lang
@@ -73,10 +79,23 @@ exports.GET = (req, res) => {
         .send({ msg: "unable to query for event list", msgType: "error" });
     }
 
+    const events = results.map((item) => {
+      if (item.locationvisibility === "discreet") {
+        item.locationname = null;
+        item.locationaddressline1 = null;
+        item.locationaddressline2 = null;
+        item.locationaddressline3 = null;
+        item.locationcoordinates = null;
+        return item;
+      }
+
+      return item;
+    });
+
     return res.status(200).send({
       msg: "event list retrieved",
       msgType: "success",
-      events: results,
+      events: events,
     });
   });
 };
