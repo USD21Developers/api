@@ -46,6 +46,9 @@ router.post("/event-edit", authenticateToken, eventEdit.POST);
 const eventDelete = require("./controllers_invites/event-delete");
 router.post("/event-delete", authenticateToken, eventDelete.POST);
 
+const eventList = require("./controllers_invites/event-list");
+router.get("/event-list/:userid", authenticateToken, eventList.GET);
+
 // AUTHORIZATION
 
 const authorize = require("./controllers_invites/authorize");
@@ -92,10 +95,5 @@ router.post("/follow-status", authenticateToken, followStatus.POST);
 
 const userProfile = require("./controllers_invites/user-profile");
 router.get("/userprofile/:userid", authenticateToken, userProfile.GET);
-
-// EVENTS
-
-const eventList = require("./controllers_invites/event-list");
-router.get("/event-list/:userid", authenticateToken, eventList.GET);
 
 module.exports = router;
