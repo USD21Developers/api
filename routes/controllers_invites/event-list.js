@@ -59,6 +59,7 @@ exports.GET = (req, res) => {
       locationaddressline3,
       locationcoordinates,
       locationname,
+      otherlocationdetails,
       hasvirtual,
       country,
       lang
@@ -86,6 +87,7 @@ exports.GET = (req, res) => {
         item.locationaddressline2 = null;
         item.locationaddressline3 = null;
         item.locationcoordinates = null;
+        item.otherlocationdetails = null;
         return item;
       }
 

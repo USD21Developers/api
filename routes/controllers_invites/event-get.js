@@ -24,12 +24,16 @@ exports.POST = (req, res) => {
 
   // Validate:  eventid must exist
   if (eventid === "") {
-    return res.status(400).send({ msg: "eventid is required", msgType: "error" });
+    return res
+      .status(400)
+      .send({ msg: "eventid is required", msgType: "error" });
   }
 
   // Validate:  eventid must be numeric
   if (typeof eventid !== "number") {
-    return res.status(400).send({ msg: "eventid must be numeric", msgType: "error" });
+    return res
+      .status(400)
+      .send({ msg: "eventid must be numeric", msgType: "error" });
   }
 
   // Ensure that eventid is a positive integer
@@ -96,15 +100,29 @@ exports.POST = (req, res) => {
   db.query(sql, [eventid], (error, result) => {
     if (error) {
       console.log(error);
-      return res
-        .status(500)
-        .send({ msg: "unable to query for event", msgType: "error", error: error });
+      return res.status(500).send({
+        msg: "unable to query for event",
+        msgType: "error",
+        error: error,
+      });
     }
 
     if (!result.length) {
       return res.status(404).send({ msg: "event not found", msgType: "error" });
     }
 
-    return res.status(200).send({ msg: "event retrieved", msgType: "success", event: result[0] })
+    let event = result[0];
+    if (event.locationvisibility === "discreet") {
+      event.locationname = null;
+      event.locationaddressline1 = null;
+      event.locationaddressline2 = null;
+      event.locationaddressline3 = null;
+      event.locationcoordinates = null;
+      event.otherlocationdetails = null;
+    }
+
+    return res
+      .status(200)
+      .send({ msg: "event retrieved", msgType: "success", event: event });
   });
 };
