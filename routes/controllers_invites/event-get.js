@@ -87,7 +87,8 @@ exports.POST = (req, res) => {
       contactphone,
       contactphonecountrydata,
       country,
-      lang
+      lang,
+      createdBy
     FROM
       events
     WHERE

@@ -62,7 +62,8 @@ exports.GET = (req, res) => {
       otherlocationdetails,
       hasvirtual,
       country,
-      lang
+      lang,
+      createdBy
     FROM
       events
     WHERE
