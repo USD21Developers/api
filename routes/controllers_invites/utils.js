@@ -34,12 +34,12 @@ exports.isPrivilegedEmailAccount = (email = "") => {
   const validEmail = email.trim().toLowerCase();
 
   // Match
-  privilegedDomains.forEach(item => {
+  privilegedDomains.forEach((item) => {
     if (validEmail.endsWith(`@${item}`)) isPrivilegedEmail = true;
   });
 
   return isPrivilegedEmail;
-}
+};
 
 exports.sendSms = (recipient, content) => {
   const twilio = require("twilio");
@@ -144,7 +144,8 @@ exports.sendEmail = async (recipient, emailSenderText, subject, body) => {
 */
 exports.validatePhone = (number, countryCode) => {
   const PNF = require("google-libphonenumber").PhoneNumberFormat;
-  const phoneUtil = require("google-libphonenumber").PhoneNumberUtil.getInstance();
+  const phoneUtil =
+    require("google-libphonenumber").PhoneNumberUtil.getInstance();
   const phoneNumber = phoneUtil.parse(number, countryCode);
   const isValidForRegion = phoneUtil.isValidNumberForRegion(
     phoneNumber,
@@ -279,28 +280,120 @@ exports.getEventsByUser = (db, userid) => {
       resolve(result);
     });
   });
-}
+};
+
+exports.getEventsByFollowedUsers = (db, userid) => {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT
+        u.firstname,
+        u.lastname,
+        u.gender,
+        u.profilephoto,
+        e.eventid,
+        e.churchid,
+        e.type,
+        e.title,
+        e.description,
+        e.frequency,
+        e.duration,
+        e.durationInHours,
+        e.timezone,
+
+        CONCAT(
+          DATE_FORMAT(startdate, '%Y-%m-%d'),
+              'T',
+              TIME_FORMAT(startdate, '%T'),
+              'Z'
+        ) AS startdate,
+
+        CONCAT(
+          DATE_FORMAT(multidaybegindate, '%Y-%m-%d'),
+              'T',
+              TIME_FORMAT(multidaybegindate, '%T'),
+              'Z'
+        ) AS multidaybegindate,
+
+        CONCAT(
+          DATE_FORMAT(multidayenddate, '%Y-%m-%d'),
+              'T',
+              TIME_FORMAT(multidayenddate, '%T'),
+              'Z'
+        ) AS multidayenddate,
+        
+        e.locationvisibility,
+        e.locationname,
+        e.locationaddressline1,
+        e.locationaddressline2,
+        e.locationaddressline3,
+        e.locationcoordinates,
+        e.otherlocationdetails,
+        e.virtualconnectiondetails,
+        e.hasvirtual,
+        e.contactfirstname,
+        e.contactlastname,
+        e.contactemail,
+        e.contactphone,
+        e.contactphonecountrydata,
+        e.country,
+        e.lang
+      FROM
+        events e
+      INNER JOIN follow f ON e.createdBy = f.followed
+      INNER JOIN users u ON u.userid = e.createdBy
+      WHERE
+        f.follower = ?
+      AND
+        e.isDeleted = 0
+      ;
+    `;
+
+    db.query(sql, [userid], (error, result) => {
+      if (error) reject(error);
+
+      resolve(result);
+    });
+  });
+};
 
 exports.getAddressCoordinates = (db, addressObj) => {
   return new Promise((resolve, reject) => {
-    if (!db) reject(new Error("db is a required argument to getAddressCoordinates"));
-    if (!addressObj) reject(new Error("addressObj is a required argument to getAddressCoordinates"));
-    if (typeof addressObj !== "object") reject(new Error("addressObj argument to getAddressCoordinates must be an object"));
-    if (typeof process.env.GOOGLE_MAPS_API_KEY !== "string") reject(new Error("Missing environment variable for Google Maps API key"));
-    if (!process.env.GOOGLE_MAPS_API_KEY.length) reject(new Error("Environment variable for Google Maps API key must not be blank"));
+    if (!db)
+      reject(new Error("db is a required argument to getAddressCoordinates"));
+    if (!addressObj)
+      reject(
+        new Error("addressObj is a required argument to getAddressCoordinates")
+      );
+    if (typeof addressObj !== "object")
+      reject(
+        new Error(
+          "addressObj argument to getAddressCoordinates must be an object"
+        )
+      );
+    if (typeof process.env.GOOGLE_MAPS_API_KEY !== "string")
+      reject(new Error("Missing environment variable for Google Maps API key"));
+    if (!process.env.GOOGLE_MAPS_API_KEY.length)
+      reject(
+        new Error(
+          "Environment variable for Google Maps API key must not be blank"
+        )
+      );
 
     const { line1, line2, line3, country } = addressObj;
     let address = "";
-    if (typeof line1 === "string" && line1.length) address = encodeURIComponent(line1);
-    if (typeof line2 === "string" && line2.length) address += "," + encodeURIComponent(line2);
-    if (typeof line3 === "string" && line3.length) address += "," + encodeURIComponent(line3);
+    if (typeof line1 === "string" && line1.length)
+      address = encodeURIComponent(line1);
+    if (typeof line2 === "string" && line2.length)
+      address += "," + encodeURIComponent(line2);
+    if (typeof line3 === "string" && line3.length)
+      address += "," + encodeURIComponent(line3);
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     const endpoint = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&region=${country}&key=${apiKey}`;
     const fetch = require("node-fetch");
 
     fetch(endpoint)
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (!data.results) {
           resolve("");
         } else if (!data.results.length) {
@@ -309,53 +402,92 @@ exports.getAddressCoordinates = (db, addressObj) => {
         const coordinates = data.results[0].geometry.location;
         resolve(coordinates);
       })
-      .catch(err => {
+      .catch((err) => {
         console.log(err);
         reject(err);
       });
   });
-}
+};
 
 exports.getChurches = () => {
   return new Promise(async (resolve, reject) => {
     try {
       const churches = await require("../controllers_services/churches").GET();
-      resolve(churches);  
-    } catch(err) {
-      reject(new Error("unable to get churches", err))
+      resolve(churches);
+    } catch (err) {
+      reject(new Error("unable to get churches", err));
     }
   });
-}
+};
 
 exports.getDistance = (db, originObj, destinationObj) => {
   return new Promise((resolve, reject) => {
-    if (!db) reject(new Error("db is a required argument to getAddressCoordinates"));
-    if (!originObj) reject(new Error("originObj is a required argument to getDistance"));
-    if (!destinationObj) reject(new Error("destinationObj is a required argument to getDistance"));
-    if (typeof originObj !== "object") reject(new Error("originObj argument to getDistance must be an object"));
-    if (typeof destinationObj !== "object") reject(new Error("destinationObj argument to getDistance must be an object"));
-    if (typeof process.env.GOOGLE_MAPS_API_KEY !== "string") reject(new Error("Missing environment variable for Google Maps API key"));
-    if (!process.env.GOOGLE_MAPS_API_KEY.length) reject(new Error("Environment variable for Google Maps API key must not be blank"));
+    if (!db)
+      reject(new Error("db is a required argument to getAddressCoordinates"));
+    if (!originObj)
+      reject(new Error("originObj is a required argument to getDistance"));
+    if (!destinationObj)
+      reject(new Error("destinationObj is a required argument to getDistance"));
+    if (typeof originObj !== "object")
+      reject(new Error("originObj argument to getDistance must be an object"));
+    if (typeof destinationObj !== "object")
+      reject(
+        new Error("destinationObj argument to getDistance must be an object")
+      );
+    if (typeof process.env.GOOGLE_MAPS_API_KEY !== "string")
+      reject(new Error("Missing environment variable for Google Maps API key"));
+    if (!process.env.GOOGLE_MAPS_API_KEY.length)
+      reject(
+        new Error(
+          "Environment variable for Google Maps API key must not be blank"
+        )
+      );
 
-    const { line1: originLine1, line2: originLine2, line3: originLine3, latitude: originLatitude, longitude: originLongitude, country: originCountry } = originObj;
-    const { line1: destinationLine1, line2: destinationLine2, line3: destinationLine3, latitude: destinationLatitude, longitude: destinationLongitude, country: destinationCountry } = destinationObj;
+    const {
+      line1: originLine1,
+      line2: originLine2,
+      line3: originLine3,
+      latitude: originLatitude,
+      longitude: originLongitude,
+      country: originCountry,
+    } = originObj;
+    const {
+      line1: destinationLine1,
+      line2: destinationLine2,
+      line3: destinationLine3,
+      latitude: destinationLatitude,
+      longitude: destinationLongitude,
+      country: destinationCountry,
+    } = destinationObj;
 
     let origin = "";
-    if (typeof originLatitude === "number" && typeof originLongitude === "number") {
+    if (
+      typeof originLatitude === "number" &&
+      typeof originLongitude === "number"
+    ) {
       origin = `${originLatitude},${originLongitude}`;
     } else {
-      if (typeof originLine1 === "string" && originLine1.length) origin = encodeURIComponent(originLine1);
-      if (typeof originLine2 === "string" && originLine2.length) origin += "," + encodeURIComponent(originLine2);
-      if (typeof originLine3 === "string" && originLine3.length) origin += "," + encodeURIComponent(originLine3);
+      if (typeof originLine1 === "string" && originLine1.length)
+        origin = encodeURIComponent(originLine1);
+      if (typeof originLine2 === "string" && originLine2.length)
+        origin += "," + encodeURIComponent(originLine2);
+      if (typeof originLine3 === "string" && originLine3.length)
+        origin += "," + encodeURIComponent(originLine3);
     }
 
     let destination = "";
-    if (typeof destinationLatitude === "number" && typeof destinationLongitude === "number") {
+    if (
+      typeof destinationLatitude === "number" &&
+      typeof destinationLongitude === "number"
+    ) {
       destination = `${destinationLatitude},${destinationLongitude}`;
     } else {
-      if (typeof destinationLine1 === "string" && destinationLine1.length) destination = encodeURIComponent(destinationLine1);
-      if (typeof destinationLine2 === "string" && destinationLine2.length) destination += "," + encodeURIComponent(destinationLine2);
-      if (typeof destinationLine3 === "string" && destinationLine3.length) destination += "," + encodeURIComponent(destinationLine3);
+      if (typeof destinationLine1 === "string" && destinationLine1.length)
+        destination = encodeURIComponent(destinationLine1);
+      if (typeof destinationLine2 === "string" && destinationLine2.length)
+        destination += "," + encodeURIComponent(destinationLine2);
+      if (typeof destinationLine3 === "string" && destinationLine3.length)
+        destination += "," + encodeURIComponent(destinationLine3);
     }
 
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
@@ -363,8 +495,8 @@ exports.getDistance = (db, originObj, destinationObj) => {
     const fetch = require("node-fetch");
 
     fetch(endpoint)
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (!data.rows) {
           resolve("");
         } else if (!data.rows.length) {
@@ -372,33 +504,39 @@ exports.getDistance = (db, originObj, destinationObj) => {
         }
 
         const distanceObj = data.rows[0].distance;
-        if (typeof distanceObj !== "object") return reject(new Error("invalid distance object from distance API"));
-        if (typeof distance.text !== "string") return reject(new Error("invalid distance text from distance API"));
-        if (typeof distance.value !== "number") return reject(new Error("invalid distance value from distance API"));
+        if (typeof distanceObj !== "object")
+          return reject(new Error("invalid distance object from distance API"));
+        if (typeof distance.text !== "string")
+          return reject(new Error("invalid distance text from distance API"));
+        if (typeof distance.value !== "number")
+          return reject(new Error("invalid distance value from distance API"));
 
         resolve(distance);
       })
-      .catch(err => {
+      .catch((err) => {
         console.log(err);
         reject(err);
-      })
+      });
   });
-}
+};
 
 exports.storeProfileImage = async (userid, base64Image, db) => {
   const AWS = require("aws-sdk");
   const s3 = new AWS.S3({
     accessKeyId: process.env.INVITES_AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.INVITES_AWS_SECRET_ACCESS_KEY
+    secretAccessKey: process.env.INVITES_AWS_SECRET_ACCESS_KEY,
   });
 
-  const fileName400= `profiles/${userid}/400.jpg`;
-  const fileContent400 = new Buffer.from(base64Image.replace(/^data:image\/\w+;base64,/, ""), "base64");
+  const fileName400 = `profiles/${userid}/400.jpg`;
+  const fileContent400 = new Buffer.from(
+    base64Image.replace(/^data:image\/\w+;base64,/, ""),
+    "base64"
+  );
   const upload400 = new Promise((resolve, reject) => {
     const params = {
       Bucket: process.env.INVITES_AWS_BUCKET_NAME,
       Key: fileName400,
-      Body: fileContent400
+      Body: fileContent400,
     };
 
     s3.upload(params, (err, data) => {
@@ -411,13 +549,17 @@ exports.storeProfileImage = async (userid, base64Image, db) => {
   });
 
   const canvacord = require("canvacord");
-  const fileName140= `profiles/${userid}/140.jpg`;
-  const fileContent140 = await canvacord.Canvacord.resize(fileContent400, 140, 140);
+  const fileName140 = `profiles/${userid}/140.jpg`;
+  const fileContent140 = await canvacord.Canvacord.resize(
+    fileContent400,
+    140,
+    140
+  );
   const upload140 = new Promise((resolve, reject) => {
     const params = {
       Bucket: process.env.INVITES_AWS_BUCKET_NAME,
       Key: fileName140,
-      Body: fileContent140
+      Body: fileContent140,
     };
 
     s3.upload(params, (err, data) => {
@@ -481,4 +623,4 @@ exports.storeProfileImage = async (userid, base64Image, db) => {
       });
     });
   });
-}
+};
