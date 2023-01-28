@@ -1,6 +1,3 @@
-// const moment = require("moment");
-const moment = require("moment-timezone");
-
 exports.GET = async (req, res) => {
   // Enforce authorization
   const usertype = req.user.usertype;
@@ -46,6 +43,19 @@ exports.GET = async (req, res) => {
     });
   });
 
+  // Query for followed users
+  const getFollowedUsers =
+    require("../controllers_invites/utils").getFollowedUsers;
+  const followedUsers = await getFollowedUsers(db, req.user.userid).catch(
+    (error) => {
+      console.log(error);
+      return res.status(500).send({
+        msg: "unable to return followed users",
+        msgType: "error",
+      });
+    }
+  );
+
   // Return out if there are no events
   if (!events.length && !eventsByFollowedUsers.length) {
     return res.status(200).send({
@@ -53,6 +63,7 @@ exports.GET = async (req, res) => {
       msgType: "success",
       events: [],
       eventsByFollowedUsers: [],
+      followedUsers: followedUsers,
     });
   }
 
@@ -62,5 +73,6 @@ exports.GET = async (req, res) => {
     msgType: "success",
     events: events,
     eventsByFollowedUsers: eventsByFollowedUsers,
+    followedUsers: followedUsers,
   });
 };

@@ -271,6 +271,8 @@ exports.getEventsByUser = (db, userid) => {
         createdBy = ?
       AND
         isDeleted = 0
+      ORDER BY
+        title
       ;
     `;
 
@@ -286,10 +288,7 @@ exports.getEventsByFollowedUsers = (db, userid) => {
   return new Promise((resolve, reject) => {
     const sql = `
       SELECT
-        u.firstname,
-        u.lastname,
-        u.gender,
-        u.profilephoto,
+        e.createdBy,
         e.eventid,
         e.churchid,
         e.type,
@@ -345,6 +344,35 @@ exports.getEventsByFollowedUsers = (db, userid) => {
         f.follower = ?
       AND
         e.isDeleted = 0
+      ORDER BY
+        e.createdBy, e.title
+      ;
+    `;
+
+    db.query(sql, [userid], (error, result) => {
+      if (error) reject(error);
+
+      resolve(result);
+    });
+  });
+};
+
+exports.getFollowedUsers = (db, userid) => {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT
+        u.userid,
+        u.firstname,
+        u.lastname,
+        u.gender,
+        u.profilephoto
+      FROM
+        users u
+      INNER JOIN follow f ON f.followed = u.userid
+      WHERE
+        f.follower = ?
+      ORDER BY
+        u.lastname, u.firstname, u.userid
       ;
     `;
 
