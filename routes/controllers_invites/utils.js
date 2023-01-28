@@ -362,9 +362,11 @@ exports.getFollowedUsers = (db, userid) => {
     const sql = `
       SELECT
         u.userid,
+        u.churchid,
+        u.lang,
+        u.gender,
         u.firstname,
         u.lastname,
-        u.gender,
         u.profilephoto
       FROM
         users u
