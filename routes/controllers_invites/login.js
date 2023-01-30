@@ -19,6 +19,7 @@ exports.POST = (req, res) => {
       usertype,
       userstatus,
       lang,
+      profilephoto,
       country,
       datakey,
       passwordmustchange,
@@ -58,6 +59,7 @@ exports.POST = (req, res) => {
     const usertype = result[0].usertype || "user";
     const userstatus = result[0].userstatus || "pending confirmation";
     const lang = result[0].lang || "en";
+    const profilephoto = result[0].profilephoto;
     const country = result[0].country || "us";
     const passwordmustchange =
       result[0].passwordmustchange === 1 ? true : false;
@@ -145,7 +147,8 @@ exports.POST = (req, res) => {
             usertype: usertype,
             firstname: firstname,
             lastname: lastname,
-            gender: gender
+            gender: gender,
+            profilephoto: profilephoto,
           },
           process.env.REFRESH_TOKEN_SECRET,
           { expiresIn: "30d" }
@@ -157,6 +160,7 @@ exports.POST = (req, res) => {
             userid: userid,
             usertype: usertype,
             lang: lang,
+            profilephoto: profilephoto,
             country: country,
             passwordmustchange: passwordmustchange,
             isAuthorized: isAuthorized,
