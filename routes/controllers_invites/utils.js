@@ -367,12 +367,15 @@ exports.getFollowedUsers = (db, userid) => {
         u.gender,
         u.firstname,
         u.lastname,
-        u.profilephoto
+        u.profilephoto,
+        u.usertype
       FROM
         users u
       INNER JOIN follow f ON f.followed = u.userid
       WHERE
         f.follower = ?
+      AND
+        u.userstatus = 'registered'
       ORDER BY
         u.lastname, u.firstname, u.userid
       ;
