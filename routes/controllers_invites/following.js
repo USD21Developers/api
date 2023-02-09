@@ -56,13 +56,13 @@ exports.GET = async (req, res) => {
     if (err) {
       console.log(err);
       return res.status(400).send({
-        msg: "unable to retrieve quantity of users currently following",
+        msg: "unable to retrieve list of users currently following",
         msgType: "error",
       });
     }
 
     return res.status(200).send({
-      msg: "retrieved quantity of users following",
+      msg: "retrieved list of users following",
       msgType: "success",
       following: result,
     });
