@@ -151,6 +151,8 @@ async function showChurches() {
         contact_name,
         contact_number,
       } = item;
+      const eagerLoadQuantity = 4;
+      const lazyLoad = index > eagerLoadQuantity ? "loading='lazy'" : "";
       const churchName = church_URL.length
         ? `<a href="${church_URL}">${church_name}</a>`
         : church_name;
@@ -160,7 +162,7 @@ async function showChurches() {
       let churchHtml = `
       <div class="church">
         <div class="photo">
-          <img vspace="5" width="100" src="${contactImage}" alt="Photo of ${contact_name
+          <img vspace="5" width="100" src="${contactImage}" ${lazyLoad} alt="Photo of ${contact_name
         .trim()
         .replaceAll(
           "&",
