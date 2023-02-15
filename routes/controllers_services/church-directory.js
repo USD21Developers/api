@@ -46,6 +46,15 @@ exports.GET = (req, res) => {
       churchName = item.church_name;
       contactName = item.contact_name;
 
+      // Decode
+      churchName = htmlEntitles.decode(churchName, {
+        level: "all",
+      });
+      contactName = htmlEntitles.decode(contactName, {
+        level: "all",
+      });
+
+      // Encode
       churchName = htmlEntities.encode(churchName, {
         mode: "specialChars",
       });
