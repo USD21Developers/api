@@ -4,9 +4,9 @@ exports.GET = (req, res) => {
   const sql = `
     SELECT 
       churchID,
-      CONVERT(CAST(church_name as BINARY) USING utf8),
+      CONVERT(CAST(church_name as BINARY) USING utf8) AS church_name,
       church_URL,
-      CONVERT(CAST(contact_name as BINARY) USING utf8),
+      CONVERT(CAST(contact_name as BINARY) USING utf8) AS contact_name,
       CONVERT(CAST(contact_number as BINARY) USING utf8) AS mailing_city,
       contact_image,
       CONVERT(CAST(mailing_city as BINARY) USING utf8) AS mailing_city,
