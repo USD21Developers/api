@@ -104,6 +104,8 @@ async function showChurches() {
 
   let churchesHtml = "";
 
+  let imageCount = 0;
+
   for (let i = 0; i < countries.length; i++) {
     const countryIso = countries[i].iso;
     let countryName = countries[i].name;
@@ -140,9 +142,7 @@ async function showChurches() {
 
     churchesInCountry.sort((a, b) => (a.church_name > b.church_name ? 1 : -1));
 
-    let churchItemNumber = 0;
-    churchesInCountry.forEach((item, index) => {
-      churchItemNumber += 1;
+    churchesInCountry.forEach((item) => {
       const {
         contact_image,
         church_name,
@@ -153,9 +153,11 @@ async function showChurches() {
         contact_name,
         contact_number,
       } = item;
+
+      if (contact_image.length) imageCount++;
+
       const eagerLoadQuantity = 4;
-      const lazyLoad =
-        churchItemNumber > eagerLoadQuantity ? "loading='lazy'" : "";
+      const lazyLoad = imageCount > eagerLoadQuantity ? 'loading="lazy"' : "";
       const churchName = church_URL.length
         ? `<a href="${church_URL}">${church_name}</a>`
         : church_name;
