@@ -32,6 +32,8 @@ exports.GET = (req, res) => {
       });
     }
 
+    const htmlEntities = require("html-entities");
+
     const data = result.map((item) => {
       let imageURL = "";
       let churchName = ""; // church_name
