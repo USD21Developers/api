@@ -75,6 +75,7 @@ async function showChurches() {
   let storedCountries = localStorage.getItem("countries");
   const detectedLang = getLang();
   let lang = "en";
+  let syncChurchesNeeded = true;
 
   let countryData;
   let countries;
@@ -98,6 +99,7 @@ async function showChurches() {
     churches = JSON.parse(storedChurches);
   } else {
     churches = await getChurches();
+    let syncChurchesNeeded = false;
   }
 
   let churchesHtml = "";
@@ -183,7 +185,7 @@ async function showChurches() {
 
   directory.innerHTML = churchesHtml;
 
-  syncChurches();
+  if (syncChurchesNeeded) syncChurches();
 }
 
 async function syncChurches() {
