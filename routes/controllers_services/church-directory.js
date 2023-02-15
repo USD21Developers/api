@@ -44,10 +44,10 @@ exports.GET = (req, res) => {
       }
 
       churchName = htmlEntities.encode(churchName, {
-        mode: "nonAsciiPrintable",
+        mode: "nonAscii",
       });
       contactName = htmlEntities.encode(contactName, {
-        mode: "nonAsciiPrintable",
+        mode: "nonAscii",
       });
 
       item.contact_image = imageURL;
