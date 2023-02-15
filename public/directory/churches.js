@@ -157,7 +157,10 @@ async function showChurches() {
       if (contact_image.length) imageCount++;
 
       const eagerLoadQuantity = 4;
-      const lazyLoad = imageCount > eagerLoadQuantity ? 'loading="lazy"' : "";
+      const lazyLoad =
+        imageCount > eagerLoadQuantity
+          ? 'loading="lazy" decoding="async" fetchpriority="low"'
+          : "";
       const churchName = church_URL.length
         ? `<a href="${church_URL}">${church_name}</a>`
         : church_name;
