@@ -4,15 +4,15 @@ exports.GET = (req, res) => {
   const sql = `
     SELECT 
       churchID,
-      church_name,
+      CONVERT(CAST(church_name as BINARY) USING utf8),
       church_URL,
-      contact_name,
-      contact_number,
+      CONVERT(CAST(contact_name as BINARY) USING utf8),
+      CONVERT(CAST(contact_number as BINARY) USING utf8) AS mailing_city,
       contact_image,
-      mailing_city,
-      mailing_state,
-      mailing_country,
-      identifying_place,
+      CONVERT(CAST(mailing_city as BINARY) USING utf8) AS mailing_city,
+      CONVERT(CAST(mailing_state as BINARY) USING utf8) AS mailing_state,
+      CONVERT(CAST(mailing_country as BINARY) USING utf8) AS mailing_country,
+      CONVERT(CAST(identifying_place as BINARY) USING utf8) AS identifying_place,
       country_iso
     FROM 
       churches
@@ -40,8 +40,6 @@ exports.GET = (req, res) => {
       }
 
       item.contact_image = imageURL;
-      item.church_name = Buffer.from(item.church_name, "utf-8").toString();
-      item.contact_name = Buffer.from(item.contact_name, "utf-8").toString();
 
       return item;
     });
