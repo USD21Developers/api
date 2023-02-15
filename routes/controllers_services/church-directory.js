@@ -43,6 +43,9 @@ exports.GET = (req, res) => {
         imageURL = `https://www.upsidedown21.org/1.1/images/church_leaders/${item.churchID}.jpg?ver=1.6.2`;
       }
 
+      churchName = item.church_name;
+      contactName = item.contact_name;
+
       churchName = htmlEntities.encode(churchName, {
         mode: "nonAscii",
       });
