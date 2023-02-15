@@ -140,7 +140,9 @@ async function showChurches() {
 
     churchesInCountry.sort((a, b) => (a.church_name > b.church_name ? 1 : -1));
 
+    let churchItemNumber = 0;
     churchesInCountry.forEach((item, index) => {
+      churchItemNumber += 1;
       const {
         contact_image,
         church_name,
@@ -152,7 +154,8 @@ async function showChurches() {
         contact_number,
       } = item;
       const eagerLoadQuantity = 4;
-      const lazyLoad = index > eagerLoadQuantity ? "loading='lazy'" : "";
+      const lazyLoad =
+        churchItemNumber > eagerLoadQuantity ? "loading='lazy'" : "";
       const churchName = church_URL.length
         ? `<a href="${church_URL}">${church_name}</a>`
         : church_name;
