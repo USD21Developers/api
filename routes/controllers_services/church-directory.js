@@ -34,11 +34,23 @@ exports.GET = (req, res) => {
 
     const data = result.map((item) => {
       let imageURL = "";
+      let churchName = ""; // church_name
+      let contactName = ""; // contact_name
+
       if (typeof item.contact_image === "object") {
         imageURL = `https://www.upsidedown21.org/1.1/images/church_leaders/${item.churchID}.jpg?ver=1.6.2`;
       }
 
+      churchName = htmlEntities.encode(churchName, {
+        mode: "nonAsciiPrintable",
+      });
+      contactName = htmlEntities.encode(contactName, {
+        mode: "nonAsciiPrintable",
+      });
+
       item.contact_image = imageURL;
+      item.church_name = churchName;
+      item.contact_name = contactName;
 
       return item;
     });

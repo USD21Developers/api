@@ -37,6 +37,7 @@
     "google-libphonenumber": "^3.2.15",
     "googleapis": "^105.0.0",
     "got": "^11.8.2",
+    "html-entities": "^2.3.3",
     "http-errors": "^1.8.0",
     "jsonwebtoken": "^8.5.1",
     "map-nearest-location": "^1.1.4",
