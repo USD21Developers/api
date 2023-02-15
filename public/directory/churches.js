@@ -59,6 +59,16 @@ function getLang() {
   return lang;
 }
 
+async function hash(str) {
+  const buf = await window.crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder("utf-8").encode(str)
+  );
+  return Array.prototype.map
+    .call(new Uint8Array(buf), (x) => ("00" + x.toString(16)).slice(-2))
+    .join("");
+}
+
 async function showChurches() {
   const directory = document.querySelector("#global-church-directory");
   const storedChurches = localStorage.getItem("churches");
