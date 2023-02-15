@@ -26,7 +26,10 @@ function getChurches() {
   const endpoint = `${getApiPrefix()}/church-directory`;
 
   return new Promise((resolve, reject) => {
-    fetch(endpoint)
+    fetch(endpoint, {
+      cache: "no-store",
+      keepalive: true,
+    })
       .then((res) => res.json())
       .then(async (data) => {
         const churchesToStore = JSON.stringify(data.churches);
@@ -83,7 +86,6 @@ async function showChurches() {
   let churches;
   if (storedChurches) {
     churches = JSON.parse(storedChurches);
-    getChurches(); // Silently updates churches in localStorage for next reload
   } else {
     churches = await getChurches();
   }
@@ -169,8 +171,28 @@ async function showChurches() {
     churchesHtml += churchesInCountryHtml;
   }
 
-  // churchesHtml = `<table cellpadding="0" cellspacing="20">${churchesHtml}</table>`;
   directory.innerHTML = churchesHtml;
+
+  syncChurches();
+}
+
+async function syncChurches() {
+  const storedChurches = localStorage.getItem("churches");
+
+  if (!navigator.onLine) return;
+
+  const fetchedChurches = await getChurches();
+
+  if (!fetchedChurches) return;
+
+  const storedChurchesHash = await hash(storedChurches);
+  const fetchedChurchesJSON = JSON.stringify(fetchedChurches);
+  const fetchedChurchesHash = await hash(fetchedChurchesJSON);
+
+  if (fetchedChurchesHash !== storedChurchesHash) {
+    localStorage.setItem("churches", fetchedChurchesJSON);
+    showChurches();
+  }
 }
 
 function init() {
