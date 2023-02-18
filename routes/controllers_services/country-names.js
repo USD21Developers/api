@@ -29,6 +29,26 @@ exports.GET = (req, res) => {
     };
   });
 
+  // Add missing jurisdictions
+  const missing = [
+    {
+      iso: "cw",
+      name: "Curacao",
+    },
+    {
+      iso: "gu",
+      name: "Guam",
+    },
+  ];
+
+  // Insert missing jurisdictions
+  missing.forEach((item) => {
+    names.push(item);
+  });
+
+  // Sort again by jurisdiction name
+  names.sort((a, b) => (a.name > b.name ? 1 : -1));
+
   // Return
   return res.status(200).send({
     msg: "country names retrieved",
