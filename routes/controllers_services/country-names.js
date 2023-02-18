@@ -47,7 +47,7 @@ exports.GET = (req, res) => {
   });
 
   // Sort again by jurisdiction name
-  names.sort((a, b) => (a.name > b.name ? 1 : -1));
+  names.sort((a, b) => (a.name.localeCompare(b.name, lang) ? 1 : -1));
 
   // Return
   return res.status(200).send({
