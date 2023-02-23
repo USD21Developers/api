@@ -7,11 +7,11 @@ exports.GET = (req, res) => {
   const sql = `
     SELECT
       churchID,
-      church_name,
+      CONVERT(CAST(church_name AS BINARY) USING utf8) AS church_name,
       church_URL,
-      contact_name,
+      CONVERT(CAST(contact_name as BINARY) USING utf8) AS contact_name,
       contact_number,
-      identifying_place,
+      CONVERT(CAST(identifying_place as BINARY) USING utf8) AS identifying_place,
       country_iso
     FROM
       churches
