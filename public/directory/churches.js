@@ -82,7 +82,7 @@ function getPhrases() {
       country: "Country",
       website: "Web site",
     },
-    xx: {
+    tl: {
       language: "Filipino/Tagalog",
       label: "Pagbukud-bukurin ayon sa:",
       churchName: "pangalan ng simbahan",
