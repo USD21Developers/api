@@ -48,7 +48,9 @@ exports.POST = (req, res) => {
   const latitude = req.body.latitude || "";
   const longitude = req.body.longitude || "";
   const otherLocationDetails = req.body.otherLocationDetails || "";
-  const attendVirtuallyConnectionDetails = req.body.attendVirtuallyConnectionDetails || "";
+  const attendVirtuallyConnectionDetails =
+    req.body.attendVirtuallyConnectionDetails || "";
+  const shareWithFollowers = req.body.shareWithFollowers || "";
   const contactFirstName = req.body.contactFirstName || "";
   const contactLastName = req.body.contactLastName || "";
   const contactPhone = req.body.contactPhone || "";
@@ -63,20 +65,20 @@ exports.POST = (req, res) => {
   // event ID
   if (eventid.length === "") {
     return res.status(400).send({
-        msg: "eventid is required",
-        msgType: "error"
+      msg: "eventid is required",
+      msgType: "error",
     });
   }
   if (typeof eventid !== "number") {
     return res.status(400).send({
-        msg: "eventid must be numeric",
-        msgType: "error"
+      msg: "eventid must be numeric",
+      msgType: "error",
     });
   }
   if (eventid < 0) {
     return res.status(400).send({
-        msg: "eventid must be a positive integer",
-        msgType: "error"
+      msg: "eventid must be a positive integer",
+      msgType: "error",
     });
   }
 
@@ -84,7 +86,7 @@ exports.POST = (req, res) => {
   if (language.trim().length !== 2) {
     return res.status(400).send({
       msg: "language is required",
-      msgType: "error"
+      msgType: "error",
     });
   }
 
@@ -93,7 +95,7 @@ exports.POST = (req, res) => {
   if (!validEventTypes.includes(eventtype)) {
     return res.status(400).send({
       msg: "a valid event type is required",
-      msgType: "error"
+      msgType: "error",
     });
   }
 
@@ -101,7 +103,7 @@ exports.POST = (req, res) => {
   if (!eventtitle.trim().length) {
     return res.status(400).send({
       msg: "event title is required",
-      msgType: "error"
+      msgType: "error",
     });
   }
 
@@ -109,16 +111,25 @@ exports.POST = (req, res) => {
   if (!eventdescription.trim().length) {
     return res.status(400).send({
       msg: "event description is required",
-      msgType: "error"
+      msgType: "error",
     });
   }
 
   // frequency
-  const validEventFrequencies = ["once", "Every Sunday", "Every Monday", "Every Tuesday", "Every Wednesday", "Every Thursday", "Every Friday", "Every Saturday"];
+  const validEventFrequencies = [
+    "once",
+    "Every Sunday",
+    "Every Monday",
+    "Every Tuesday",
+    "Every Wednesday",
+    "Every Thursday",
+    "Every Friday",
+    "Every Saturday",
+  ];
   if (!validEventFrequencies.includes(frequency)) {
     return res.status(400).send({
       msg: "a valid event frequency is required",
-      msgType: "error"
+      msgType: "error",
     });
   }
 
@@ -134,29 +145,29 @@ exports.POST = (req, res) => {
   if (!durationIsValid) {
     return res.status(400).send({
       msg: "a valid duration (in days) is required",
-      msgType: "error"
+      msgType: "error",
     });
   }
 
   // duration (in hours)
-  const durationInHoursRequired = (duration === "multiple days") ? false : true;
+  const durationInHoursRequired = duration === "multiple days" ? false : true;
   if (durationInHoursRequired) {
     if (typeof durationInHours === "") {
       return res.status(400).send({
         msg: "duration (in hours) is required",
-        msgType: "error"
+        msgType: "error",
       });
     }
     if (typeof durationInHours !== "number") {
       return res.status(400).send({
         msg: "duration (in hours) must be a number",
-        msgType: "error"
+        msgType: "error",
       });
     }
     if (durationInHours < 0.5 || durationInHours > 8) {
       return res.status(400).send({
         msg: "duration (in hours) must be between 0.5 and 8 hours",
-        msgType: "error"
+        msgType: "error",
       });
     }
   }
@@ -166,7 +177,7 @@ exports.POST = (req, res) => {
   if (!timezone.length) {
     return res.status(400).send({
       msg: "time zone is required",
-      msgType: "error"
+      msgType: "error",
     });
   }
 
@@ -174,7 +185,7 @@ exports.POST = (req, res) => {
   if (!offset.length) {
     return res.status(400).send({
       msg: "time zone offset is required",
-      msgType: "error"
+      msgType: "error",
     });
   }
 
@@ -183,15 +194,17 @@ exports.POST = (req, res) => {
     if (startdate.trim().length === 0) {
       return res.status(400).send({
         msg: "startdate is required",
-        msgType: "error"
+        msgType: "error",
       });
     }
 
-    const isValidDate = moment.tz(moment(startdate).format(), timezone).isValid();
+    const isValidDate = moment
+      .tz(moment(startdate).format(), timezone)
+      .isValid();
     if (!isValidDate) {
       return res.status(400).send({
         msg: "a valid startdate is required",
-        msgType: "error"
+        msgType: "error",
       });
     }
 
@@ -199,13 +212,15 @@ exports.POST = (req, res) => {
     if (starttime.trim().length === 0) {
       return res.status(400).send({
         msg: "starttime is required",
-        msgType: "error"
+        msgType: "error",
       });
     }
 
     // recurring weekday must match next occurence weekday
     if (frequency !== "once") {
-      const nextOccuranceWeekday = moment.tz(moment(`${startdate} ${starttime}`).format(), timezone).format("dddd");
+      const nextOccuranceWeekday = moment
+        .tz(moment(`${startdate} ${starttime}`).format(), timezone)
+        .format("dddd");
       let hasWeekdayConflict = false;
       switch (frequency) {
         case "Every Sunday": {
@@ -241,18 +256,21 @@ exports.POST = (req, res) => {
       if (hasWeekdayConflict) {
         return res.status(400).send({
           msg: "weekday of recurring date must match weekday of next occurence",
-          msgType: "error"
+          msgType: "error",
         });
       }
     }
 
-    const momentStartDateTime = moment.tz(moment(`${startdate} ${starttime}`).format(), timezone);
+    const momentStartDateTime = moment.tz(
+      moment(`${startdate} ${starttime}`).format(),
+      timezone
+    );
     const isValidDateTime = momentStartDateTime.isValid();
 
     if (!isValidDateTime) {
       return res.status(400).send({
         msg: "a valid starttime is required",
-        msgType: "error"
+        msgType: "error",
       });
     }
 
@@ -261,27 +279,28 @@ exports.POST = (req, res) => {
     if (isInThePast) {
       return res.status(400).send({
         msg: "startdate and starttime must not be in the past",
-        msgType: "error"
+        msgType: "error",
       });
     }
   }
 
   // multiday
   if (duration === "multiple days") {
-
     // multiday begin date
     if (multidayBeginDate.trim().length === 0) {
       return res.status(400).send({
         msg: "multidayBeginDate is required",
-        msgType: "error"
+        msgType: "error",
       });
     }
 
-    const isValidMultidayBeginDate = moment.tz(multidayBeginDate, timezone).isValid();
+    const isValidMultidayBeginDate = moment
+      .tz(multidayBeginDate, timezone)
+      .isValid();
     if (!isValidMultidayBeginDate) {
       return res.status(400).send({
         msg: "a valid multidayBeginDate is required",
-        msgType: "error"
+        msgType: "error",
       });
     }
 
@@ -289,26 +308,33 @@ exports.POST = (req, res) => {
     if (multidayBeginTime.trim().length === 0) {
       return res.status(400).send({
         msg: "multidayBeginTime is required",
-        msgType: "error"
+        msgType: "error",
       });
     }
 
-    const momentMultidayStartDateTime = moment.tz(moment(`${multidayBeginDate} ${multidayBeginTime}`).format(), timezone);
+    const momentMultidayStartDateTime = moment.tz(
+      moment(`${multidayBeginDate} ${multidayBeginTime}`).format(),
+      timezone
+    );
     const isValidMultidayStartDateTime = momentMultidayStartDateTime.isValid();
 
     if (!isValidMultidayStartDateTime) {
       return res.status(400).send({
         msg: "a valid multidayBeginTime is required",
-        msgType: "error"
+        msgType: "error",
       });
     }
 
-    const multidayStartDateIsInThePast = momentNow.isAfter(momentMultidayStartDateTime) ? true : false;
+    const multidayStartDateIsInThePast = momentNow.isAfter(
+      momentMultidayStartDateTime
+    )
+      ? true
+      : false;
 
     if (multidayStartDateIsInThePast) {
       return res.status(400).send({
         msg: "multidayBeginDate and multidayBeginTime must not be in the past",
-        msgType: "error"
+        msgType: "error",
       });
     }
 
@@ -316,15 +342,17 @@ exports.POST = (req, res) => {
     if (multidayEndDate.trim().length === 0) {
       return res.status(400).send({
         msg: "multidayEndDate is required",
-        msgType: "error"
+        msgType: "error",
       });
     }
 
-    const isValidMultidayEndDate = moment.tz(moment(multidayEndDate).format(), timezone).isValid();
+    const isValidMultidayEndDate = moment
+      .tz(moment(multidayEndDate).format(), timezone)
+      .isValid();
     if (!isValidMultidayEndDate) {
       return res.status(400).send({
         msg: "a valid multidayEndDate is required",
-        msgType: "error"
+        msgType: "error",
       });
     }
 
@@ -332,42 +360,55 @@ exports.POST = (req, res) => {
     if (multidayEndTime.trim().length === 0) {
       return res.status(400).send({
         msg: "multidayEndTime is required",
-        msgType: "error"
+        msgType: "error",
       });
     }
 
-    const momentMultidayEndDateTime = moment.tz(moment(`${multidayEndDate} ${multidayEndTime}`).format(), timezone);
+    const momentMultidayEndDateTime = moment.tz(
+      moment(`${multidayEndDate} ${multidayEndTime}`).format(),
+      timezone
+    );
     const isValidMultidayEndDateTime = momentMultidayEndDateTime.isValid();
 
     if (!isValidMultidayEndDateTime) {
       return res.status(400).send({
         msg: "a valid multidayEndTime is required",
-        msgType: "error"
+        msgType: "error",
       });
     }
 
-    const multidayEndDateIsInThePast = momentNow.isAfter(momentMultidayEndDateTime) ? true : false;
+    const multidayEndDateIsInThePast = momentNow.isAfter(
+      momentMultidayEndDateTime
+    )
+      ? true
+      : false;
 
     if (multidayEndDateIsInThePast) {
       return res.status(400).send({
         msg: "multidayEndDate and multidayEndTime must not be in the past",
-        msgType: "error"
+        msgType: "error",
       });
     }
 
     if (momentMultidayStartDateTime.isAfter(momentMultidayEndDateTime)) {
       return res.status(400).send({
         msg: "multidayBeginDate and multidayBeginTime must come before multidayEndDate and multidayEndTime",
-        msgType: "error"
+        msgType: "error",
       });
     }
 
-    const momentMultidayBeginDate = moment.tz(moment(multidayBeginDate).format(), timezone);
-    const momentMultidayEndDate = moment.tz(moment(multidayEndDate).format(), timezone);
+    const momentMultidayBeginDate = moment.tz(
+      moment(multidayBeginDate).format(),
+      timezone
+    );
+    const momentMultidayEndDate = moment.tz(
+      moment(multidayEndDate).format(),
+      timezone
+    );
     if (momentMultidayBeginDate.isSame(momentMultidayEndDate)) {
       return res.status(400).send({
         msg: "multidayBeginDate and multidayEndDate must not be on the same day",
-        msgType: "error"
+        msgType: "error",
       });
     }
   }
@@ -376,66 +417,67 @@ exports.POST = (req, res) => {
   if (country === "") {
     return res.status(400).send({
       msg: "country is required",
-      msgType: "error"
+      msgType: "error",
     });
   }
 
   // Addresses must constitute at least 2 lines (unless in Japan, or unless coordinates supplied)
   let numAddressLines = 0;
-  const line1Populated = (addressLine1.length > 0);
-  const line2Populated = (addressLine2.length > 0);
-  const line3Populated = (addressLine3.length > 0);
-  const latPopulated = (latitude.length > 0);
-  const longPopulated = (longitude.length > 0);
-  const isJapan = (country === "jp");
+  const line1Populated = addressLine1.length > 0;
+  const line2Populated = addressLine2.length > 0;
+  const line3Populated = addressLine3.length > 0;
+  const latPopulated = latitude.length > 0;
+  const longPopulated = longitude.length > 0;
+  const isJapan = country === "jp";
 
   if (line1Populated) numAddressLines += 1;
   if (line2Populated) numAddressLines += 1;
   if (line3Populated) numAddressLines += 1;
 
   // If only one address line populated
-  if ((numAddressLines === 1) && (!isJapan)) {
+  if (numAddressLines === 1 && !isJapan) {
     return res.status(400).send({
       msg: "event address must have at least 2 lines",
-      msgType: "error"
+      msgType: "error",
     });
   }
 
   // If only one coordinate is populated
-  const oneCoordinateSupplied = (latPopulated || longPopulated);
-  const bothCoordinatesSupplied = (latPopulated && longPopulated);
+  const oneCoordinateSupplied = latPopulated || longPopulated;
+  const bothCoordinatesSupplied = latPopulated && longPopulated;
   if (oneCoordinateSupplied && !bothCoordinatesSupplied) {
     return res.status(400).send({
       msg: "both coordinates are required",
-      msgType: "error"
+      msgType: "error",
     });
   }
 
   // If neither address nor coordinates were populated
-  if ((!latPopulated) && (!longPopulated) && (numAddressLines === 0)) {
+  if (!latPopulated && !longPopulated && numAddressLines === 0) {
     return res.status(400).send({
       msg: "either an address or coordinates are required",
-      msgType: "error"
+      msgType: "error",
     });
   }
 
   if (!contactFirstName.length) {
     return res.status(400).send({
       msg: "first name is required for contact person",
-      msgType: "error"
+      msgType: "error",
     });
   }
 
-  if ((!contactPhone.length) && (!contactEmail.length)) {
+  if (!contactPhone.length && !contactEmail.length) {
     return res.status(400).send({
       msg: "at least one method of contact is required",
-      msgType: "error"
+      msgType: "error",
     });
   }
 
   if (contactPhone.length) {
     const validatePhone = require("./utils").validatePhone;
-    const { isPossibleNumber, isValidForRegion, isValidSmsType } = validatePhone(contactPhone, contactPhoneCountryData.iso2);
+    const { isPossibleNumber, isValidForRegion, isValidSmsType } =
+      validatePhone(contactPhone, contactPhoneCountryData.iso2);
     let isValidPhoneNumber = true;
     let msg = "";
     if (!isPossibleNumber) {
@@ -451,7 +493,7 @@ exports.POST = (req, res) => {
     if (!isValidPhoneNumber) {
       return res.status(400).send({
         msg: msg,
-        msgType: "error"
+        msgType: "error",
       });
     }
   }
@@ -461,7 +503,7 @@ exports.POST = (req, res) => {
     if (!isValidEmail) {
       return res.status(400).send({
         msg: "invalid email",
-        msgType: "error"
+        msgType: "error",
       });
     }
   }
@@ -480,9 +522,11 @@ exports.POST = (req, res) => {
   db.query(sql, [req.user.userid], async (error, result) => {
     if (error) {
       console.log(error);
-      return res
-        .status(500)
-        .send({ msg: "unable to query for church id", msgType: "error", error: error });
+      return res.status(500).send({
+        msg: "unable to query for church id",
+        msgType: "error",
+        error: error,
+      });
     }
     if (!result.length) {
       return res.status(400).send({ msg: "invalid user", msgType: "error" });
@@ -494,7 +538,10 @@ exports.POST = (req, res) => {
       line1: addressLine1.trim().length ? addressLine1.trim() : null,
       line2: addressLine2.trim().length ? addressLine2.trim() : null,
       line3: addressLine3.trim().length ? addressLine3.trim() : null,
-      coordinates: (latitude.trim().length && longitude.trim().length) ? `POINT(${latitude.trim()} ${longitude.trim()})` : null
+      coordinates:
+        latitude.trim().length && longitude.trim().length
+          ? `POINT(${latitude.trim()} ${longitude.trim()})`
+          : null,
     };
 
     // If no coordinates passed from the form, then geocode the address
@@ -504,8 +551,8 @@ exports.POST = (req, res) => {
         line1: sqlAddress.line1,
         line2: sqlAddress.line2,
         line3: sqlAddress.line3,
-        country: country
-      }).catch(err => {
+        country: country,
+      }).catch((err) => {
         console.log(err);
         return "";
       });
@@ -520,16 +567,28 @@ exports.POST = (req, res) => {
     }
 
     const sqlDuration = duration.trim().length ? duration.trim() : null;
-    const sqlDurationInHours = typeof durationInHours === "number" ? durationInHours : null;
-    const virtualDetails = attendVirtuallyConnectionDetails.trim().length > 0 ? attendVirtuallyConnectionDetails.trim() : null;
+    const sqlDurationInHours =
+      typeof durationInHours === "number" ? durationInHours : null;
+    const virtualDetails =
+      attendVirtuallyConnectionDetails.trim().length > 0
+        ? attendVirtuallyConnectionDetails.trim()
+        : null;
     const hasvirtual = attendVirtuallyConnectionDetails.trim().length ? 1 : 0;
-    const sqlOtherLocationDetails = otherLocationDetails.trim().length ? otherLocationDetails.trim() : null;
+    const sqlOtherLocationDetails = otherLocationDetails.trim().length
+      ? otherLocationDetails.trim()
+      : null;
     const contact = {
       firstname: contactFirstName.trim(),
       lastname: contactLastName.trim().length ? contactLastName.trim() : null,
       phone: contactPhone.trim().length ? contactPhone.trim() : null,
-      phonedata: (contactPhone.trim().length && typeof contactPhoneCountryData === "object") ? JSON.stringify(contactPhoneCountryData) : null,
-      email: contactEmail.trim().length ? contactEmail.trim().toLowerCase() : null
+      phonedata:
+        contactPhone.trim().length &&
+        typeof contactPhoneCountryData === "object"
+          ? JSON.stringify(contactPhoneCountryData)
+          : null,
+      email: contactEmail.trim().length
+        ? contactEmail.trim().toLowerCase()
+        : null,
     };
 
     const sqlUpdateRecord = `
@@ -555,6 +614,7 @@ exports.POST = (req, res) => {
             otherlocationdetails = ?,
             virtualconnectiondetails = ?,
             hasvirtual = ?,
+            sharewithfollowers = ?,
             contactfirstname = ?,
             contactlastname = ?,
             contactemail = ?,
@@ -574,60 +634,80 @@ exports.POST = (req, res) => {
       /*  BEGIN MULTIDAY  */
       /********************/
       const sqlStartDate = null;
-      const sqlMultidayStart = moment.tz(`${multidayBeginDate} ${multidayBeginTime}`, timezone).utc().format("YYYY-MM-DD HH:mm");
-      const sqlMultidayEnd = moment.tz(`${multidayEndDate} ${multidayEndTime}`, timezone).utc().format("YYYY-MM-DD HH:mm");
+      const sqlMultidayStart = moment
+        .tz(`${multidayBeginDate} ${multidayBeginTime}`, timezone)
+        .utc()
+        .format("YYYY-MM-DD HH:mm");
+      const sqlMultidayEnd = moment
+        .tz(`${multidayEndDate} ${multidayEndTime}`, timezone)
+        .utc()
+        .format("YYYY-MM-DD HH:mm");
       const sqlDates = {
         startdate: sqlStartDate,
         multidayStart: sqlMultidayStart,
-        multidayEnd: sqlMultidayEnd
+        multidayEnd: sqlMultidayEnd,
       };
 
-      db.query(sqlUpdateRecord, [
-        churchid,
-        eventtype,
-        eventtitle,
-        eventdescription,
-        frequency,
-        timezone,
-        sqlDates.startdate,
-        sqlDuration,
-        sqlDurationInHours,
-        sqlDates.multidayStart,
-        sqlDates.multidayEnd,
-        locationvisibility,
-        locationname,
-        sqlAddress.line1,
-        sqlAddress.line2,
-        sqlAddress.line3,
-        sqlAddress.coordinates,
-        sqlOtherLocationDetails,
-        virtualDetails,
-        hasvirtual,
-        contact.firstname,
-        contact.lastname,
-        contact.email,
-        contact.phone,
-        contact.phonedata,
-        country,
-        language,
-        eventid,
-        req.user.userid
-      ], async (error, result) => {
-        if (error) {
-          console.log(error);
-          return res
-            .status(500)
-            .send({ msg: "unable to update new event", msgType: "error", error: error });
-        }
-
-        const getEventsByUser = require("../controllers_invites/utils").getEventsByUser;
-        const events = await getEventsByUser(db, req.user.userid).catch((error) => {
+      db.query(
+        sqlUpdateRecord,
+        [
+          churchid,
+          eventtype,
+          eventtitle,
+          eventdescription,
+          frequency,
+          timezone,
+          sqlDates.startdate,
+          sqlDuration,
+          sqlDurationInHours,
+          sqlDates.multidayStart,
+          sqlDates.multidayEnd,
+          locationvisibility,
+          locationname,
+          sqlAddress.line1,
+          sqlAddress.line2,
+          sqlAddress.line3,
+          sqlAddress.coordinates,
+          sqlOtherLocationDetails,
+          virtualDetails,
+          hasvirtual,
+          shareWithFollowers,
+          contact.firstname,
+          contact.lastname,
+          contact.email,
+          contact.phone,
+          contact.phonedata,
+          country,
+          language,
+          eventid,
+          req.user.userid,
+        ],
+        async (error, result) => {
+          if (error) {
             console.log(error);
-            return res.status(500).send({ msg: "unable to return events", msgType: "error" });
-        });
+            return res.status(500).send({
+              msg: "unable to update new event",
+              msgType: "error",
+              error: error,
+            });
+          }
 
-        return res.status(200).send({ msg: "event updated", msgType: "success", events: events });
-      });
+          const getEventsByUser =
+            require("../controllers_invites/utils").getEventsByUser;
+          const events = await getEventsByUser(db, req.user.userid).catch(
+            (error) => {
+              console.log(error);
+              return res
+                .status(500)
+                .send({ msg: "unable to return events", msgType: "error" });
+            }
+          );
+
+          return res
+            .status(200)
+            .send({ msg: "event updated", msgType: "success", events: events });
+        }
+      );
       /********************/
       /*  END MULTIDAY  */
       /********************/
@@ -636,61 +716,78 @@ exports.POST = (req, res) => {
       /*  BEGIN SINGLE DAY NON-RECURRING  */
       /************************************/
 
-      const sqlStartDate = moment.tz(`${startdate} ${starttime}`, timezone).utc().format("YYYY-MM-DD HH:mm");
+      const sqlStartDate = moment
+        .tz(`${startdate} ${starttime}`, timezone)
+        .utc()
+        .format("YYYY-MM-DD HH:mm");
       const sqlMultidayStart = null;
       const sqlMultidayEnd = null;
       const sqlDates = {
         startdate: sqlStartDate,
         multidayStart: sqlMultidayStart,
-        multidayEnd: sqlMultidayEnd
+        multidayEnd: sqlMultidayEnd,
       };
 
-      db.query(sqlUpdateRecord, [
-        churchid,
-        eventtype,
-        eventtitle,
-        eventdescription,
-        frequency,
-        timezone,
-        sqlDates.startdate,
-        sqlDuration,
-        sqlDurationInHours,
-        sqlDates.multidayStart,
-        sqlDates.multidayEnd,
-        locationvisibility,
-        locationname,
-        sqlAddress.line1,
-        sqlAddress.line2,
-        sqlAddress.line3,
-        sqlAddress.coordinates,
-        sqlOtherLocationDetails,
-        virtualDetails,
-        hasvirtual,
-        contact.firstname,
-        contact.lastname,
-        contact.email,
-        contact.phone,
-        contact.phonedata,
-        country,
-        language,
-        eventid,
-        req.user.userid
-      ], async (error, result) => {
-        if (error) {
-          console.log(error);
-          return res
-            .status(500)
-            .send({ msg: "unable to update new event", msgType: "error", error: error });
-        }
-
-        const getEventsByUser = require("../controllers_invites/utils").getEventsByUser;
-        const events = await getEventsByUser(db, req.user.userid).catch((error) => {
+      db.query(
+        sqlUpdateRecord,
+        [
+          churchid,
+          eventtype,
+          eventtitle,
+          eventdescription,
+          frequency,
+          timezone,
+          sqlDates.startdate,
+          sqlDuration,
+          sqlDurationInHours,
+          sqlDates.multidayStart,
+          sqlDates.multidayEnd,
+          locationvisibility,
+          locationname,
+          sqlAddress.line1,
+          sqlAddress.line2,
+          sqlAddress.line3,
+          sqlAddress.coordinates,
+          sqlOtherLocationDetails,
+          virtualDetails,
+          hasvirtual,
+          shareWithFollowers,
+          contact.firstname,
+          contact.lastname,
+          contact.email,
+          contact.phone,
+          contact.phonedata,
+          country,
+          language,
+          eventid,
+          req.user.userid,
+        ],
+        async (error, result) => {
+          if (error) {
             console.log(error);
-            return res.status(500).send({ msg: "unable to return events", msgType: "error" });
-        });
+            return res.status(500).send({
+              msg: "unable to update new event",
+              msgType: "error",
+              error: error,
+            });
+          }
 
-        return res.status(200).send({ msg: "event updated", msgType: "success", events: events });
-      });
+          const getEventsByUser =
+            require("../controllers_invites/utils").getEventsByUser;
+          const events = await getEventsByUser(db, req.user.userid).catch(
+            (error) => {
+              console.log(error);
+              return res
+                .status(500)
+                .send({ msg: "unable to return events", msgType: "error" });
+            }
+          );
+
+          return res
+            .status(200)
+            .send({ msg: "event updated", msgType: "success", events: events });
+        }
+      );
 
       /**********************************/
       /*  END SINGLE DAY NON-RECURRING  */
@@ -700,13 +797,16 @@ exports.POST = (req, res) => {
       /*  BEGIN RECURRING  */
       /*********************/
 
-      const sqlStartDate = moment.tz(`${startdate} ${starttime}`, timezone).utc().format("YYYY-MM-DD HH:mm");
+      const sqlStartDate = moment
+        .tz(`${startdate} ${starttime}`, timezone)
+        .utc()
+        .format("YYYY-MM-DD HH:mm");
       const sqlMultidayStart = null;
       const sqlMultidayEnd = null;
       const sqlDates = {
         startdate: sqlStartDate,
         multidayStart: sqlMultidayStart,
-        multidayEnd: sqlMultidayEnd
+        multidayEnd: sqlMultidayEnd,
       };
 
       const sql = `
@@ -734,48 +834,67 @@ exports.POST = (req, res) => {
         ;
       `;
 
-      db.query(sql, [req.user.userid, churchid, eventtype, eventtitle, sqlStartDate, eventid], (error, result) => {
-        if (error) {
-          console.log(error);
-          return res
-            .status(500)
-            .send({ msg: "unable to query for duplicate events", msgType: "error", error: error });
-        }
-        if (result.length) {
-          return res.status(400).send({ msg: "duplicate event", msgType: "error", eventid: result[0].eventid });
-        }
-
-        const momentStartDateTime = moment.tz(moment(`${startdate} ${starttime}`).format(), timezone);
-        let sql = "";
-        let sqlWeekday = parseInt(momentStartDateTime.format("d"));
-
-        if (moment(momentStartDateTime).isValid()) {
-          switch (sqlWeekday) {
-            case 0:
-              sqlWeekday = 6;
-              break;
-            case 1:
-              sqlWeekday = 0;
-              break;
-            case 2:
-              sqlWeekday = 1;
-              break;
-            case 3:
-              sqlWeekday = 2;
-              break;
-            case 4:
-              sqlWeekday = 3;
-              break;
-            case 5:
-              sqlWeekday = 4;
-              break;
-            case 6:
-              sqlWeekday = 5;
-              break;
+      db.query(
+        sql,
+        [
+          req.user.userid,
+          churchid,
+          eventtype,
+          eventtitle,
+          sqlStartDate,
+          eventid,
+        ],
+        (error, result) => {
+          if (error) {
+            console.log(error);
+            return res.status(500).send({
+              msg: "unable to query for duplicate events",
+              msgType: "error",
+              error: error,
+            });
           }
-        }
+          if (result.length) {
+            return res.status(400).send({
+              msg: "duplicate event",
+              msgType: "error",
+              eventid: result[0].eventid,
+            });
+          }
 
-        sql = `
+          const momentStartDateTime = moment.tz(
+            moment(`${startdate} ${starttime}`).format(),
+            timezone
+          );
+          let sql = "";
+          let sqlWeekday = parseInt(momentStartDateTime.format("d"));
+
+          if (moment(momentStartDateTime).isValid()) {
+            switch (sqlWeekday) {
+              case 0:
+                sqlWeekday = 6;
+                break;
+              case 1:
+                sqlWeekday = 0;
+                break;
+              case 2:
+                sqlWeekday = 1;
+                break;
+              case 3:
+                sqlWeekday = 2;
+                break;
+              case 4:
+                sqlWeekday = 3;
+                break;
+              case 5:
+                sqlWeekday = 4;
+                break;
+              case 6:
+                sqlWeekday = 5;
+                break;
+            }
+          }
+
+          sql = `
           SELECT
             title
           FROM
@@ -798,65 +917,94 @@ exports.POST = (req, res) => {
           ;
         `;
 
-        db.query(sql, [req.user.userid, churchid, eventtype, sqlWeekday, eventid], (error, result) => {
-          if (error) {
-            console.log(error);
-            return res
-              .status(500)
-              .send({ msg: "unable to query for overlapping recurring events", msgType: "error", error: error });
-          }
-          if (result.length) {
-            return res.status(400).send({ msg: "overlapping recurring event", msgType: "error", title: result[0].title });
-          }
+          db.query(
+            sql,
+            [req.user.userid, churchid, eventtype, sqlWeekday, eventid],
+            (error, result) => {
+              if (error) {
+                console.log(error);
+                return res.status(500).send({
+                  msg: "unable to query for overlapping recurring events",
+                  msgType: "error",
+                  error: error,
+                });
+              }
+              if (result.length) {
+                return res.status(400).send({
+                  msg: "overlapping recurring event",
+                  msgType: "error",
+                  title: result[0].title,
+                });
+              }
 
-          db.query(sqlUpdateRecord, [
-            churchid,
-            eventtype,
-            eventtitle,
-            eventdescription,
-            frequency,
-            timezone,
-            sqlDates.startdate,
-            sqlDuration,
-            sqlDurationInHours,
-            sqlDates.multidayStart,
-            sqlDates.multidayEnd,
-            locationvisibility,
-            locationname,
-            sqlAddress.line1,
-            sqlAddress.line2,
-            sqlAddress.line3,
-            sqlAddress.coordinates,
-            sqlOtherLocationDetails,
-            virtualDetails,
-            hasvirtual,
-            contact.firstname,
-            contact.lastname,
-            contact.email,
-            contact.phone,
-            contact.phonedata,
-            country,
-            language,
-            eventid,
-            req.user.userid
-          ], async (error, result) => {
-            if (error) {
-              console.log(error);
-              return res
-                .status(500)
-                .send({ msg: "unable to update new event", msgType: "error", error: error });
+              db.query(
+                sqlUpdateRecord,
+                [
+                  churchid,
+                  eventtype,
+                  eventtitle,
+                  eventdescription,
+                  frequency,
+                  timezone,
+                  sqlDates.startdate,
+                  sqlDuration,
+                  sqlDurationInHours,
+                  sqlDates.multidayStart,
+                  sqlDates.multidayEnd,
+                  locationvisibility,
+                  locationname,
+                  sqlAddress.line1,
+                  sqlAddress.line2,
+                  sqlAddress.line3,
+                  sqlAddress.coordinates,
+                  sqlOtherLocationDetails,
+                  virtualDetails,
+                  hasvirtual,
+                  shareWithFollowers,
+                  contact.firstname,
+                  contact.lastname,
+                  contact.email,
+                  contact.phone,
+                  contact.phonedata,
+                  country,
+                  language,
+                  eventid,
+                  req.user.userid,
+                ],
+                async (error, result) => {
+                  if (error) {
+                    console.log(error);
+                    return res.status(500).send({
+                      msg: "unable to update new event",
+                      msgType: "error",
+                      error: error,
+                    });
+                  }
+
+                  const getEventsByUser =
+                    require("../controllers_invites/utils").getEventsByUser;
+                  const events = await getEventsByUser(
+                    db,
+                    req.user.userid
+                  ).catch((error) => {
+                    console.log(error);
+                    return res.status(500).send({
+                      msg: "unable to return events",
+                      msgType: "error",
+                    });
+                  });
+
+                  return res.status(200).send({
+                    msg: "event updated",
+                    msgType: "success",
+                    events: events,
+                  });
+                }
+              );
             }
-
-            const getEventsByUser = require("../controllers_invites/utils").getEventsByUser;
-            const events = await getEventsByUser(db, req.user.userid).catch((error) => {
-              console.log(error);
-              return res.status(500).send({ msg: "unable to return events", msgType: "error" });
-            });
-
-            return res.status(200).send({ msg: "event updated", msgType: "success", events: events });
-          });
-        });
-      });
+          );
+        }
+      );
 
       /*******************/
       /*  END RECURRING  */
