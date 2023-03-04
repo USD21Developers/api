@@ -59,22 +59,172 @@ function getLang() {
   return lang;
 }
 
+function getPhrases() {
+  const phrases = {
+    ar: {
+      language: "Arabic",
+      label: "ترتيب حسب:",
+      churchName: "اسم الكنيسة",
+      country: "دولة",
+      website: "موقع إلكتروني",
+    },
+    zh: {
+      language: "Chinese (Simplified)",
+      label: "排序方式：",
+      churchName: "教会名称",
+      country: "国家",
+      website: "网站",
+    },
+    en: {
+      language: "English",
+      label: "Sort by:",
+      churchName: "Church name",
+      country: "Country",
+      website: "Web site",
+    },
+    xx: {
+      language: "Filipino/Tagalog",
+      label: "Pagbukud-bukurin ayon sa:",
+      churchName: "pangalan ng simbahan",
+      country: "bansa",
+      website: "Website",
+    },
+    fr: {
+      language: "French",
+      label: "Trier par:",
+      churchName: "church name",
+      country: "nom de l'église",
+      website: "Site Internet",
+    },
+    de: {
+      language: "German",
+      label: "Sortiere nach:",
+      churchName: "Kirchenname",
+      country: "Land",
+      website: "Webseite",
+    },
+    hi: {
+      language: "Hindi",
+      label: "इसके अनुसार क्रमबद्ध करें:",
+      churchName: "चर्च का नाम",
+      country: "देश",
+      website: "वेबसाइट",
+    },
+    it: {
+      language: "Italian",
+      label: "Ordina per:",
+      churchName: "nome della chiesa",
+      country: "Paese",
+      website: "Sito web",
+    },
+    ja: {
+      language: "Japanese",
+      label: "並び替え：",
+      churchName: "教会名",
+      country: "国",
+      website: "Webサイト",
+    },
+    ko: {
+      language: "Korean",
+      label: "정렬 기준:",
+      churchName: "교회 이름",
+      country: "국가",
+      website: "웹사이트",
+    },
+    pl: {
+      language: "Polish",
+      label: "Sortuj według:",
+      churchName: "nazwa kościoła",
+      country: "kraj",
+      website: "Strona internetowa",
+    },
+    pt: {
+      language: "Portuguese",
+      label: "Ordenar por:",
+      churchName: "nome da igreja",
+      country: "país",
+      website: "Local na rede Internet",
+    },
+    ru: {
+      language: "Russian",
+      label: "Веб-сайт",
+      churchName: "церковное имя",
+      country: "страна",
+      website: "Веб-сайт",
+    },
+    es: {
+      language: "Spanish",
+      label: "Ordenar por:",
+      churchName: "Nombre de la iglesia",
+      country: "País",
+      website: "Sitio web",
+    },
+    sw: {
+      language: "Swahili",
+      label: "Panga kwa:",
+      churchName: "jina la kanisa",
+      country: "nchi",
+      website: "Tovuti",
+    },
+    sv: {
+      language: "Swedish",
+      label: "Sortera efter:",
+      churchName: "kyrkonamn",
+      country: "Land",
+      website: "Hemsida",
+    },
+    ta: {
+      language: "Tamil",
+      label: "இதன்படி வரிசைப்படுத்தவும்:",
+      churchName: "தேவாலயத்தின் பெயர்",
+      country: "நாடு",
+      website: "இணையதளம்",
+    },
+    uk: {
+      language: "Ukranian",
+      label: "Сортувати за:",
+      churchName: "церковна назва",
+      country: "країна",
+      website: "Веб-сайт",
+    },
+    vi: {
+      language: "Vietnamese",
+      label: "Sắp xếp theo:",
+      churchName: "tên nhà thờ",
+      country: "quốc gia",
+      website: "Trang mạng",
+    },
+    xx: {
+      language: "",
+      label: "Sort by:",
+      churchName: "church name",
+      country: "country",
+      website: "Website",
+    },
+  };
+  const lang = getLang();
+  const returnObject = phrases[lang] ? phrases[lang] : phrases["en"];
+
+  return returnObject;
+}
+
 function getSortOptionsHtml(
   sortByNameChecked = "checked",
   sortByCountryChecked = ""
 ) {
+  const { label, churchName, country } = getPhrases();
   return `
     <form id="churchDirectorySort">
-      Sorted by: 
+      ${label} 
       &nbsp;
       <label for="churchDirectorySortByName">
         <input type="radio" name="sortby" id="churchDirectorySortByName" value="name" ${sortByNameChecked} />
-        Church name
+        ${churchName}
       </label>
       &nbsp;
       <label for="churchDirectorySortByCountry">
         <input type="radio" name="sortby" id="churchDirectorySortByCountry" value="country" ${sortByCountryChecked} />
-        Country
+        ${country}
       </label>
     </form>
     <br>
@@ -120,6 +270,7 @@ async function showChurches() {
 async function showChurchesAlphabetically() {
   const directory = document.querySelector("#global-church-directory");
   const storedChurches = localStorage.getItem("churches");
+  const { website } = getPhrases();
   let syncChurchesNeeded = true;
   let churches;
   if (storedChurches) {
@@ -159,8 +310,8 @@ async function showChurchesAlphabetically() {
       ? contact_image
       : "https://www.upsidedown21.org/1.1/images/church_leaders/usd21.jpg";
 
-    const website = church_URL.length
-      ? `<div><a href="${church_URL}">Web site</a></div>`
+    const websiteLink = church_URL.length
+      ? `<div><a href="${church_URL}">${website}</a></div>`
       : "";
 
     let churchHtml = `
@@ -181,7 +332,7 @@ async function showChurchesAlphabetically() {
           ${contact_name}<br>
           <strong>${contact_number}</strong>
 
-          ${website}
+          ${websiteLink}
         </div>
       </div>
     `;
@@ -213,6 +364,7 @@ async function showChurchesByCountry() {
   const storedChurches = localStorage.getItem("churches");
   let storedCountries = localStorage.getItem("countries");
   const detectedLang = getLang();
+  const { website } = getPhrases();
   let lang = "en";
   let syncChurchesNeeded = true;
 
@@ -303,8 +455,8 @@ async function showChurchesByCountry() {
       const contactImage = contact_image.length
         ? contact_image
         : "https://www.upsidedown21.org/1.1/images/church_leaders/usd21.jpg";
-      const website = church_URL.length
-        ? `<div><a href="${church_URL}">Web site</a></div>`
+      const websiteLink = church_URL.length
+        ? `<div><a href="${church_URL}">${website}</a></div>`
         : "";
       let churchHtml = `
         <div class="church">
@@ -324,7 +476,7 @@ async function showChurchesByCountry() {
             ${contact_name}<br>
             <strong>${contact_number}</strong>
 
-            ${website}
+            ${websiteLink}
           </div>
         </div>
       `;
