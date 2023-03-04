@@ -300,9 +300,6 @@ async function showChurchesByCountry() {
         imageCount > eagerLoadQuantity
           ? 'loading="lazy" decoding="async" fetchpriority="low"'
           : "";
-      const churchName = church_URL.length
-        ? `<a href="${church_URL}">${church_name}</a>`
-        : church_name;
       const contactImage = contact_image.length
         ? contact_image
         : "https://www.upsidedown21.org/1.1/images/church_leaders/usd21.jpg";
@@ -320,7 +317,7 @@ async function showChurchesByCountry() {
         )}" onerror="this.onerror=null;this.src='https://www.upsidedown21.org/1.1/images/church_leaders/usd21.jpg';" />
           </div>
           <div class="info">
-            <strong>${churchName}</strong><br>
+            <strong>${church_name}</strong><br>
             ${mailing_city}, ${
         mailing_state.length ? mailing_state + "," : ""
       } ${mailing_country}<br>
