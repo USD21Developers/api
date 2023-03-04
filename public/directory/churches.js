@@ -59,6 +59,28 @@ function getLang() {
   return lang;
 }
 
+function getSortOptionsHtml(
+  sortByNameChecked = "checked",
+  sortByCountryChecked = ""
+) {
+  return `
+    <form id="churchDirectorySort">
+      Sorted by: 
+      &nbsp;
+      <label for="churchDirectorySortByName">
+        <input type="radio" name="sortby" id="churchDirectorySortByName" value="name" ${sortByNameChecked} />
+        Church name
+      </label>
+      &nbsp;
+      <label for="churchDirectorySortByCountry">
+        <input type="radio" name="sortby" id="churchDirectorySortByCountry" value="country" ${sortByCountryChecked} />
+        Country
+      </label>
+    </form>
+    <br>
+  `;
+}
+
 async function hash(str) {
   const buf = await window.crypto.subtle.digest(
     "SHA-256",
@@ -70,6 +92,123 @@ async function hash(str) {
 }
 
 async function showChurches() {
+  let sortMethod = "alphabetically"; // alphabetically | byCountry
+  let sortMethodStored =
+    localStorage.getItem("churchDirectorySortMethod") || "";
+
+  if (sortMethodStored === "") {
+    localStorage.setItem("churchDirectorySortMethod", "alphabetically");
+    sortMethodStored = "alphabetically";
+  }
+
+  if (sortMethodStored !== sortMethod) {
+    sortMethod = sortMethodStored;
+  }
+
+  // return showChurchesByCountry();
+
+  if (sortMethod === "alphabetically") {
+    showChurchesAlphabetically();
+  } else if (sortMethod === "byCountry") {
+    showChurchesByCountry();
+  } else {
+    localStorage.setItem("churchDirectorySortMethod", "alphabetically");
+    showChurchesAlphabetically();
+  }
+}
+
+async function showChurchesAlphabetically() {
+  const directory = document.querySelector("#global-church-directory");
+  const storedChurches = localStorage.getItem("churches");
+  let syncChurchesNeeded = true;
+  let churches;
+  if (storedChurches) {
+    churches = JSON.parse(storedChurches);
+  } else {
+    churches = await getChurches();
+    syncChurchesNeeded = false;
+  }
+
+  let churchesHtml = "";
+
+  let imageCount = 0;
+
+  churches.sort((a, b) => (a.church_name > b.church_name ? 1 : -1));
+
+  churches.forEach((item) => {
+    const {
+      contact_image,
+      church_name,
+      church_URL,
+      mailing_city,
+      mailing_state,
+      mailing_country,
+      contact_name,
+      contact_number,
+    } = item;
+
+    if (contact_image.length) imageCount++;
+
+    const eagerLoadQuantity = 4;
+    const lazyLoad =
+      imageCount > eagerLoadQuantity
+        ? 'loading="lazy" decoding="async" fetchpriority="low"'
+        : "";
+
+    const contactImage = contact_image.length
+      ? contact_image
+      : "https://www.upsidedown21.org/1.1/images/church_leaders/usd21.jpg";
+
+    const website = church_URL.length
+      ? `<div><a href="${church_URL}">Web site</a></div>`
+      : "";
+
+    let churchHtml = `
+      <div class="church">
+        <div class="photo">
+          <img vspace="5" width="100" src="${contactImage}" ${lazyLoad} alt="Photo of ${contact_name
+      .trim()
+      .replaceAll(
+        "&",
+        "and"
+      )}" onerror="this.onerror=null;this.src='https://www.upsidedown21.org/1.1/images/church_leaders/usd21.jpg';" />
+        </div>
+        <div class="info">
+          <strong>${church_name}</strong><br>
+          ${mailing_city.trim()}, ${
+      mailing_state.length ? mailing_state.trim() + "," : ""
+    } ${mailing_country.trim()}<br>
+          ${contact_name}<br>
+          <strong>${contact_number}</strong>
+
+          ${website}
+        </div>
+      </div>
+    `;
+
+    churchesHtml += churchHtml;
+  });
+
+  let sortByNameChecked = "checked";
+  let sortByCountryChecked = "";
+
+  const sortOptionsHTML = getSortOptionsHtml(
+    sortByNameChecked,
+    sortByCountryChecked
+  );
+
+  churchesHtml = sortOptionsHTML + churchesHtml;
+
+  directory.innerHTML = churchesHtml;
+
+  document.querySelector("#churchDirectorySortByName").checked = true;
+
+  attachChurchDirectoryEventListeners();
+
+  if (syncChurchesNeeded) syncChurches();
+}
+
+async function showChurchesByCountry() {
   const directory = document.querySelector("#global-church-directory");
   const storedChurches = localStorage.getItem("churches");
   let storedCountries = localStorage.getItem("countries");
@@ -99,7 +238,7 @@ async function showChurches() {
     churches = JSON.parse(storedChurches);
   } else {
     churches = await getChurches();
-    let syncChurchesNeeded = false;
+    syncChurchesNeeded = false;
   }
 
   let churchesHtml = "";
@@ -167,25 +306,31 @@ async function showChurches() {
       const contactImage = contact_image.length
         ? contact_image
         : "https://www.upsidedown21.org/1.1/images/church_leaders/usd21.jpg";
+      const website = church_URL.length
+        ? `<div><a href="${church_URL}">Web site</a></div>`
+        : "";
       let churchHtml = `
-      <div class="church">
-        <div class="photo">
-          <img vspace="5" width="100" src="${contactImage}" ${lazyLoad} alt="Photo of ${contact_name
+        <div class="church">
+          <div class="photo">
+            <img vspace="5" width="100" src="${contactImage}" ${lazyLoad} alt="Photo of ${contact_name
         .trim()
         .replaceAll(
           "&",
           "and"
         )}" onerror="this.onerror=null;this.src='https://www.upsidedown21.org/1.1/images/church_leaders/usd21.jpg';" />
-        </div>
-        <div class="info">
-          <strong>${churchName}</strong><br>
-          ${mailing_city}, ${
+          </div>
+          <div class="info">
+            <strong>${churchName}</strong><br>
+            ${mailing_city}, ${
         mailing_state.length ? mailing_state + "," : ""
       } ${mailing_country}<br>
-          ${contact_name}<br>
-          <strong>${contact_number}</strong>
+            ${contact_name}<br>
+            <strong>${contact_number}</strong>
+
+            ${website}
+          </div>
         </div>
-      </div>`;
+      `;
 
       churchesInCountryHtml += churchHtml;
     });
@@ -193,7 +338,21 @@ async function showChurches() {
     churchesHtml += churchesInCountryHtml;
   }
 
+  let sortByNameChecked = "checked";
+  let sortByCountryChecked = "";
+
+  const sortOptionsHTML = getSortOptionsHtml(
+    sortByNameChecked,
+    sortByCountryChecked
+  );
+
+  churchesHtml = sortOptionsHTML + churchesHtml;
+
   directory.innerHTML = churchesHtml;
+
+  document.querySelector("#churchDirectorySortByCountry").checked = true;
+
+  attachChurchDirectoryEventListeners();
 
   if (syncChurchesNeeded) syncChurches();
 }
@@ -215,6 +374,28 @@ async function syncChurches() {
     localStorage.setItem("churches", fetchedChurchesJSON);
     showChurches();
   }
+}
+
+function attachChurchDirectoryEventListeners() {
+  const directoryEl = document.querySelector("#global-church-directory");
+  const sortByNameEl = document.querySelector("#churchDirectorySortByName");
+  const sortByCountryEl = document.querySelector(
+    "#churchDirectorySortByCountry"
+  );
+
+  sortByNameEl.addEventListener("click", (e) => {
+    localStorage.setItem("churchDirectorySortMethod", "alphabetically");
+    directoryEl.innerHTML = "";
+    addSpinner();
+    showChurches();
+  });
+
+  sortByCountryEl.addEventListener("click", (e) => {
+    localStorage.setItem("churchDirectorySortMethod", "byCountry");
+    directoryEl.innerHTML = "";
+    addSpinner();
+    showChurches();
+  });
 }
 
 function init() {
