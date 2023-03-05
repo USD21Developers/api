@@ -272,12 +272,18 @@ exports.getEventsByUser = (db, userid) => {
         createdBy = ?
       AND
         isDeleted = 0
+      AND
+        (
+          createdBy = ?
+          OR
+          sharewithfollowers = "yes"
+        )
       ORDER BY
         title
       ;
     `;
 
-    db.query(sql, [userid], (error, result) => {
+    db.query(sql, [userid, req.user.userid], (error, result) => {
       if (error) reject(error);
 
       resolve(result);
@@ -346,12 +352,18 @@ exports.getEventsByFollowedUsers = (db, userid) => {
         f.follower = ?
       AND
         e.isDeleted = 0
+      AND
+        (
+          e.createdBy = ?
+          OR
+          e.sharewithfollowers = "yes"
+        )
       ORDER BY
         e.createdBy, e.title
       ;
     `;
 
-    db.query(sql, [userid], (error, result) => {
+    db.query(sql, [userid, req.user.userid], (error, result) => {
       if (error) reject(error);
 
       resolve(result);

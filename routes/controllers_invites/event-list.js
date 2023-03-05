@@ -61,6 +61,7 @@ exports.GET = (req, res) => {
       locationname,
       otherlocationdetails,
       hasvirtual,
+      sharewithfollowers,
       country,
       lang,
       createdBy
@@ -68,12 +69,18 @@ exports.GET = (req, res) => {
       events
     WHERE
       createdBy = ?
+    AND
+      (
+        createdBy = ?
+        OR
+        sharewithfollowers = "yes"
+      )
     ORDER BY
       type, title
     ;
   `;
 
-  db.query(sql, [userid], (error, results) => {
+  db.query(sql, [userid, req.user.userid], (error, results) => {
     if (error) {
       console.log(error);
       return res

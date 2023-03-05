@@ -80,6 +80,7 @@ exports.POST = (req, res) => {
       locationcoordinates,
       otherlocationdetails,
       virtualconnectiondetails,
+      sharewithfollowers,
       hasvirtual,
       contactfirstname,
       contactlastname,
@@ -95,10 +96,16 @@ exports.POST = (req, res) => {
       eventid = ?
     AND
       isDeleted = 0
+    AND
+      (
+        createdBy = ?
+        OR
+        sharewithfollowers = "yes"
+      )
     ;
   `;
 
-  db.query(sql, [eventid], (error, result) => {
+  db.query(sql, [eventid, req.user.userid], (error, result) => {
     if (error) {
       console.log(error);
       return res.status(500).send({
