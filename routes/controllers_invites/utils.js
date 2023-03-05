@@ -214,7 +214,7 @@ exports.validateNewPassword = (password) => {
   return isValid;
 };
 
-exports.getEventsByUser = (db, userid) => {
+exports.getEventsByUser = (db, userid, useridOfRequester) => {
   return new Promise((resolve, reject) => {
     const sql = `
       SELECT
@@ -283,7 +283,7 @@ exports.getEventsByUser = (db, userid) => {
       ;
     `;
 
-    db.query(sql, [userid, req.user.userid], (error, result) => {
+    db.query(sql, [userid, useridOfRequester], (error, result) => {
       if (error) reject(error);
 
       resolve(result);
@@ -291,7 +291,7 @@ exports.getEventsByUser = (db, userid) => {
   });
 };
 
-exports.getEventsByFollowedUsers = (db, userid) => {
+exports.getEventsByFollowedUsers = (db, userid, useridOfRequester) => {
   return new Promise((resolve, reject) => {
     const sql = `
       SELECT
@@ -363,7 +363,7 @@ exports.getEventsByFollowedUsers = (db, userid) => {
       ;
     `;
 
-    db.query(sql, [userid, req.user.userid], (error, result) => {
+    db.query(sql, [userid, useridOfRequester], (error, result) => {
       if (error) reject(error);
 
       resolve(result);

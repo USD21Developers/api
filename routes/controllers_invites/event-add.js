@@ -968,6 +968,7 @@ exports.POST = (req, res) => {
                     require("../controllers_invites/utils").getEventsByUser;
                   const events = await getEventsByUser(
                     db,
+                    req.user.userid,
                     req.user.userid
                   ).catch((error) => {
                     console.log(error);

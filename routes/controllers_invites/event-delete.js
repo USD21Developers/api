@@ -42,7 +42,11 @@ exports.POST = (req, res) => {
       console.log(error);
       return res
         .status(500)
-        .send({ msg: "unable to query for event", msgType: "error", error: error });
+        .send({
+          msg: "unable to query for event",
+          msgType: "error",
+          error: error,
+        });
     }
 
     if (!result.length) {
@@ -55,7 +59,9 @@ exports.POST = (req, res) => {
     // Ensure that user created this event
 
     if (createdBy !== req.user.userid) {
-      return res.status(404).send({ msg: "event not created by user", msgType: "error" });
+      return res
+        .status(404)
+        .send({ msg: "event not created by user", msgType: "error" });
     }
 
     // Check if any recipients have already been invited to this event
@@ -77,7 +83,10 @@ exports.POST = (req, res) => {
         console.log(error);
         return res
           .status(500)
-          .send({ msg: "unable to query for invites sent for this event", msgType: "error" });
+          .send({
+            msg: "unable to query for invites sent for this event",
+            msgType: "error",
+          });
       }
 
       const someoneWasInvitedToEvent = result.length || false;
@@ -111,14 +120,23 @@ exports.POST = (req, res) => {
             .send({ msg: "unable to delete event", msgType: "error" });
         }
 
-        const getEventsByUser = require("../controllers_invites/utils").getEventsByUser;
-        const events = await getEventsByUser(db, req.user.userid).catch((error) => {
+        const getEventsByUser =
+          require("../controllers_invites/utils").getEventsByUser;
+        const events = await getEventsByUser(
+          db,
+          req.user.userid,
+          req.user.userid
+        ).catch((error) => {
           console.log(error);
-          return res.status(500).send({ msg: "unable to return events", msgType: "error" });
+          return res
+            .status(500)
+            .send({ msg: "unable to return events", msgType: "error" });
         });
 
-        return res.status(200).send({ msg: "event deleted", msgType: "success", events: events });
+        return res
+          .status(200)
+          .send({ msg: "event deleted", msgType: "success", events: events });
       });
     });
-  })
+  });
 };

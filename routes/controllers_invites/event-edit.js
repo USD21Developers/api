@@ -694,14 +694,16 @@ exports.POST = (req, res) => {
 
           const getEventsByUser =
             require("../controllers_invites/utils").getEventsByUser;
-          const events = await getEventsByUser(db, req.user.userid).catch(
-            (error) => {
-              console.log(error);
-              return res
-                .status(500)
-                .send({ msg: "unable to return events", msgType: "error" });
-            }
-          );
+          const events = await getEventsByUser(
+            db,
+            req.user.userid,
+            req.user.userid
+          ).catch((error) => {
+            console.log(error);
+            return res
+              .status(500)
+              .send({ msg: "unable to return events", msgType: "error" });
+          });
 
           return res
             .status(200)
@@ -774,14 +776,16 @@ exports.POST = (req, res) => {
 
           const getEventsByUser =
             require("../controllers_invites/utils").getEventsByUser;
-          const events = await getEventsByUser(db, req.user.userid).catch(
-            (error) => {
-              console.log(error);
-              return res
-                .status(500)
-                .send({ msg: "unable to return events", msgType: "error" });
-            }
-          );
+          const events = await getEventsByUser(
+            db,
+            req.user.userid,
+            req.user.userid
+          ).catch((error) => {
+            console.log(error);
+            return res
+              .status(500)
+              .send({ msg: "unable to return events", msgType: "error" });
+          });
 
           return res
             .status(200)
@@ -985,6 +989,7 @@ exports.POST = (req, res) => {
                     require("../controllers_invites/utils").getEventsByUser;
                   const events = await getEventsByUser(
                     db,
+                    req.user.userid,
                     req.user.userid
                   ).catch((error) => {
                     console.log(error);
