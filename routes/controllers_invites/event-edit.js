@@ -62,6 +62,8 @@ exports.POST = (req, res) => {
 
   const momentNow = moment().tz(timezone);
 
+  const momentNowUtc = moment().tz("utc");
+
   // event ID
   if (eventid.length === "") {
     return res.status(400).send({
@@ -265,6 +267,12 @@ exports.POST = (req, res) => {
       moment(`${startdate} ${starttime}`).format(),
       timezone
     );
+
+    const momentStartDateTimeUtc = moment.tz(
+      moment.tz(`${startdate} ${starttime}`, timezone).format(),
+      "utc"
+    );
+
     const isValidDateTime = momentStartDateTime.isValid();
 
     if (!isValidDateTime) {
@@ -276,7 +284,11 @@ exports.POST = (req, res) => {
 
     const isInThePast = momentNow.isAfter(momentStartDateTime) ? true : false;
 
-    if (isInThePast) {
+    const isInThePastUtc = momentNowUtc.isAfter(momentStartDateTimeUtc)
+      ? true
+      : false;
+
+    if (isInThePastUtc) {
       return res.status(400).send({
         msg: "startdate and starttime must not be in the past",
         msgType: "error",
@@ -316,6 +328,12 @@ exports.POST = (req, res) => {
       moment(`${multidayBeginDate} ${multidayBeginTime}`).format(),
       timezone
     );
+
+    const momentMultidayStartDateTimeUtc = moment.tz(
+      moment.tz(`${multidayBeginDate} ${multidayBeginTime}`, timezone).format(),
+      "utc"
+    );
+
     const isValidMultidayStartDateTime = momentMultidayStartDateTime.isValid();
 
     if (!isValidMultidayStartDateTime) {
@@ -331,7 +349,13 @@ exports.POST = (req, res) => {
       ? true
       : false;
 
-    if (multidayStartDateIsInThePast) {
+    const multidayStartDateIsInThePastUtc = momentNowUtc.isAfter(
+      momentMultidayStartDateTimeUtc
+    )
+      ? true
+      : false;
+
+    if (multidayStartDateIsInThePastUtc) {
       return res.status(400).send({
         msg: "multidayBeginDate and multidayBeginTime must not be in the past",
         msgType: "error",
@@ -368,6 +392,12 @@ exports.POST = (req, res) => {
       moment(`${multidayEndDate} ${multidayEndTime}`).format(),
       timezone
     );
+
+    const momentMultidayEndDateTimeUtc = moment.tz(
+      moment.tz(`${multidayEndDate} ${multidayEndTime}`, timezone).format(),
+      "utc"
+    );
+
     const isValidMultidayEndDateTime = momentMultidayEndDateTime.isValid();
 
     if (!isValidMultidayEndDateTime) {
@@ -383,7 +413,13 @@ exports.POST = (req, res) => {
       ? true
       : false;
 
-    if (multidayEndDateIsInThePast) {
+    const multidayEndDateIsInThePastUtc = momentNowUtc.isAfter(
+      momentMultidayEndDateTimeUtc
+    )
+      ? true
+      : false;
+
+    if (multidayEndDateIsInThePastUtc) {
       return res.status(400).send({
         msg: "multidayEndDate and multidayEndTime must not be in the past",
         msgType: "error",
