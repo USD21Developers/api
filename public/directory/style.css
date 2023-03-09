@@ -37,3 +37,17 @@
   padding-top: 5px;
   vertical-align: top;
 }
+
+#churchDirectorySort label {
+  margin-left: 1rem;
+}
+
+@media (max-width: 767px) {
+  #churchDirectorySort label:first-child {
+    margin-top: 0.25rem;
+  }
+  #churchDirectorySort label {
+    display: block;
+    margin-left: unset;
+  }
+}

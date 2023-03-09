@@ -216,12 +216,10 @@ function getSortOptionsHtml(
   return `
     <form id="churchDirectorySort">
       ${label} 
-      &nbsp;
       <label for="churchDirectorySortByName">
         <input type="radio" name="sortby" id="churchDirectorySortByName" value="name" ${sortByNameChecked} />
         ${churchName}
       </label>
-      &nbsp;
       <label for="churchDirectorySortByCountry">
         <input type="radio" name="sortby" id="churchDirectorySortByCountry" value="country" ${sortByCountryChecked} />
         ${country}
