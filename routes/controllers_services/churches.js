@@ -9,7 +9,7 @@ exports.GET = (req, res) => {
       CONVERT(CAST(contact_name as BINARY) USING utf8) AS contact_name,
       CONVERT(CAST(contact_number as BINARY) USING utf8) AS contact_number,
       CONVERT(CAST(identifying_place as BINARY) USING utf8) AS identifying_place,
-      LCASE(country_iso)
+      LCASE(country_iso) AS country_iso
     FROM 
       churches
     ORDER BY
@@ -65,7 +65,7 @@ exports.FETCH = async () => {
       CONVERT(CAST(contact_name as BINARY) USING utf8) AS contact_name,
       CONVERT(CAST(contact_number as BINARY) USING utf8) AS contact_number,
       CONVERT(CAST(identifying_place as BINARY) USING utf8) AS identifying_place,
-      LCASE(country_iso)
+      LCASE(country_iso) AS country_iso
     FROM 
       churches
     ORDER BY
