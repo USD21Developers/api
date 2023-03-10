@@ -13,7 +13,7 @@ exports.GET = (req, res) => {
       CONVERT(CAST(mailing_state as BINARY) USING utf8) AS mailing_state,
       CONVERT(CAST(mailing_country as BINARY) USING utf8) AS mailing_country,
       CONVERT(CAST(identifying_place as BINARY) USING utf8) AS identifying_place,
-      country_iso
+      LCASE(country_iso)
     FROM 
       churches
     ORDER BY

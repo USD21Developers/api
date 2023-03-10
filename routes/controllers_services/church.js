@@ -10,9 +10,9 @@ exports.GET = (req, res) => {
       CONVERT(CAST(church_name AS BINARY) USING utf8) AS church_name,
       church_URL,
       CONVERT(CAST(contact_name as BINARY) USING utf8) AS contact_name,
-      contact_number,
+      CONVERT(CAST(contact_number as BINARY) USING utf8) AS contact_number,
       CONVERT(CAST(identifying_place as BINARY) USING utf8) AS identifying_place,
-      country_iso
+      LCASE(country_iso)
     FROM
       churches
     WHERE
