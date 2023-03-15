@@ -18,9 +18,6 @@
     "url": "https://github.com/USD21Developers/api/issues"
   },
   "homepage": "https://github.com/USD21Developers/api#readme",
-  "engines": {
-    "node": "^16.17"
-  },
   "dependencies": {
     "@mysql/xdevapi": "8.0.22",
     "@sendgrid/mail": "^7.4.0",
@@ -39,18 +36,19 @@
     "got": "^11.8.2",
     "html-entities": "^2.3.3",
     "http-errors": "^1.8.0",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "map-nearest-location": "^1.1.4",
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.32",
     "morgan": "^1.10.0",
     "mysql": "^2.18.1",
     "mysql2": "^2.2.5",
+    "napi-rs": "^0.3.10",
     "node-fetch": "2.6.7",
     "node-geocoder": "^4.2.0",
     "paypal-rest-sdk": "^1.8.1",
     "request-ip": "^3.3.0",
-    "twilio": "^3.80.0",
+    "twilio": "^4.8.0",
     "uuid": "^8.3.1",
     "valid-url": "^1.0.9",
     "world_countries_lists": "^2.6.0",
