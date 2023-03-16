@@ -568,77 +568,161 @@ exports.getDistance = (db, originObj, destinationObj) => {
 };
 
 exports.storeProfileImage = async (userid, base64Image, db) => {
-  const AWS = require("aws-sdk");
-  const s3 = new AWS.S3({
-    accessKeyId: process.env.INVITES_AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.INVITES_AWS_SECRET_ACCESS_KEY,
-  });
-
-  const fileName400 = `profiles/${userid}/400.jpg`;
-  const fileContent400 = new Buffer.from(
-    base64Image.replace(/^data:image\/\w+;base64,/, ""),
-    "base64"
-  );
-  const upload400 = new Promise((resolve, reject) => {
-    const params = {
-      Bucket: process.env.INVITES_AWS_BUCKET_NAME,
-      Key: fileName400,
-      Body: fileContent400,
-    };
-
-    s3.upload(params, (err, data) => {
-      if (err) {
-        reject(err);
-      }
-
-      resolve(data.Location);
+  return new Promise(async (resolve, reject) => {
+    const AWS = require("aws-sdk");
+    const s3 = new AWS.S3({
+      accessKeyId: process.env.INVITES_AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.INVITES_AWS_SECRET_ACCESS_KEY,
     });
-  });
 
-  const canvacord = require("canvacord");
-  const fileName140 = `profiles/${userid}/140.jpg`;
-  const fileContent140 = await canvacord.Canvacord.resize(
-    fileContent400,
-    140,
-    140
-  );
-  const upload140 = new Promise((resolve, reject) => {
-    const params = {
-      Bucket: process.env.INVITES_AWS_BUCKET_NAME,
-      Key: fileName140,
-      Body: fileContent140,
-    };
+    const fileName400 = `profiles/${userid}/400.jpg`;
+    const fileContent400 = new Buffer.from(
+      base64Image.replace(/^data:image\/\w+;base64,/, ""),
+      "base64"
+    );
+    const upload400 = new Promise((resolve400, reject400) => {
+      const params = {
+        Bucket: process.env.INVITES_AWS_BUCKET_NAME,
+        Key: fileName400,
+        Body: fileContent400,
+      };
 
-    s3.upload(params, (err, data) => {
-      if (err) {
-        reject(err);
-      }
+      s3.upload(params, (err, data) => {
+        if (err) {
+          console.log(err);
+          reject400(err);
+        }
 
-      resolve(data.Location);
+        resolve400(data.Location);
+      });
     });
-  });
 
-  Promise.all([upload400, upload140]).then((urls) => {
-    if (!Array.isArray(urls)) {
-      console.log(`unable to store profile photo for user ${userid}`);
-    }
+    const Jimp = require("jimp");
+    const fileName140 = `profiles/${userid}/140.jpg`;
+    const fileContent140 = await Jimp.read(fileContent400).then((image) => {
+      return image.resize(140, 140).getBufferAsync(Jimp.MIME_PNG);
+    });
+    const upload140 = new Promise((resolve140, reject140) => {
+      const params = {
+        Bucket: process.env.INVITES_AWS_BUCKET_NAME,
+        Key: fileName140,
+        Body: fileContent140,
+      };
 
-    const sql = `
-      UPDATE users
-      SET profilephoto = ?
-      WHERE userid = ?
-      ;
-    `;
+      s3.upload(params, (err, data) => {
+        if (err) {
+          console.log(err);
+          reject140(err);
+        }
 
-    const profile400Url = urls[0];
+        resolve140(data.Location);
+      });
+    });
 
-    db.query(sql, [profile400Url, userid], (err, result) => {
-      if (err) {
+    Promise.all([upload400, upload140]).then((urls) => {
+      if (!Array.isArray(urls)) {
+        const err = `unable to store profile photo for user ${userid}`;
         console.log(err);
+        reject(err);
       }
 
       const sql = `
-        DELETE FROM photoreview
+        UPDATE users
+        SET profilephoto = ?
+        WHERE userid = ?
+        ;
+      `;
+
+      const profile400Url = urls[0];
+
+      db.query(sql, [profile400Url, userid], (err, result) => {
+        if (err) {
+          console.log(err);
+          reject(err);
+        }
+
+        const sql = `
+          DELETE FROM photoreview
+          WHERE userid = ?
+          ;
+        `;
+
+        db.query(sql, [userid], (err, result) => {
+          if (err) {
+            console.log(err);
+            reject(err);
+          }
+
+          const sql = `
+            INSERT INTO photoreview(
+              userid,
+              createdAt
+            ) VALUES (
+              ?,
+              utc_timestamp()
+            ) 
+          `;
+
+          db.query(sql, [userid], (err, result) => {
+            if (err) {
+              console.log(err);
+              reject(err);
+            }
+
+            resolve();
+          });
+        });
+      });
+    });
+  });
+};
+
+exports.deleteProfileImage = async (userid, db) => {
+  return new Promise((resolve, reject) => {
+    const AWS = require("aws-sdk");
+    const s3 = new AWS.S3({
+      accessKeyId: process.env.INVITES_AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.INVITES_AWS_SECRET_ACCESS_KEY,
+    });
+
+    const fileName400 = `profiles/${userid}/400.jpg`;
+    const delete400 = new Promise((resolve400, reject400) => {
+      const params = {
+        Bucket: process.env.INVITES_AWS_BUCKET_NAME,
+        Key: fileName400,
+      };
+
+      s3.deleteObject(params, (err, data) => {
+        if (err) {
+          console.log(err);
+          reject400(err);
+        }
+
+        resolve400();
+      });
+    });
+
+    const fileName140 = `profiles/${userid}/140.jpg`;
+    const delete140 = new Promise((resolve140, reject140) => {
+      const params = {
+        Bucket: process.env.INVITES_AWS_BUCKET_NAME,
+        Key: fileName140,
+      };
+
+      s3.deleteObject(params, (err, data) => {
+        if (err) {
+          console.log(err);
+          reject140(err);
+        }
+
+        resolve140(data.Location);
+      });
+    });
+
+    Promise.all([delete400, delete140]).then(() => {
+      const sql = `
+        UPDATE users
+        SET profilephoto = 'NULL'
         WHERE userid = ?
         ;
       `;
@@ -646,26 +730,22 @@ exports.storeProfileImage = async (userid, base64Image, db) => {
       db.query(sql, [userid], (err, result) => {
         if (err) {
           console.log(err);
+          reject(err);
         }
 
         const sql = `
-          INSERT INTO photoreview(
-            userid,
-            createdAt
-          ) VALUES (
-            ?,
-            utc_timestamp()
-          ) 
+          DELETE FROM photoreview
+          WHERE userid = ?
+          ;
         `;
 
         db.query(sql, [userid], (err, result) => {
           if (err) {
             console.log(err);
-            return res.status(500).send({
-              msg: "unable to submit photo for review",
-              msgType: "error",
-            });
+            reject(err);
           }
+
+          resolve();
         });
       });
     });
