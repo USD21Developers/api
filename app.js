@@ -5,7 +5,6 @@ const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
-const cron = require("node-cron");
 const app = express();
 const routes_fp = require("./routes/routes_fp");
 const routes_invites = require("./routes/routes_invites");
@@ -40,87 +39,8 @@ const cronOptions = {
 };
 
 // INVITES: cron job to remove unconfirmed user accounts
-cron.schedule(
-  every2Minutes,
-  () => {
-    const isStaging =
-      req.headers.referer.indexOf("staging") >= 0 ? true : false;
-    const db = isStaging
-      ? require("./database-invites-test")
-      : require("./database-invites");
-
-    const sql = `
-      SELECT userid
-      FROM users u
-      INNER JOIN tokens t ON t.userid = u.userid
-      WHERE t.expiry < UTC_TIMESTAMP()
-      ;
-    `;
-
-    db.query(sql, [], (err, result) => {
-      if (err) {
-        return console.log(err);
-      }
-
-      const userids = result.length ? result.join() : "";
-
-      const sql = `
-        DELETE FROM photoreview
-        WHERE userid IN (?)
-        ;
-      `;
-
-      db.query(sql, [userids], (err, result) => {
-        if (err) {
-          return console.log(err);
-        }
-
-        const sql = `
-          DELETE FROM tokens
-          WHERE userid IN (?)
-          ;
-        `;
-
-        db.query(sql, [userids], (err, result) => {
-          if (err) {
-            return console.log(err);
-          }
-
-          const sql = `
-            DELETE FROM users
-            WHERE userid IN (?)
-            ;
-          `;
-
-          db.query(sql, [userids], async (err, result) => {
-            if (err) {
-              return console.log(err);
-            }
-
-            const userids = userids.split(",").map((item) => Number(item));
-
-            if (!Array.isArray(userids)) return;
-            if (!userids.length) return;
-
-            const deletedUsers = [];
-
-            userids.forEach((userid) => {
-              const deleteProfileImage =
-                require("./routes/controllers_invites/utils").deleteProfileImage;
-
-              deletedUsers.push(deleteProfileImage(userid, db));
-            });
-
-            Promise.all(deletedUsers).then(() => {
-              console.log("deleted unconfirmed users");
-            });
-          });
-        });
-      });
-    });
-  },
-  cronOptions
-);
+const invitesCron = require("./routes/controllers_invites/cron-unconfirmed-accounts");
+invitesCron.unconfirmedAccounts(everyMonday, cronOptions);
 
 // listen
 const port = process.env.PORT || 4000;
