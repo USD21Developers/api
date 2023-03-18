@@ -4,11 +4,7 @@ exports.unconfirmedAccounts = (schedule, cronOptions) => {
   cron.schedule(
     schedule,
     () => {
-      const isStaging =
-        req.headers.referer.indexOf("staging") >= 0 ? true : false;
-      const db = isStaging
-        ? require("./database-invites-test")
-        : require("./database-invites");
+      const db = require("./database-invites");
 
       const sql = `
         SELECT userid

@@ -38,9 +38,10 @@ const cronOptions = {
   timezone: "America/Phoenix",
 };
 
-// INVITES: cron job to remove unconfirmed user accounts
-const invitesCron = require("./routes/controllers_invites/cron-unconfirmed-accounts");
-invitesCron.unconfirmedAccounts(everyMonday, cronOptions);
+require(`./cron/invites/${process.env.ENV}/unconfirmed-accounts`).unconfirmedAccounts(
+  everyMonday,
+  cronOptions
+);
 
 // listen
 const port = process.env.PORT || 4000;
