@@ -39,6 +39,7 @@ exports.POST = (req, res) => {
           usertype,
           gender,
           lang,
+          profilephoto,
           country,
           passwordmustchange,
           isAuthorized,
@@ -70,6 +71,7 @@ exports.POST = (req, res) => {
         const usertype = result[0].usertype;
         const gender = result[0].gender;
         const lang = result[0].lang;
+        const profilephoto = result[0].profilephoto;
         const country = result[0].country;
         const passwordmustchange =
           result[0].passwordmustchange === 1 ? true : false;
@@ -86,7 +88,8 @@ exports.POST = (req, res) => {
             usertype: usertype,
             firstname: firstname,
             lastname: lastname,
-            gender: gender
+            gender: gender,
+            profilephoto: profilephoto,
           },
           process.env.REFRESH_TOKEN_SECRET,
           { expiresIn: "30d" }
@@ -98,6 +101,7 @@ exports.POST = (req, res) => {
             userid: userid,
             usertype: usertype,
             lang: lang,
+            profilephoto: profilephoto,
             country: country,
             passwordmustchange: passwordmustchange,
             isAuthorized: isAuthorized,
