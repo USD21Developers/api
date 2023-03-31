@@ -99,6 +99,7 @@ exports.POST = (req, res) => {
         const utils = require("./utils");
         const resetUrl = `${protocol}//${host}/login/reset/#${resetToken}`;
         const senderEmail = `${emailSenderText} <fp-admin@usd21.org>`;
+        const uuid = require("crypto").randomUUID();
         const subject = emailSubject;
         const body = `
           <p>${emailParagraph1
@@ -106,6 +107,14 @@ exports.POST = (req, res) => {
             .replace("${lastname}", `${lastname}`)}</p>
           <p style="margin: 30px 0"><strong><big><a href="${resetUrl}" style="text-decoration: underline">${emailParagraph2}</a></big></strong></p>
           <p>${emailParagraph3}</p>
+          <br>
+          <br>
+          <div class="messageUUID">
+            <hr style="border: 0; border-top: 1px solid #dddddd" />
+            <small><small style="font-size: 10px; color: #dddddd">
+              Message ID: ${uuid}
+            </small></small>
+          </div>
         `;
         utils
           .sendEmail(recipient, senderEmail, subject, body)

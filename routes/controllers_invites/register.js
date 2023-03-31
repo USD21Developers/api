@@ -80,7 +80,10 @@ exports.POST = (req, res) => {
     return res.status(400).send({ msg: "gender missing", msgType: "error" });
   }
 
-  if (!profileImage.length) return res.status(400).send({ msg: "profile photo missing", msgType: "error" });
+  if (!profileImage.length)
+    return res
+      .status(400)
+      .send({ msg: "profile photo missing", msgType: "error" });
 
   if (!lang.length)
     return res.status(400).send({ msg: "language missing", msgType: "error" });
@@ -165,7 +168,8 @@ exports.POST = (req, res) => {
         canAuthToAuth = 1;
       }
 
-      const isPrivilegedEmailAccount = require("./utils").isPrivilegedEmailAccount;
+      const isPrivilegedEmailAccount =
+        require("./utils").isPrivilegedEmailAccount;
       if (isPrivilegedEmailAccount(email)) {
         isAuthorized = 1;
         canAuthorize = 1;
@@ -264,11 +268,11 @@ exports.POST = (req, res) => {
               }
 
               const userid = result.insertId;
-              
+
               require("./utils").storeProfileImage(userid, profileImage, db);
 
               const registrationToken = crypto.randomBytes(32).toString("hex");
-                const sql = `
+              const sql = `
                   INSERT INTO tokens(
                     token,
                     expiry,
@@ -283,34 +287,44 @@ exports.POST = (req, res) => {
                     utc_timestamp()
                   );
                 `;
-  
-                db.query(sql, [registrationToken, userid], (err, result) => {
-                  if (err) {
-                    console.log(err);
-                    return res.status(500).send({
-                      msg: "unable to insert registration token",
-                      msgType: "error",
-                    });
-                  }
-  
-                  const confirmationUrl = `${protocol}//${host}/register/confirm/#${registrationToken}`;
-  
-                  const body = `
-                    <p>
-                      ${emailParagraph1}
-                    </p>
-                    <p style="margin: 30px 0">
-                      <strong>
-                        <big>
-                          <a href="${confirmationUrl}" style="text-decoration: underline" target="_blank" rel="noopener noreferrer">
-                            ${emailLinkText}
-                          </a>
-                        </big>
-                      </strong>
-                    </p>
-                    <p>${emailSignature}</p>
-                  `;
-  
+
+              db.query(sql, [registrationToken, userid], (err, result) => {
+                if (err) {
+                  console.log(err);
+                  return res.status(500).send({
+                    msg: "unable to insert registration token",
+                    msgType: "error",
+                  });
+                }
+
+                const uuid = require("crypto").randomUUID();
+
+                const confirmationUrl = `${protocol}//${host}/register/confirm/#${registrationToken}`;
+
+                const body = `
+                  <p>
+                    ${emailParagraph1}
+                  </p>
+                  <p style="margin: 30px 0">
+                    <strong>
+                      <big>
+                        <a href="${confirmationUrl}" style="text-decoration: underline" target="_blank" rel="noopener noreferrer">
+                          ${emailLinkText}
+                        </a>
+                      </big>
+                    </strong>
+                  </p>
+                  <p>${emailSignature}</p>
+                  <br>
+                  <br>
+                  <div class="messageUUID">
+                    <hr style="border: 0; border-top: 1px solid #dddddd" />
+                    <small><small style="font-size: 10px; color: #dddddd">
+                      Message ID: ${uuid}
+                    </small></small>
+                  </div>
+                `;
+
                 const recipient = `"${firstname} ${lastname}" <${email}>`;
                 require("./utils")
                   .sendEmail(recipient, emailSenderText, emailSubject, body)
