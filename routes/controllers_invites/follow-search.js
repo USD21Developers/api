@@ -92,8 +92,8 @@ exports.POST = async (req, res) => {
     sqlPlaceholders = [
       req.user.userid,
       churchid,
-      `%${firstName}%`,
-      `%${lastName}%`,
+      `${firstName}%`,
+      `${lastName}%`,
     ];
     sql += `
         AND
