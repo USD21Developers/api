@@ -92,8 +92,8 @@ exports.POST = async (req, res) => {
     sqlPlaceholders = [
       req.user.userid,
       churchid,
-      `${firstName}%`,
-      `${lastName}%`,
+      `${firstName.trim()}%`,
+      `${lastName.trim()}%`,
     ];
     sql += `
         AND
@@ -110,7 +110,7 @@ exports.POST = async (req, res) => {
         ;
       `;
   } else if (firstName.trim().length) {
-    sqlPlaceholders = [req.user.userid, churchid, `${firstName}%`];
+    sqlPlaceholders = [req.user.userid, churchid, `${firstName.trim()}%`];
     sql += `
         AND
           firstname LIKE ?
@@ -120,7 +120,7 @@ exports.POST = async (req, res) => {
         ;
       `;
   } else if (lastName.trim().length) {
-    sqlPlaceholders = [req.user.userid, churchid, `${lastName}%`];
+    sqlPlaceholders = [req.user.userid, churchid, `${lastName.trim()}%`];
     sql += `
         AND
           lastname LIKE ?
