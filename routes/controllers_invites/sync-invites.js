@@ -31,7 +31,7 @@ exports.POST = (req, res) => {
 
   // Return
   return res.status(200).send({
-    msg: "Cuppa coffee in the big time, yea!!",
+    msg: "invites synced",
     msgType: "success",
     invites: invites,
   });
