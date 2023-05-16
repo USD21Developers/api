@@ -63,6 +63,9 @@ const ipMiddleware = function (req, res, next) {
 const syncEvents = require("./controllers_invites/sync-events");
 router.get("/sync-events", authenticateToken, syncEvents.GET);
 
+const syncInvites = require("./controllers_invites/sync-invites");
+router.post("/sync-invites", authenticateToken, syncInvites.POST);
+
 // USERS
 
 const usersAll = require("./controllers_invites/users-all");
