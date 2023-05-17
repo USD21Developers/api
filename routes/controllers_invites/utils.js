@@ -751,3 +751,9 @@ exports.deleteProfileImage = async (userid, db) => {
     });
   });
 };
+
+exports.getInvites = async (userid) => {
+  return new Promise((resolve, reject) => {
+    //
+  });
+};
