@@ -22,7 +22,83 @@ exports.POST = (req, res) => {
   // Params
   const unsyncedInvites = req.body.unsyncedInvites || [];
 
-  // Validate
+  // Validate:  unsyncedInvites must be an array
+  if (!Array.isArray(unsyncedInvites)) {
+    return res.status(400).send({
+      msg: "unsyncedInvites must be an array",
+      msgType: "error",
+    });
+  }
+
+  let unsyncedInvitesLength = unsyncedInvites.length;
+
+  // Validate:  unsyncedInvites objects must have a valid shape
+  if (unsyncedInvitesLength) {
+    let validShape = true;
+    for (i = 0; i < unsyncedInvitesLength; i++) {
+      const invite = unsyncedInvites[i];
+      if (!invite.event) {
+        validShape = false;
+        break;
+      }
+      if (!invite.sent.id || !invite.sent.lang) {
+        validShape = false;
+      }
+      if (!invite.recipient) {
+        validShape = false;
+        break;
+      }
+      if (!invite.recipient.id || invite.recipient.name) {
+        validShape = false;
+        break;
+      }
+      if (
+        !invite.recipient.hasOwnProperty("sms") ||
+        !invite.recipient.hasOwnProperty("email")
+      ) {
+        validShape = false;
+        break;
+      }
+      if (!invite.sent) {
+        validShape = false;
+        break;
+      }
+      if (
+        !invite.sent.userid ||
+        !invite.sent.time ||
+        !invite.sent.timezone ||
+        !invite.sent.coords ||
+        !invite.sent.via
+      ) {
+        validShape = false;
+        break;
+      }
+    }
+    if (!validShape) {
+      return res.status(400).send({
+        msg: "unsentInvites must have a valid shape",
+        msgType: "error",
+      });
+    }
+  }
+
+  // Validate:  valid integers are required for event id and user id
+  if (unsyncedInvitesLength) {
+    let validInteger = true;
+    for (i = 0; i < unsyncedInvitesLength; i++) {
+      const invite = unsyncedInvites[i];
+      if (isNaN(invite.event.id) || isNaN(invite.sent.userid)) {
+        validInteger = false;
+        break;
+      }
+    }
+    if (!validInteger) {
+      return res.status(400).send({
+        msg: "unsentInvites must have valid integers for both event id and user id",
+        msgType: "error",
+      });
+    }
+  }
 
   // Query to store unsynced invites
 
