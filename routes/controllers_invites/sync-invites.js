@@ -65,6 +65,7 @@ exports.POST = (req, res) => {
       }
       if (
         !invite.sent.userid ||
+        !invite.sent.userlang ||
         !invite.sent.time ||
         !invite.sent.timezone ||
         !invite.sent.coords ||
@@ -100,15 +101,98 @@ exports.POST = (req, res) => {
     }
   }
 
-  // Query to store unsynced invites
+  const utils = require("../controllers_invites/utils");
+  const { getInvites } = utils;
 
-  // Query to retrieve all of user's invites
-  const invites = unsyncedInvites; // Change this
+  if (unsyncedInvitesLength) {
+    // Query to store unsynced invites
+    const sql = `
+      INSERT INTO invitations(
+        eventid,
+        eventmetadata,
+        userid,
+        recipientid,
+        recipientname,
+        recipientsms,
+        recipientemail,
+        sharedvia,
+        sharedfromcoordinates,
+        lang,
+        invitedAt,
+        createdAt
+      ) VALUES 
+        ?
+      ;
+    `;
 
-  // Return
-  return res.status(200).send({
-    msg: "invites synced",
-    msgType: "success",
-    invites: invites,
-  });
+    const values = unsyncedInvites.map((item) => {
+      const { event, recipient, sent } = item;
+      const { id: eventid, lang: eventlang } = event;
+      const {
+        id: recipientid,
+        name: recipientname,
+        sms: recipientsms,
+        email: recipientemail,
+      } = recipient;
+      const {
+        userid,
+        userlang,
+        time: invitedAt,
+        timezone,
+        coords,
+        via: sharedvia,
+      } = sent;
+      const eventmetadata = JSON.stringify({
+        timezone: timezone,
+        eventid: eventid,
+        lang: eventlang,
+      });
+      let point = null;
+      if (coords !== null) {
+        const coordinates = coords.split(",");
+        const lat = coordinates[0];
+        const lng = coordinates[1];
+        point = `ST_GeomFromText( POINT(${lat} ${lng}) )`;
+      }
+      const value = [
+        eventid,
+        eventmetadata,
+        userid,
+        recipientid,
+        recipientname,
+        recipientsms,
+        recipientemail,
+        sharedvia,
+        point,
+        userlang,
+        invitedAt,
+      ];
+      return value;
+    });
+
+    db.query(sql, values, async (err, result) => {
+      if (err) {
+        console.log(err);
+        return res
+          .status(500)
+          .send({ msg: "unable to insert unsyncedInvites", msgType: "error" });
+      }
+
+      getInvites(userid).then((invites) => {
+        return res.status(200).send({
+          msg: "invites synced",
+          msgType: "success",
+          invites: invites,
+        });
+      });
+    });
+  } else {
+    getInvites(userid).then((invites) => {
+      return res.status(200).send({
+        msg: "invites synced",
+        msgType: "success",
+        invites: invites,
+      });
+    });
+  }
 };
