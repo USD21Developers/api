@@ -57,7 +57,7 @@ exports.POST = (req, res) => {
     return new Promise((resolve, reject) => {
       const values = unsyncedInvites.map((item) => {
         const { eventid, sentvia, coords, utctime, timezone, recipient } = item;
-        const timeMomentObj = moment(utctime);
+        const timeMomentObj = moment.utc(utctime);
         const invitedAt = timeMomentObj.format("YYYY-MM-DD HH:mm:ss");
         const createdAt = moment.utc().format("YYYY-MM-DD HH:mm:ss");
 
