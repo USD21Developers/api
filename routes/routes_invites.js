@@ -99,4 +99,9 @@ router.post("/follow-status", authenticateToken, followStatus.POST);
 const userProfile = require("./controllers_invites/user-profile");
 router.get("/userprofile/:userid", authenticateToken, userProfile.GET);
 
+// INVITES
+
+const invite = require("./controllers_invites/invite");
+router.post("/invite", invite.POST);
+
 module.exports = router;
