@@ -296,7 +296,7 @@ async function showChurchesAlphabetically() {
       contact_number,
     } = item;
 
-    if (contact_image.length) imageCount++;
+    if (contact_image && contact_image.length) imageCount++;
 
     const eagerLoadQuantity = 4;
     const lazyLoad =
@@ -304,9 +304,10 @@ async function showChurchesAlphabetically() {
         ? 'loading="lazy" decoding="async" fetchpriority="low"'
         : "";
 
-    const contactImage = contact_image.length
-      ? contact_image
-      : "https://www.upsidedown21.org/1.1/images/church_leaders/usd21.jpg";
+    const contactImage =
+      contact_image && contact_image.length
+        ? contact_image
+        : "https://www.upsidedown21.org/1.1/images/church_leaders/usd21.jpg";
 
     const websiteLink = church_URL.length
       ? `<div><a href="${church_URL}">${website}</a></div>`
@@ -433,7 +434,7 @@ async function showChurchesByCountry() {
 
     churchesInCountry.forEach((item) => {
       const {
-        contact_image,
+        image,
         church_name,
         church_URL,
         mailing_city,
@@ -443,28 +444,24 @@ async function showChurchesByCountry() {
         contact_number,
       } = item;
 
-      if (contact_image.length) imageCount++;
+      if (image.length) imageCount++;
 
       const eagerLoadQuantity = 4;
       const lazyLoad =
         imageCount > eagerLoadQuantity
           ? 'loading="lazy" decoding="async" fetchpriority="low"'
           : "";
-      const contactImage = contact_image.length
-        ? contact_image
+      const contactImage = image.length
+        ? image
         : "https://www.upsidedown21.org/1.1/images/church_leaders/usd21.jpg";
       const websiteLink = church_URL.length
         ? `<div><a href="${church_URL}">${website}</a></div>`
         : "";
+      const name = contact_name.trim().replaceAll("&", "and");
       let churchHtml = `
         <div class="church">
           <div class="photo">
-            <img vspace="5" width="100" src="${contactImage}" ${lazyLoad} alt="Photo of ${contact_name
-        .trim()
-        .replaceAll(
-          "&",
-          "and"
-        )}" onerror="this.onerror=null;this.src='https://www.upsidedown21.org/1.1/images/church_leaders/usd21.jpg';" />
+            <img vspace="5" width="100" src="${contactImage}" ${lazyLoad} alt="Photo of ${name}" onerror="this.onerror=null;this.src='https://www.upsidedown21.org/1.1/images/church_leaders/usd21.jpg';" />
           </div>
           <div class="info">
             <strong>${church_name}</strong><br>
