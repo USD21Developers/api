@@ -451,9 +451,10 @@ async function showChurchesByCountry() {
         imageCount > eagerLoadQuantity
           ? 'loading="lazy" decoding="async" fetchpriority="low"'
           : "";
-      const contactImage = contact_image.length
-        ? contact_image
-        : "https://www.upsidedown21.org/1.1/images/church_leaders/usd21.jpg";
+      const contactImage =
+        contact_image && contact_image.length
+          ? contact_image
+          : "https://www.upsidedown21.org/1.1/images/church_leaders/usd21.jpg";
       const websiteLink = church_URL.length
         ? `<div><a href="${church_URL}">${website}</a></div>`
         : "";
