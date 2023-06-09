@@ -434,7 +434,7 @@ async function showChurchesByCountry() {
 
     churchesInCountry.forEach((item) => {
       const {
-        image,
+        contact_image,
         church_name,
         church_URL,
         mailing_city,
@@ -444,15 +444,15 @@ async function showChurchesByCountry() {
         contact_number,
       } = item;
 
-      if (image.length) imageCount++;
+      if (contact_image && contact_image.length) imageCount++;
 
       const eagerLoadQuantity = 4;
       const lazyLoad =
         imageCount > eagerLoadQuantity
           ? 'loading="lazy" decoding="async" fetchpriority="low"'
           : "";
-      const contactImage = image.length
-        ? image
+      const contactImage = contact_image.length
+        ? contact_image
         : "https://www.upsidedown21.org/1.1/images/church_leaders/usd21.jpg";
       const websiteLink = church_URL.length
         ? `<div><a href="${church_URL}">${website}</a></div>`
