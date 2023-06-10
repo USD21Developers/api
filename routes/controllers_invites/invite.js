@@ -124,11 +124,13 @@ exports.POST = (req, res) => {
   };
 
   (async (db, res) => {
-    const event = eventid ? await getEvent(db, eventid) : null;
-    const user = userid ? await getUser(db, userid) : null;
+    const event = eventid
+      ? await getEvent(db, eventid).catch(() => null)
+      : null;
+    const user = userid ? await getUser(db, userid).catch(() => null) : null;
     const recipient =
       eventid && userid && recipientid
-        ? await getRecipient(db, eventid, userid, recipientid)
+        ? await getRecipient(db, eventid, userid, recipientid).catch(() => null)
         : null;
     return res.status(200).send({
       msg: "invite retrieved",
