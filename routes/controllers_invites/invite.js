@@ -28,7 +28,17 @@ exports.POST = (req, res) => {
     return new Promise((resolve, reject) => {
       const sql = `
         SELECT
-          *
+          *,
+          (
+            SELECT 1 
+            FROM events 
+            WHERE eventid = ? 
+            AND (
+              startdate < NOW() 
+              OR 
+              multidayenddate < NOW()
+            )
+          ) AS isPast
         FROM
           events
         WHERE
@@ -38,7 +48,7 @@ exports.POST = (req, res) => {
         ;
       `;
 
-      db.query(sql, [eventid], (error, result) => {
+      db.query(sql, [eventid, eventid, eventid], (error, result) => {
         if (error) {
           console.log(error);
           return reject(new Error("unable to query for event"));
