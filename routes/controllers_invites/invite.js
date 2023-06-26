@@ -30,11 +30,11 @@ exports.POST = (req, res) => {
         SELECT
           *,
           (
-            SELECT 1 
+            SELECT COUNT(*)
             FROM events 
             WHERE eventid = ? 
             AND (
-              startdate < NOW() 
+              DATE_ADD(startdate, INTERVAL durationInHours HOUR) < NOW() 
               OR 
               multidayenddate < NOW()
             )
