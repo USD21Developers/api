@@ -278,6 +278,11 @@ exports.getEventsByUser = (db, userid, useridOfRequester) => {
           OR
           sharewithfollowers = "yes"
         )
+      AND (
+        DATE_ADD(startdate, INTERVAL durationInHours HOUR) < NOW() 
+        OR 
+        multidayenddate < NOW()
+      )
       ORDER BY
         title
       ;
@@ -358,6 +363,11 @@ exports.getEventsByFollowedUsers = (db, userid, useridOfRequester) => {
           OR
           e.sharewithfollowers = "yes"
         )
+      AND (
+        DATE_ADD(startdate, INTERVAL durationInHours HOUR) < NOW() 
+        OR 
+        multidayenddate < NOW()
+      )
       ORDER BY
         e.createdBy, e.title
       ;
