@@ -379,7 +379,7 @@ exports.convertRecurringEventsIntoNextOccurrence = (arrayOfEvents) => {
   const events = arrayOfEvents.map((event) => {
     if (!event.hasOwnProperty("frequency")) return;
 
-    const isRecurring = event.frequency !== "once";
+    const isRecurring = event.frequency !== "once" ? true : false;
 
     if (!isRecurring) {
       return event;
