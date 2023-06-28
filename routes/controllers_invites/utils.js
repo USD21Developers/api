@@ -414,6 +414,41 @@ exports.convertRecurringEventsIntoNextOccurrence = (arrayOfEvents) => {
   return events;
 };
 
+exports.filterOutExpiredEvents = (arrayOfEvents) => {
+  if (!Array.isArray(arrayOfEvents)) return [];
+
+  const moment = require("moment");
+  const nowDateTime = moment().format("YYYY-MM-DDTHH:mm:ss") + "Z";
+
+  const events = arrayOfEvents.filter((event) => {
+    const { frequency, duration, durationInHours, startdate, multidayenddate } =
+      event;
+    const isRecurring = frequency === "once" ? false : true;
+    const isMultiDay = duration === "multiple days" ? true : false;
+
+    if (isRecurring) {
+      return true;
+    }
+
+    if (!isMultiDay) {
+      const nowDate = moment(nowDateTime);
+      const startDate = moment(startdate);
+      const endDate = moment(startDate).add(durationInHours, "hours");
+      if (endDate.isAfter(nowDate)) {
+        return true;
+      }
+    } else if (isMultiDay) {
+      const nowDate = moment(nowDateTime);
+      const endDate = moment(multidayenddate);
+      if (endDate.isAfter(nowDate)) {
+        return true;
+      }
+    }
+  });
+
+  return events;
+};
+
 exports.getFollowedUsers = (db, userid) => {
   return new Promise((resolve, reject) => {
     const sql = `

@@ -20,6 +20,8 @@ exports.GET = async (req, res) => {
     : require("../../database-invites");
 
   // Query for events
+  const filterOutExpiredEvents =
+    require("../controllers_invites/utils").filterOutExpiredEvents;
   const getEventsByUser =
     require("../controllers_invites/utils").getEventsByUser;
   const events = await getEventsByUser(
@@ -32,6 +34,14 @@ exports.GET = async (req, res) => {
       .status(500)
       .send({ msg: "unable to return events", msgType: "error" });
   });
+
+  const convertRecurringEventsIntoNextOccurrence =
+    require("./utils").convertRecurringEventsIntoNextOccurrence;
+
+  let unexpiredEvents;
+
+  unexpiredEvents = convertRecurringEventsIntoNextOccurrence(events);
+  unexpiredEvents = filterOutExpiredEvents(unexpiredEvents);
 
   // Query for events by followed users
   const getEventsByFollowedUsers =
@@ -47,6 +57,15 @@ exports.GET = async (req, res) => {
     });
   });
 
+  let unexpiredEventsByFollowedUsers;
+
+  unexpiredEventsByFollowedUsers = convertRecurringEventsIntoNextOccurrence(
+    eventsByFollowedUsers
+  );
+  unexpiredEventsByFollowedUsers = filterOutExpiredEvents(
+    unexpiredEventsByFollowedUsers
+  );
+
   // Query for followed users
   const getFollowedUsers =
     require("../controllers_invites/utils").getFollowedUsers;
@@ -61,7 +80,7 @@ exports.GET = async (req, res) => {
   );
 
   // Return out if there are no events
-  if (!events.length && !eventsByFollowedUsers.length) {
+  if (!unexpiredEvents.length && !unexpiredEventsByFollowedUsers.length) {
     return res.status(200).send({
       msg: "no events found",
       msgType: "success",
@@ -75,8 +94,8 @@ exports.GET = async (req, res) => {
   return res.status(200).send({
     msg: "events retrieved",
     msgType: "success",
-    events: events,
-    eventsByFollowedUsers: eventsByFollowedUsers,
+    events: unexpiredEvents,
+    eventsByFollowedUsers: unexpiredEventsByFollowedUsers,
     followedUsers: followedUsers,
   });
 };
