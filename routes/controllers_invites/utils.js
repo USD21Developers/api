@@ -397,7 +397,7 @@ exports.convertRecurringEventsIntoNextOccurrence = (arrayOfEvents) => {
         .isoWeekday(weekdayOfEvent)
         .format("YYYY-MM-DDTHH:mm:ss");
 
-      const modifiedEvent = { ...event, startdate: nextdate };
+      const modifiedEvent = { ...event, startdate: `${nextdate}Z` };
 
       return modifiedEvent;
     } else {
@@ -405,7 +405,7 @@ exports.convertRecurringEventsIntoNextOccurrence = (arrayOfEvents) => {
         .isoWeekday(weekdayOfEvent)
         .format("YYYY-MM-DDTHH:mm:ss");
 
-      const modifiedEvent = { ...event, startdate: nextdate };
+      const modifiedEvent = { ...event, startdate: `${nextdate}Z` };
 
       return modifiedEvent;
     }
