@@ -449,6 +449,33 @@ exports.filterOutExpiredEvents = (arrayOfEvents) => {
   return events;
 };
 
+exports.removeLocationInfoFromDiscreetEvents = (arrayOfEvents) => {
+  if (!Array.isArray(arrayOfEvents)) return [];
+
+  const events = arrayOfEvents.map((event) => {
+    const { locationvisibility } = event;
+    const isDiscreetLocation = locationvisibility === "discreet" ? true : false;
+
+    if (!isDiscreetLocation) {
+      return event;
+    }
+
+    const modifiedEvent = {
+      ...event,
+      locationaddressline1: null,
+      locationaddressline2: null,
+      locationaddressline3: null,
+      locationcoordinates: null,
+      locationname: null,
+      otherlocationdetails: null,
+    };
+
+    return modifiedEvent;
+  });
+
+  return events;
+};
+
 exports.getFollowedUsers = (db, userid) => {
   return new Promise((resolve, reject) => {
     const sql = `

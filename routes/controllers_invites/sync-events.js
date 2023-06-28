@@ -20,10 +20,10 @@ exports.GET = async (req, res) => {
     : require("../../database-invites");
 
   // Query for events
-  const filterOutExpiredEvents =
-    require("../controllers_invites/utils").filterOutExpiredEvents;
-  const getEventsByUser =
-    require("../controllers_invites/utils").getEventsByUser;
+  const filterOutExpiredEvents = require("./utils").filterOutExpiredEvents;
+  const convertRecurringEventsIntoNextOccurrence =
+    require("./utils").convertRecurringEventsIntoNextOccurrence;
+  const getEventsByUser = require("./utils").getEventsByUser;
   const events = await getEventsByUser(
     db,
     req.user.userid,
@@ -34,9 +34,6 @@ exports.GET = async (req, res) => {
       .status(500)
       .send({ msg: "unable to return events", msgType: "error" });
   });
-
-  const convertRecurringEventsIntoNextOccurrence =
-    require("./utils").convertRecurringEventsIntoNextOccurrence;
 
   let unexpiredEvents;
 

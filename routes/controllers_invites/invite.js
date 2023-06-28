@@ -60,7 +60,13 @@ exports.POST = (req, res) => {
 
         const convertRecurringEventsIntoNextOccurrence =
           require("./utils").convertRecurringEventsIntoNextOccurrence;
-        const event = convertRecurringEventsIntoNextOccurrence(result)[0];
+        const removeLocationInfoFromDiscreetEvents =
+          require("./utils").removeLocationInfoFromDiscreetEvents;
+
+        let event;
+
+        event = removeLocationInfoFromDiscreetEvents(result);
+        event = convertRecurringEventsIntoNextOccurrence(event)[0];
 
         return resolve(event);
       });
