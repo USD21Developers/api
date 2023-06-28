@@ -102,10 +102,59 @@ exports.GET = (req, res) => {
       return item;
     });
 
+    const unexpiredEvents = events.map((event) => {
+      const moment = require("moment");
+      const { frequency, duration } = event;
+      const isRecurring = frequency === "once" ? false : true;
+      const isMultiDay = duration === "multiple days" ? true : false;
+      const nowDateTime = moment().format("YYYY-MM-DDTHH:mm:ss") + "Z";
+
+      if (isRecurring) {
+        const { startdate } = event;
+        const startDate = moment(startdate).format("YYYY-MM-DDTHH:mm:ss") + "Z";
+        const weekdayOfEvent = moment(startDate).isoWeekday();
+        const weekdayToday = moment().isoWeekday();
+        let recurringEvent = event;
+
+        if (weekdayToday >= weekdayOfEvent) {
+          const nextdate =
+            moment(nowDateTime)
+              .add(1, "weeks")
+              .isoWeekday(weekdayOfEvent)
+              .format("YYYY-MM-DDTHH:mm:ss") + "Z";
+          recurringEvent = { ...event, startdate: nextdate };
+        } else {
+          const nextdate =
+            moment(nowDateTime)
+              .isoWeekday(weekdayOfEvent)
+              .format("YYYY-MM-DDTHH:mm:ss") + "Z";
+          recurringEvent = { ...event, startdate: nextdate };
+        }
+        return recurringEvent;
+      } else if (!isMultiDay) {
+        const { startdate, durationInHours } = event;
+        const startDate = moment(startdate).format("YYYY-MM-DDTHH:mm:ss") + "Z";
+        const endDate =
+          moment(startDate)
+            .add(durationInHours, "hours")
+            .format("YYYY-MM-DDTHH:mm:ss") + "Z";
+        if (moment(endDate).isAfter(moment(nowDateTime))) {
+          return event;
+        }
+      } else if (isMultiDay) {
+        const { multidayenddate } = event;
+        const endDate =
+          moment(multidayenddate).format("YYYY-MM-DDTHH:mm:ss") + "Z";
+        if (moment(endDate).isAfter(moment(nowDateTime))) {
+          return event;
+        }
+      }
+    });
+
     return res.status(200).send({
       msg: "event list retrieved",
       msgType: "success",
-      events: events,
+      events: unexpiredEvents,
     });
   });
 };
