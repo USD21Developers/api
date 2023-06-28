@@ -58,7 +58,11 @@ exports.POST = (req, res) => {
           return reject(new Error("event not found"));
         }
 
-        return resolve(result[0]);
+        const convertRecurringEventsIntoNextOccurrence =
+          require("./utils").convertRecurringEventsIntoNextOccurrence;
+        const event = convertRecurringEventsIntoNextOccurrence(result)[0];
+
+        return resolve(event);
       });
     });
   };

@@ -371,6 +371,49 @@ exports.getEventsByFollowedUsers = (db, userid, useridOfRequester) => {
   });
 };
 
+exports.convertRecurringEventsIntoNextOccurrence = (arrayOfEvents) => {
+  if (!Array.isArray(arrayOfEvents)) return [];
+
+  const moment = require("moment");
+
+  const events = arrayOfEvents.map((event) => {
+    if (!event.hasOwnProperty("frequency")) return;
+
+    const isRecurring = event.frequency !== "once";
+
+    if (!isRecurring) {
+      return event;
+    }
+
+    const weekdayOfEvent = moment(event.startdate).isoWeekday();
+    const weekdayToday = moment().isoWeekday();
+    const nowDate = moment().format("YYYY-MM-DD");
+    const eventTime = moment(event.startdate).format("HH:mm:ss");
+    const nowDateTime = `${nowDate}T${eventTime}`;
+
+    if (weekdayToday > weekdayOfEvent) {
+      const nextdate = moment(nowDateTime)
+        .add(1, "weeks")
+        .isoWeekday(weekdayOfEvent)
+        .format("YYYY-MM-DDTHH:mm:ss");
+
+      const modifiedEvent = { ...event, startdate: nextdate };
+
+      return modifiedEvent;
+    } else {
+      const nextdate = moment(nowDateTime)
+        .isoWeekday(weekdayOfEvent)
+        .format("YYYY-MM-DDTHH:mm:ss");
+
+      const modifiedEvent = { ...event, startdate: nextdate };
+
+      return modifiedEvent;
+    }
+  });
+
+  return events;
+};
+
 exports.getFollowedUsers = (db, userid) => {
   return new Promise((resolve, reject) => {
     const sql = `
