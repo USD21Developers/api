@@ -389,10 +389,10 @@ exports.convertRecurringEventsIntoNextOccurrence = (arrayOfEvents) => {
     const weekdayToday = moment().isoWeekday();
     const nowDate = moment().format("YYYY-MM-DD");
     const eventTime = moment(event.startdate).format("HH:mm:ss");
-    const nowDateTime = `${nowDate}T${eventTime}`;
 
     if (weekdayToday >= weekdayOfEvent) {
-      const nextdate = moment(nowDateTime)
+      const nowDateWithStartTime = `${nowDate}T${eventTime}Z`;
+      const nextdate = moment(nowDateWithStartTime)
         .add(1, "weeks")
         .isoWeekday(weekdayOfEvent)
         .format("YYYY-MM-DDTHH:mm:ss");
