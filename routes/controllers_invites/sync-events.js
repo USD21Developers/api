@@ -21,8 +21,6 @@ exports.GET = async (req, res) => {
 
   // Query for events
   const filterOutExpiredEvents = require("./utils").filterOutExpiredEvents;
-  const convertRecurringEventsIntoNextOccurrence =
-    require("./utils").convertRecurringEventsIntoNextOccurrence;
   const getEventsByUser = require("./utils").getEventsByUser;
   const events = await getEventsByUser(
     db,
@@ -37,8 +35,7 @@ exports.GET = async (req, res) => {
 
   let unexpiredEvents;
 
-  unexpiredEvents = convertRecurringEventsIntoNextOccurrence(events);
-  unexpiredEvents = filterOutExpiredEvents(unexpiredEvents);
+  unexpiredEvents = filterOutExpiredEvents(events);
 
   // Query for events by followed users
   const getEventsByFollowedUsers =
@@ -56,11 +53,8 @@ exports.GET = async (req, res) => {
 
   let unexpiredEventsByFollowedUsers;
 
-  unexpiredEventsByFollowedUsers = convertRecurringEventsIntoNextOccurrence(
-    eventsByFollowedUsers
-  );
   unexpiredEventsByFollowedUsers = filterOutExpiredEvents(
-    unexpiredEventsByFollowedUsers
+    eventsByFollowedUsers
   );
 
   // Query for followed users

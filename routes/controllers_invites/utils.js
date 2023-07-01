@@ -228,12 +228,10 @@ exports.getEventsByUser = (db, userid, useridOfRequester) => {
         durationInHours,
         timezone,
 
-        CONCAT(
-          DATE_FORMAT(startdate, '%Y-%m-%d'),
-              'T',
-              TIME_FORMAT(startdate, '%T'),
-              'Z'
-        ) AS startdate,
+        CASE 
+          WHEN frequency != 'once' AND startdate < CURDATE() THEN CONCAT(DATE_FORMAT(DATE_ADD(startdate, INTERVAL (DATEDIFF(CURDATE(), startdate) DIV 7 + 1) * 7 DAY), '%Y-%m-%dT%H:%i:%s'), 'Z')
+          ELSE CONCAT(DATE_FORMAT(startdate, '%Y-%m-%dT%H:%i:%s'), 'Z')
+        END AS startdate,
 
         CONCAT(
           DATE_FORMAT(multidaybegindate, '%Y-%m-%d'),
@@ -306,12 +304,10 @@ exports.getEventsByFollowedUsers = (db, userid, useridOfRequester) => {
         e.durationInHours,
         e.timezone,
 
-        CONCAT(
-          DATE_FORMAT(startdate, '%Y-%m-%d'),
-              'T',
-              TIME_FORMAT(startdate, '%T'),
-              'Z'
-        ) AS startdate,
+        CASE 
+          WHEN frequency != 'once' AND startdate < CURDATE() THEN CONCAT(DATE_FORMAT(DATE_ADD(startdate, INTERVAL (DATEDIFF(CURDATE(), startdate) DIV 7 + 1) * 7 DAY), '%Y-%m-%dT%H:%i:%s'), 'Z')
+          ELSE CONCAT(DATE_FORMAT(startdate, '%Y-%m-%dT%H:%i:%s'), 'Z')
+        END AS startdate,
 
         CONCAT(
           DATE_FORMAT(multidaybegindate, '%Y-%m-%d'),
@@ -389,7 +385,7 @@ exports.convertRecurringEventsIntoNextOccurrence = (arrayOfEvents) => {
     const weekdayToday = moment().isoWeekday();
     const nowDate = moment().format("YYYY-MM-DD");
     const eventTime = moment(event.startdate).format("HH:mm:ss");
-    const nowDateWithStartTime = `${nowDate}T${eventTime}Z`;
+    const nowDateWithStartTime = `${nowDate}T${eventTime}`;
 
     if (weekdayToday >= weekdayOfEvent) {
       const nextdate = moment(nowDateWithStartTime)
@@ -397,7 +393,7 @@ exports.convertRecurringEventsIntoNextOccurrence = (arrayOfEvents) => {
         .isoWeekday(weekdayOfEvent)
         .format("YYYY-MM-DDTHH:mm:ss");
 
-      const modifiedEvent = { ...event, startdate: `${nextdate}Z` };
+      const modifiedEvent = { ...event, startdate: nextdate };
 
       return modifiedEvent;
     } else {
@@ -405,7 +401,7 @@ exports.convertRecurringEventsIntoNextOccurrence = (arrayOfEvents) => {
         .isoWeekday(weekdayOfEvent)
         .format("YYYY-MM-DDTHH:mm:ss");
 
-      const modifiedEvent = { ...event, startdate: `${nextdate}Z` };
+      const modifiedEvent = { ...event, startdate: nextdate };
 
       return modifiedEvent;
     }

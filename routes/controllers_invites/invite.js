@@ -58,15 +58,12 @@ exports.POST = (req, res) => {
           return reject(new Error("event not found"));
         }
 
-        const convertRecurringEventsIntoNextOccurrence =
-          require("./utils").convertRecurringEventsIntoNextOccurrence;
         const removeLocationInfoFromDiscreetEvents =
           require("./utils").removeLocationInfoFromDiscreetEvents;
 
         let event;
 
         event = removeLocationInfoFromDiscreetEvents(result);
-        event = convertRecurringEventsIntoNextOccurrence(event)[0];
 
         return resolve(event);
       });
