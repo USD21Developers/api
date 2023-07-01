@@ -276,6 +276,12 @@ exports.getEventsByUser = (db, userid, useridOfRequester) => {
           OR
           sharewithfollowers = "yes"
         )
+      AND
+          (
+            startdate >= CURDATE()
+            OR
+            multidayenddate >= CURDATE()
+          )
       ORDER BY
         title
       ;
@@ -354,6 +360,12 @@ exports.getEventsByFollowedUsers = (db, userid, useridOfRequester) => {
           OR
           e.sharewithfollowers = "yes"
         )
+      AND
+          (
+            startdate >= CURDATE()
+            OR
+            multidayenddate >= CURRDATE()
+          )
       ORDER BY
         e.createdBy, e.title
       ;
@@ -365,84 +377,6 @@ exports.getEventsByFollowedUsers = (db, userid, useridOfRequester) => {
       resolve(result);
     });
   });
-};
-
-exports.convertRecurringEventsIntoNextOccurrence = (arrayOfEvents) => {
-  if (!Array.isArray(arrayOfEvents)) return [];
-
-  const moment = require("moment");
-
-  const events = arrayOfEvents.map((event) => {
-    if (!event.hasOwnProperty("frequency")) return;
-
-    const isRecurring = event.frequency !== "once" ? true : false;
-
-    if (!isRecurring) {
-      return event;
-    }
-
-    const weekdayOfEvent = moment(event.startdate).isoWeekday();
-    const weekdayToday = moment().isoWeekday();
-    const nowDate = moment().format("YYYY-MM-DD");
-    const eventTime = moment(event.startdate).format("HH:mm:ss");
-    const nowDateWithStartTime = `${nowDate}T${eventTime}`;
-
-    if (weekdayToday >= weekdayOfEvent) {
-      const nextdate = moment(nowDateWithStartTime)
-        .add(1, "weeks")
-        .isoWeekday(weekdayOfEvent)
-        .format("YYYY-MM-DDTHH:mm:ss");
-
-      const modifiedEvent = { ...event, startdate: nextdate };
-
-      return modifiedEvent;
-    } else {
-      const nextdate = moment(nowDateWithStartTime)
-        .isoWeekday(weekdayOfEvent)
-        .format("YYYY-MM-DDTHH:mm:ss");
-
-      const modifiedEvent = { ...event, startdate: nextdate };
-
-      return modifiedEvent;
-    }
-  });
-
-  return events;
-};
-
-exports.filterOutExpiredEvents = (arrayOfEvents) => {
-  if (!Array.isArray(arrayOfEvents)) return [];
-
-  const moment = require("moment");
-  const nowDateTime = moment().format("YYYY-MM-DDTHH:mm:ss") + "Z";
-
-  const events = arrayOfEvents.filter((event) => {
-    const { frequency, duration, durationInHours, startdate, multidayenddate } =
-      event;
-    const isRecurring = frequency === "once" ? false : true;
-    const isMultiDay = duration === "multiple days" ? true : false;
-
-    if (isRecurring) {
-      return true;
-    }
-
-    if (!isMultiDay) {
-      const nowDate = moment(nowDateTime);
-      const startDate = moment(startdate);
-      const endDate = moment(startDate).add(durationInHours, "hours");
-      if (endDate.isAfter(nowDate)) {
-        return true;
-      }
-    } else if (isMultiDay) {
-      const nowDate = moment(nowDateTime);
-      const endDate = moment(multidayenddate);
-      if (endDate.isAfter(nowDate)) {
-        return true;
-      }
-    }
-  });
-
-  return events;
 };
 
 exports.removeLocationInfoFromDiscreetEvents = (arrayOfEvents) => {

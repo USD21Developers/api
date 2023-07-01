@@ -20,7 +20,6 @@ exports.GET = async (req, res) => {
     : require("../../database-invites");
 
   // Query for events
-  const filterOutExpiredEvents = require("./utils").filterOutExpiredEvents;
   const getEventsByUser = require("./utils").getEventsByUser;
   const events = await getEventsByUser(
     db,
@@ -32,10 +31,6 @@ exports.GET = async (req, res) => {
       .status(500)
       .send({ msg: "unable to return events", msgType: "error" });
   });
-
-  let unexpiredEvents;
-
-  unexpiredEvents = filterOutExpiredEvents(events);
 
   // Query for events by followed users
   const getEventsByFollowedUsers =
@@ -50,12 +45,6 @@ exports.GET = async (req, res) => {
       msgType: "error",
     });
   });
-
-  let unexpiredEventsByFollowedUsers;
-
-  unexpiredEventsByFollowedUsers = filterOutExpiredEvents(
-    eventsByFollowedUsers
-  );
 
   // Query for followed users
   const getFollowedUsers =
@@ -85,8 +74,8 @@ exports.GET = async (req, res) => {
   return res.status(200).send({
     msg: "events retrieved",
     msgType: "success",
-    events: unexpiredEvents,
-    eventsByFollowedUsers: unexpiredEventsByFollowedUsers,
+    events: events,
+    eventsByFollowedUsers: eventsByFollowedUsers,
     followedUsers: followedUsers,
   });
 };
