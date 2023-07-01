@@ -364,7 +364,7 @@ exports.getEventsByFollowedUsers = (db, userid, useridOfRequester) => {
           (
             startdate >= CURDATE()
             OR
-            multidayenddate >= CURRDATE()
+            multidayenddate >= CURDATE()
           )
       ORDER BY
         e.createdBy, e.title
