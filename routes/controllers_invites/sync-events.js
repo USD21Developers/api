@@ -60,7 +60,7 @@ exports.GET = async (req, res) => {
   );
 
   // Return out if there are no events
-  if (!unexpiredEvents.length && !unexpiredEventsByFollowedUsers.length) {
+  if (!events.length && !eventsByFollowedUsers.length) {
     return res.status(200).send({
       msg: "no events found",
       msgType: "success",
