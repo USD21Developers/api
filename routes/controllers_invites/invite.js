@@ -65,7 +65,7 @@ exports.POST = (req, res) => {
 
         event = removeLocationInfoFromDiscreetEvents(result);
 
-        return resolve(event);
+        return resolve(event[0]);
       });
     });
   };
