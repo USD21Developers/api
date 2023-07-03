@@ -1,3 +1,5 @@
+const moment = require("moment");
+
 exports.GET = (req, res) => {
   // Enforce authorization
   const usertype = req.user.usertype;
@@ -103,52 +105,37 @@ exports.GET = (req, res) => {
     });
 
     const unexpiredEvents = events.map((event) => {
-      const moment = require("moment");
-      const { frequency, duration } = event;
+      const { duration, frequency } = event;
       const isRecurring = frequency === "once" ? false : true;
       const isMultiDay = duration === "multiple days" ? true : false;
-      const nowDateTime = moment().format("YYYY-MM-DDTHH:mm:ss") + "Z";
+      const nowDateTimeMoment = moment();
 
       if (isRecurring) {
         const { startdate } = event;
-        const startDate = moment(startdate).format("YYYY-MM-DDTHH:mm:ss") + "Z";
-        const weekdayOfEvent = moment(startDate).isoWeekday();
-        const weekdayToday = moment().isoWeekday();
-        let recurringEvent = event;
-
-        if (weekdayToday >= weekdayOfEvent) {
-          const nextdate =
-            moment(nowDateTime)
-              .add(1, "weeks")
-              .isoWeekday(weekdayOfEvent)
-              .format("YYYY-MM-DDTHH:mm:ss") + "Z";
-          recurringEvent = { ...event, startdate: nextdate };
-        } else {
-          const nextdate =
-            moment(nowDateTime)
-              .isoWeekday(weekdayOfEvent)
-              .format("YYYY-MM-DDTHH:mm:ss") + "Z";
-          recurringEvent = { ...event, startdate: nextdate };
-        }
-        return recurringEvent;
+        const startDateAsUTC =
+          moment(startdate).format("YYYY-MM-DDTHH:mm:ss") + "Z";
+        const modifiedEvent = {
+          ...event,
+          startdate: startDateAsUTC,
+        };
+        return modifiedEvent;
       } else if (!isMultiDay) {
-        const { startdate, durationInHours } = event;
-        const startDate = moment(startdate).format("YYYY-MM-DDTHH:mm:ss") + "Z";
-        const endDate =
-          moment(startDate)
-            .add(durationInHours, "hours")
-            .format("YYYY-MM-DDTHH:mm:ss") + "Z";
-        if (moment(endDate).isAfter(moment(nowDateTime))) {
+        const { durationInHours } = event;
+        const endDateTimeMoment = moment(event.startdate).add(
+          durationInHours,
+          "hours"
+        );
+        if (nowDateTimeMoment.isBefore(endDateTimeMoment)) {
           return event;
         }
       } else if (isMultiDay) {
-        const { multidayenddate } = event;
-        const endDate =
-          moment(multidayenddate).format("YYYY-MM-DDTHH:mm:ss") + "Z";
-        if (moment(endDate).isAfter(moment(nowDateTime))) {
+        const endDateTimeMoment = moment(event.multidayenddate);
+        if (nowDateTimeMoment.isBefore(endDateTimeMoment)) {
           return event;
         }
       }
+
+      return;
     });
 
     return res.status(200).send({
