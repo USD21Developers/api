@@ -89,6 +89,14 @@ exports.POST = (req, res) => {
     });
   }
 
+  // event description headline
+  if (!descriptionheadline.trim().length) {
+    return res.status(400).send({
+      msg: "event description headline is required",
+      msgType: "error",
+    });
+  }
+
   // event description
   if (!eventdescription.trim().length) {
     return res.status(400).send({
