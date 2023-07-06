@@ -104,38 +104,28 @@ exports.GET = (req, res) => {
       return item;
     });
 
-    const unexpiredEvents = events.map((event) => {
-      const { duration, frequency } = event;
-      const isRecurring = frequency === "once" ? false : true;
+    const unexpiredEvents = events.filter((event) => {
+      const { duration } = event;
       const isMultiDay = duration === "multiple days" ? true : false;
       const nowDateTimeMoment = moment();
 
-      if (isRecurring) {
-        const { startdate } = event;
-        const startDateAsUTC =
-          moment(startdate).format("YYYY-MM-DDTHH:mm:ss") + "Z";
-        const modifiedEvent = {
-          ...event,
-          startdate: startDateAsUTC,
-        };
-        return modifiedEvent;
-      } else if (!isMultiDay) {
+      if (!isMultiDay) {
         const { durationInHours } = event;
         const endDateTimeMoment = moment(event.startdate).add(
           durationInHours,
           "hours"
         );
         if (nowDateTimeMoment.isBefore(endDateTimeMoment)) {
-          return event;
+          return true;
         }
+        return false;
       } else if (isMultiDay) {
         const endDateTimeMoment = moment(event.multidayenddate);
         if (nowDateTimeMoment.isBefore(endDateTimeMoment)) {
-          return event;
+          return true;
         }
+        return false;
       }
-
-      return;
     });
 
     return res.status(200).send({
