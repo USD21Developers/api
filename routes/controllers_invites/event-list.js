@@ -126,6 +126,8 @@ exports.GET = (req, res) => {
         }
         return false;
       }
+
+      return true;
     });
 
     return res.status(200).send({
