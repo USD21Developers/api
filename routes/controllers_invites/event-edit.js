@@ -27,6 +27,7 @@ exports.POST = (req, res) => {
   const language = req.body.language || "";
   const eventtype = req.body.eventtype || "";
   const eventtitle = req.body.eventtitle || "";
+  const descriptionheadline = req.body.descriptionHeadline || "";
   const eventdescription = req.body.eventdescription || "";
   const frequency = req.body.frequency || "";
   const duration = req.body.duration || "";
@@ -105,6 +106,14 @@ exports.POST = (req, res) => {
   if (!eventtitle.trim().length) {
     return res.status(400).send({
       msg: "event title is required",
+      msgType: "error",
+    });
+  }
+
+  // event description headline
+  if (!descriptionheadline.trim().length) {
+    return res.status(400).send({
+      msg: "event description headline is required",
       msgType: "error",
     });
   }
@@ -633,6 +642,7 @@ exports.POST = (req, res) => {
             churchid = ?,
             type = ?,
             title = ?,
+            descriptionHeading = ?,
             description = ?,
             frequency = ?,
             timezone = ?,
@@ -690,6 +700,7 @@ exports.POST = (req, res) => {
           churchid,
           eventtype,
           eventtitle,
+          descriptionheadline,
           eventdescription,
           frequency,
           timezone,
@@ -772,6 +783,7 @@ exports.POST = (req, res) => {
           churchid,
           eventtype,
           eventtitle,
+          descriptionheadline,
           eventdescription,
           frequency,
           timezone,
@@ -983,6 +995,7 @@ exports.POST = (req, res) => {
                   churchid,
                   eventtype,
                   eventtitle,
+                  descriptionheadline,
                   eventdescription,
                   frequency,
                   timezone,
