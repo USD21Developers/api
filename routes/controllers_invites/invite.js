@@ -1,3 +1,5 @@
+const moment = require("moment");
+
 exports.POST = (req, res) => {
   // Set database
   const isStaging =
@@ -29,6 +31,10 @@ exports.POST = (req, res) => {
       const sql = `
         SELECT
           *,
+          CASE 
+            WHEN frequency != 'once' AND startdate < CURDATE() THEN CONCAT(DATE_FORMAT(DATE_ADD(startdate, INTERVAL (DATEDIFF(CURDATE(), startdate) DIV 7 + 1) * 7 DAY), '%Y-%m-%dT%H:%i:%s'), 'Z')
+            ELSE CONCAT(DATE_FORMAT(startdate, '%Y-%m-%dT%H:%i:%s'), 'Z')
+          END AS startdateNext,
           (
             SELECT COUNT(*)
             FROM events 
@@ -144,6 +150,12 @@ exports.POST = (req, res) => {
     const event = eventid
       ? await getEvent(db, eventid).catch(() => null)
       : null;
+    if (event.frequency !== "once") {
+      event.startDateOriginal =
+        moment(event.startdate).format("YYYY-MM-DDTHH:mm:ss") + "Z";
+      event.startdate = event.startdateNext;
+      delete event.startdateNext;
+    }
     const user = userid ? await getUser(db, userid).catch(() => null) : null;
     const recipient =
       eventid && userid && recipientid
