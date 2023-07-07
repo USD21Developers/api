@@ -279,7 +279,13 @@ exports.getEventsByUser = (db, userid, useridOfRequester) => {
         )
       AND
           (
-            startdate >= CURDATE()
+            frequency != 'once'
+            OR
+            (
+              frequency = 'once'
+              AND
+              startdate >= CURDATE()
+            )
             OR
             multidayenddate >= CURDATE()
           )
@@ -364,7 +370,13 @@ exports.getEventsByFollowedUsers = (db, userid, useridOfRequester) => {
         )
       AND
           (
-            startdate >= CURDATE()
+            frequency != 'once'
+            OR
+            (
+              frequency = 'once'
+              AND
+              startdate >= CURDATE()
+            )
             OR
             multidayenddate >= CURDATE()
           )

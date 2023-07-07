@@ -52,9 +52,26 @@ exports.GET = (req, res) => {
       duration,
       durationInHours,
       timezone,
-      startdate,
-      multidaybegindate,
-      multidayenddate,
+      
+      CASE 
+          WHEN frequency != 'once' AND startdate < CURDATE() THEN CONCAT(DATE_FORMAT(DATE_ADD(startdate, INTERVAL (DATEDIFF(CURDATE(), startdate) DIV 7 + 1) * 7 DAY), '%Y-%m-%dT%H:%i:%s'), 'Z')
+          ELSE CONCAT(DATE_FORMAT(startdate, '%Y-%m-%dT%H:%i:%s'), 'Z')
+      END AS startdate,
+      
+      CONCAT(
+        DATE_FORMAT(multidaybegindate, '%Y-%m-%d'),
+            'T',
+            TIME_FORMAT(multidaybegindate, '%T'),
+            'Z'
+      ) AS multidaybegindate,
+
+      CONCAT(
+        DATE_FORMAT(multidayenddate, '%Y-%m-%d'),
+            'T',
+            TIME_FORMAT(multidayenddate, '%T'),
+            'Z'
+      ) AS multidayenddate,
+      
       locationvisibility,
       locationaddressline1,
       locationaddressline2,
@@ -76,6 +93,18 @@ exports.GET = (req, res) => {
         createdBy = ?
         OR
         sharewithfollowers = "yes"
+      )
+    AND
+      (
+        frequency != 'once'
+        OR
+        (
+          frequency = 'once'
+          AND
+          startdate >= CURDATE()
+        )
+        OR
+        multidayenddate >= CURDATE()
       )
     ORDER BY
       type, title
