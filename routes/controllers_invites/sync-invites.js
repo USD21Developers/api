@@ -96,7 +96,7 @@ exports.POST = (req, res) => {
       });
 
       const sql = `
-        INSERT INTO invitations(
+        REPLACE INTO invitations(
           eventid,
           userid,
           recipientid,
