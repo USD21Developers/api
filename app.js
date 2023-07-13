@@ -15,6 +15,8 @@ const requestIp = require("request-ip");
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
+app.options("*", cors());
+
 app.use(cors());
 app.use(express.json({ limit: "50mb" }));
 app.use(
