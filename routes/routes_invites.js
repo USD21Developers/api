@@ -104,4 +104,7 @@ router.get("/userprofile/:userid", authenticateToken, userProfile.GET);
 const invite = require("./controllers_invites/invite");
 router.post("/invite", invite.POST);
 
+const saveInvite = require("./controllers_invites/save-invite");
+router.post("/save-invite", saveInvite.POST);
+
 module.exports = router;
