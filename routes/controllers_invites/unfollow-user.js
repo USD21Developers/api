@@ -4,7 +4,6 @@ exports.POST = async (req, res) => {
   const allowedUsertypes = ["sysadmin", "user"];
   let isAuthorized = false;
   if (allowedUsertypes.includes(usertype)) isAuthorized = true;
-  if (req.user.may_create_coupons) isAuthorized = true;
   if (!isAuthorized) {
     console.log(`User (userid ${req.user.userid}) is not authorized.`);
     return res.status(401).send({

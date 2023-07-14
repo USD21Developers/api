@@ -4,7 +4,6 @@ exports.POST = (req, res) => {
   const allowedUsertypes = ["sysadmin", "user"];
   let isAuthorized = false;
   if (allowedUsertypes.includes(usertype)) isAuthorized = true;
-  if (req.user.may_create_coupons) isAuthorized = true;
   if (!isAuthorized) {
     console.log(`User (userid ${req.user.userid}) is not authorized.`);
     return res.status(401).send({
@@ -40,13 +39,11 @@ exports.POST = (req, res) => {
   db.query(sql, [eventid], (error, result) => {
     if (error) {
       console.log(error);
-      return res
-        .status(500)
-        .send({
-          msg: "unable to query for event",
-          msgType: "error",
-          error: error,
-        });
+      return res.status(500).send({
+        msg: "unable to query for event",
+        msgType: "error",
+        error: error,
+      });
     }
 
     if (!result.length) {
@@ -81,12 +78,10 @@ exports.POST = (req, res) => {
     db.query(sql, [eventid], (error, result) => {
       if (error) {
         console.log(error);
-        return res
-          .status(500)
-          .send({
-            msg: "unable to query for invites sent for this event",
-            msgType: "error",
-          });
+        return res.status(500).send({
+          msg: "unable to query for invites sent for this event",
+          msgType: "error",
+        });
       }
 
       const someoneWasInvitedToEvent = result.length || false;
