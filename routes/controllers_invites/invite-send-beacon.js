@@ -104,9 +104,7 @@ exports.POST = (req, res) => {
             });
           }
 
-          console.log(result);
-
-          res.status(200).send({
+          return res.status(200).send({
             msg: "invite successfully saved via sendBeacon",
             msgType: "success",
           });
