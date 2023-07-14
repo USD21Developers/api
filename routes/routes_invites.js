@@ -104,7 +104,7 @@ router.get("/userprofile/:userid", authenticateToken, userProfile.GET);
 const invite = require("./controllers_invites/invite");
 router.post("/invite", invite.POST);
 
-const saveInvite = require("./controllers_invites/save-invite");
-router.post("/save-invite", saveInvite.POST);
+const saveInvite = require("./controllers_invites/invite-send-beacon");
+router.post("/invite-send-beacon", saveInvite.POST);
 
 module.exports = router;
