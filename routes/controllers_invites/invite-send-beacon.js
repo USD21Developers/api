@@ -46,6 +46,20 @@ exports.POST = (req, res) => {
         exp,
       } = userdata;
 
+      // Enforce authorization
+      let isAuthorizedInThisRoute = false;
+      const allowedUsertypes = ["sysadmin", "user"];
+      if (allowedUsertypes.includes(userdata.usertype))
+        isAuthorizedInThisRoute = true;
+      if (!userdata.isAuthorized) isAuthorizedInThisRoute = false;
+      if (!isAuthorizedInThisRoute) {
+        console.log(`User (userid ${userdata.userid}) is not authorized.`);
+        return res.status(401).send({
+          msg: "user is not authorized for this action",
+          msgType: "error",
+        });
+      }
+
       const timeMomentObj = moment.utc(utctime);
       const invitedAt = timeMomentObj.format("YYYY-MM-DD HH:mm:ss");
       const createdAt = moment.utc().format("YYYY-MM-DD HH:mm:ss");
