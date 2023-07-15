@@ -51,7 +51,7 @@ exports.POST = (req, res) => {
       const allowedUsertypes = ["sysadmin", "user"];
       if (allowedUsertypes.includes(userdata.usertype))
         isAuthorizedInThisRoute = true;
-      if (!userdata.isAuthorized) isAuthorizedInThisRoute = false;
+      // if (!userdata.isAuthorized) isAuthorizedInThisRoute = false;
       if (!isAuthorizedInThisRoute) {
         console.log(`User (userid ${userdata.userid}) is not authorized.`);
         return res.status(401).send({
