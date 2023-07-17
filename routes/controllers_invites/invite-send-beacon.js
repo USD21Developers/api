@@ -66,7 +66,7 @@ exports.POST = (req, res) => {
       let point = null;
       if (coords !== null) {
         const { lat, long } = coords;
-        point = point = `POINT(${lat} ${long})`;
+        point = `POINT(${parseFloat(lat)} ${parseFloat(long)})`;
       }
 
       const encryptedSms = recipientsms ? JSON.stringify(recipientsms) : null;

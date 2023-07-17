@@ -69,7 +69,7 @@ exports.POST = (req, res) => {
         let point = null;
         if (coords !== null) {
           const { lat, long } = coords;
-          point = `POINT(${lat} ${long})`;
+          point = `POINT(${parseFloat(lat)} ${parseFloat(long)})`;
         }
 
         const encryptedSms = recipientsms ? JSON.stringify(recipientsms) : null;
@@ -116,19 +116,17 @@ exports.POST = (req, res) => {
       db.query(sql, [values], (err, result) => {
         if (err) {
           console.log(err);
-          return res.status(500).send({
-            msg: "unable to insert unsyncedInvites",
-            msgType: "error",
-          });
+          return reject(err);
         }
 
-        getInvites(req.user.userid).then((invites) => {
-          return res.status(200).send({
-            msg: "invites synced",
-            msgType: "success",
-            invites: invites,
+        getInvites(req.user.userid)
+          .then((invites) => {
+            return resolve(invites);
+          })
+          .catch((error) => {
+            console.log(error);
+            return reject(error);
           });
-        });
       });
     });
   }
