@@ -68,7 +68,7 @@ exports.POST = (req, res) => {
         } = recipient;
         let point = null;
         if (coords !== null) {
-          const { lat, long } = coordinates;
+          const { lat, long } = coords;
           point = `ST_GeomFromText( POINT(${lat} ${long}) )`;
         }
 
