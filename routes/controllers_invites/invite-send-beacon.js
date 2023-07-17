@@ -65,7 +65,7 @@ exports.POST = (req, res) => {
       const createdAt = moment.utc().format("YYYY-MM-DD HH:mm:ss");
       let point = null;
       if (coords !== null) {
-        const { lat, long } = coordinates;
+        const { lat, long } = coords;
         point = `ST_GeomFromText( POINT(${lat} ${long}) )`;
       }
 
