@@ -74,7 +74,7 @@ exports.POST = (req, res) => {
         ? JSON.stringify(recipientemail)
         : null;
 
-      const sql = `
+      let sql = `
         REPLACE INTO invitations(
           eventid,
           userid,
@@ -92,6 +92,12 @@ exports.POST = (req, res) => {
           ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
         );
       `;
+      if (coords !== null) {
+        const { lat, long } = coords;
+        pointBefore = `'POINT(${parseFloat(lat)} ${parseFloat(long)})'`;
+        pontAfter = `POINT(${parseFloat(lat)} ${parseFloat(long)})`;
+        sql = sql.replace(pointBefore, pontAfter);
+      }
 
       db.query(
         sql,
