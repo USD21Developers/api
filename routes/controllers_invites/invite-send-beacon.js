@@ -66,7 +66,7 @@ exports.POST = (req, res) => {
       let point = null;
       if (coords !== null) {
         const { lat, long } = coords;
-        point = point = "ST_GeomFromText('POINT(" + lat + " " + long + ")')";
+        point = point = `POINT(${lat} ${long})`;
       }
 
       const encryptedSms = recipientsms ? JSON.stringify(recipientsms) : null;
