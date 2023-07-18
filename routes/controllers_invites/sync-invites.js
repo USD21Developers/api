@@ -1,6 +1,6 @@
 const moment = require("moment");
 
-exports.POST = (req, res) => {
+exports.POST = async (req, res) => {
   // Enforce authorization
   const usertype = req.user.usertype;
   const allowedUsertypes = ["sysadmin", "user"];
@@ -52,82 +52,89 @@ exports.POST = (req, res) => {
   }
 
   // Query to store unsynced invites
-  function saveUnsyncedInvites() {
-    return new Promise((resolve, reject) => {
-      const values = unsyncedInvites.map((item) => {
+  function saveUnsyncedInvites(unsyncedInvites) {
+    const unsyncedInvitePromises = unsyncedInvites.map((item) => {
+      return new Promise((resolve, reject) => {
         const { eventid, sentvia, coords, utctime, timezone, recipient } = item;
         const timeMomentObj = moment.utc(utctime);
         const invitedAt = timeMomentObj.format("YYYY-MM-DD HH:mm:ss");
         const createdAt = moment.utc().format("YYYY-MM-DD HH:mm:ss");
-
         const {
           id: recipientid,
           name: recipientname,
           sms: recipientsms,
           email: recipientemail,
         } = recipient;
-        let point = null;
-        if (coords !== null) {
-          const { lat, long } = coords;
-          point = `POINT(${parseFloat(lat)} ${parseFloat(long)})`;
-        }
-
+        const pointCoords = coords ? `POINT( ${lat} ${long} )` : null;
         const encryptedSms = recipientsms ? JSON.stringify(recipientsms) : null;
         const encryptedEmail = recipientemail
           ? JSON.stringify(recipientemail)
           : null;
 
-        const value = [
-          eventid,
-          req.user.userid,
-          recipientid,
-          recipientname,
-          encryptedSms,
-          encryptedEmail,
-          sentvia,
-          point,
-          timezone,
-          req.user.lang,
-          invitedAt,
-          createdAt,
-        ];
-        return value;
+        const sql = `
+          REPLACE INTO invitations(
+            eventid,
+            userid,
+            recipientid,
+            recipientname,
+            recipientsms,
+            recipientemail,
+            sharedvia,
+            sharedfromcoordinates,
+            sharedfromtimezone,
+            lang,
+            invitedAt,
+            createdAt
+          ) VALUES (
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ST_GeomFromText( ? ),
+            ?,
+            ?,
+            ?,
+            ?
+          )
+        `;
+
+        db.query(
+          sql,
+          [
+            eventid,
+            req.user.userid,
+            recipientid,
+            recipientname,
+            encryptedSms,
+            encryptedEmail,
+            sentvia,
+            pointCoords,
+            timezone,
+            req.user.lang,
+            invitedAt,
+            createdAt,
+          ],
+          (error, result) => {
+            if (error) {
+              console.log(error);
+              return reject(error);
+            }
+
+            return resolve();
+          }
+        );
       });
+    });
 
-      const sql = `
-        REPLACE INTO invitations(
-          eventid,
-          userid,
-          recipientid,
-          recipientname,
-          recipientsms,
-          recipientemail,
-          sharedvia,
-          sharedfromcoordinates,
-          sharedfromtimezone,
-          lang,
-          invitedAt,
-          createdAt
-        ) VALUES 
-          ?
-        ;
-      `;
-
-      db.query(sql, [values], (err, result) => {
-        if (err) {
-          console.log(err);
-          return reject(err);
-        }
-
-        getInvites(req.user.userid)
-          .then((invites) => {
-            return resolve(invites);
-          })
-          .catch((error) => {
-            console.log(error);
-            return reject(error);
-          });
-      });
+    Promise.allSettled(unsyncedInvitePromises, (values) => {
+      console.log(values);
+      return Promise.resolve(values);
+    }).catch((err) => {
+      console.log(err);
+      return Promise.reject(err);
     });
   }
 
@@ -197,14 +204,12 @@ exports.POST = (req, res) => {
   }
 
   if (unsyncedInvitesLength) {
-    saveUnsyncedInvites(unsyncedInvites).then(() => {
-      getInvites().then((invites) => {
-        return res.status(200).send({
-          msg: "invites synced",
-          msgType: "success",
-          invites: invites,
-        });
-      });
+    await saveUnsyncedInvites(unsyncedInvites);
+    const invites = await getInvites();
+    return res.status(200).send({
+      msg: "invites synced",
+      msgType: "success",
+      invites: invites,
     });
   } else {
     getInvites().then((invites) => {

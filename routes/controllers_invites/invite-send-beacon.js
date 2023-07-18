@@ -63,12 +63,7 @@ exports.POST = (req, res) => {
       const timeMomentObj = moment.utc(utctime);
       const invitedAt = timeMomentObj.format("YYYY-MM-DD HH:mm:ss");
       const createdAt = moment.utc().format("YYYY-MM-DD HH:mm:ss");
-      let point = null;
-      if (coords !== null) {
-        const { lat, long } = coords;
-        point = `POINT(${parseFloat(lat)} ${parseFloat(long)})`;
-      }
-
+      const pointCoords = coords ? `POINT( ${lat} ${long} )` : null;
       const encryptedSms = recipientsms ? JSON.stringify(recipientsms) : null;
       const encryptedEmail = recipientemail
         ? JSON.stringify(recipientemail)
@@ -92,12 +87,6 @@ exports.POST = (req, res) => {
           ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
         );
       `;
-      if (coords !== null) {
-        const { lat, long } = coords;
-        pointBefore = `'POINT(${parseFloat(lat)} ${parseFloat(long)})'`;
-        pontAfter = `POINT(${parseFloat(lat)} ${parseFloat(long)})`;
-        sql = sql.replace(pointBefore, pontAfter);
-      }
 
       db.query(
         sql,
@@ -109,7 +98,7 @@ exports.POST = (req, res) => {
           encryptedSms,
           encryptedEmail,
           sentvia,
-          point,
+          pointCoords,
           timezone,
           lang,
           invitedAt,
