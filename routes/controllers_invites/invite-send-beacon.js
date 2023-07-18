@@ -86,7 +86,18 @@ exports.POST = (req, res) => {
           invitedAt,
           createdAt
         ) VALUES (
-          ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ST_GeomFromText( ? ),
+            ?,
+            ?,
+            ?,
+            ?
         );
       `;
 
@@ -94,7 +105,7 @@ exports.POST = (req, res) => {
         sql,
         [
           eventid,
-          userid,
+          userdata.userid,
           recipientid,
           recipientname,
           encryptedSms,
@@ -102,7 +113,7 @@ exports.POST = (req, res) => {
           sentvia,
           pointCoords,
           timezone,
-          lang,
+          userdata.lang,
           invitedAt,
           createdAt,
         ],
