@@ -63,7 +63,9 @@ exports.POST = (req, res) => {
       const timeMomentObj = moment.utc(utctime);
       const invitedAt = timeMomentObj.format("YYYY-MM-DD HH:mm:ss");
       const createdAt = moment.utc().format("YYYY-MM-DD HH:mm:ss");
-      const pointCoords = coords ? `POINT( ${lat} ${long} )` : null;
+      const pointCoords = coords
+        ? `POINT( ${coords.lat} ${coords.long} )`
+        : null;
       const encryptedSms = recipientsms ? JSON.stringify(recipientsms) : null;
       const encryptedEmail = recipientemail
         ? JSON.stringify(recipientemail)
