@@ -120,16 +120,16 @@ exports.POST = (req, res) => {
         (err, result) => {
           if (err) {
             console.log(err);
-            return res.status(500).send({
-              msg: "unable to save invite via sendBeacon",
-              msgType: "error",
-            });
+            return res
+              .setHeader("Content-Type", "text/plain")
+              .status(500)
+              .send("unable to save invite via sendBeacon");
           }
 
-          return res.status(200).send({
-            msg: "invite successfully saved via sendBeacon",
-            msgType: "success",
-          });
+          return res
+            .setHeader("Content-Type", "text/plain")
+            .status(200)
+            .send("invite successfully saved via sendBeacon");
         }
       );
     }
