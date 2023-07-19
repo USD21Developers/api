@@ -17,7 +17,8 @@ exports.POST = (req, res) => {
       if (err) {
         return res
           .status(403)
-          .send({ msg: "invalid access token", msgType: "error", err: err });
+          .setHeader("Content-Type", "text/plain")
+          .send("invalid access token");
       }
 
       const { eventid, sentvia, coords, utctime, timezone, recipient } = invite;
@@ -54,10 +55,10 @@ exports.POST = (req, res) => {
       // if (!userdata.isAuthorized) isAuthorizedInThisRoute = false;
       if (!isAuthorizedInThisRoute) {
         console.log(`User (userid ${userdata.userid}) is not authorized.`);
-        return res.status(401).send({
-          msg: "user is not authorized for this action",
-          msgType: "error",
-        });
+        return res
+          .setHeader("Content-Type", "text/plain")
+          .status(401)
+          .send("user is not authorized for this action");
       }
 
       const timeMomentObj = moment.utc(utctime);
