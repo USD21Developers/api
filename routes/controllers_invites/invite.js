@@ -165,7 +165,7 @@ exports.POST = (req, res) => {
             }
 
             if (!result.length) {
-              // User did NOT send this event by following another user. Return an error:
+              // User did NOT send the event by following another user. Return an error:
               return reject(new Error("user not associated with event"));
             }
 
