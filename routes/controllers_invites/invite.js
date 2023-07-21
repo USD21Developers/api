@@ -95,6 +95,8 @@ exports.POST = (req, res) => {
         ;
       `;
 
+      // Does user exist?
+
       db.query(sql, [userid], (error, result) => {
         if (error) {
           console.log(error);
@@ -102,10 +104,75 @@ exports.POST = (req, res) => {
         }
 
         if (!result.length) {
+          // User does NOT exist. Return an error.
           return reject(new Error("user not found"));
         }
 
-        return resolve(result[0]);
+        // User does exist!
+
+        const userObject = result[0];
+
+        const sql = `
+          SELECT
+            title
+          FROM
+            events
+          WHERE
+            eventid = ?
+          AND
+            createdBy = ?
+          LIMIT
+            1
+          ;
+        `;
+
+        // Did user create the event?
+
+        db.query(sql, [eventid, userid], (error, result) => {
+          if (error) {
+            console.log(error);
+            return reject(new Error("unable to query for user's events"));
+          }
+
+          if (result.length) {
+            // User DID create the event! Return the user object:
+            return resolve(userObject);
+          }
+
+          const sql = `
+            SELECT
+              title
+            FROM
+              events e
+            INNER JOIN follow f ON f.follower = ?
+            WHERE
+              e.eventid = ?
+            AND
+              e.createdBy = f.followed
+            LIMIT
+              1
+            ;
+          `;
+
+          // User did NOT create the event. Did user send it by following another user?
+
+          db.query(sql, [userid, eventid], (error, result) => {
+            if (error) {
+              console.log(error);
+              return reject(
+                new Error("unable to query for events followed by user")
+              );
+            }
+
+            if (!result.length) {
+              // User did NOT send this event by following another user. Return an error:
+              return reject(new Error("user not associated with event"));
+            }
+
+            // User sent the event by following another user! Return the user object:
+            return resolve(userObject);
+          });
+        });
       });
     });
   };
