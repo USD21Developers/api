@@ -148,6 +148,134 @@ exports.POST = (req, res) => {
     });
   };
 
+  const notifySender = (event, user, recipient, emailObject) => {
+    return new Promise((resolve, reject) => {
+      let emailPlainText = `
+SUBJECT:  {RECIPIENT-NAME} viewed your invite
+
+=========
+
+BODY:
+
+=========
+
+{RECIPIENT-NAME} has viewed the invite you sent for the following event:
+
+
+EVENT:
+{EVENT-TITLE}
+{EVENT-DATETIME}
+
+
+INVITE VIEWED:
+{DATE-VIEWED}
+
+
+INVITE SENT:
+{DATE-SENT}
+
+
+Follow up with {RECIPIENT-NAME}:
+
+https://invites.mobi/recipient/{INVITE-ID}
+
+==========
+
+About the Invites App:
+
+https://invites.mobi/about/
+
+==========
+
+Message ID: {UUID}
+
+==========      
+      `;
+
+      const userLocale = `${event.lang}-${event.country.toUpperCase()}`;
+      const dateTimeNow = new Intl.DateTimeFormat(userLocale, {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        timeZone: event.timezone,
+      }).format(new Date(Date.now()));
+      const dateTimeSent = new Intl.DateTimeFormat(userLocale, {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        timeZone: event.timezone,
+      }).format(new Date(recipient.invitedAt));
+      let eventDateTime;
+      const isRecurringEvent = event.frequency === "once" ? false : true;
+      const isMultiDay = event.multidaybegindate ? true : false;
+
+      if (isRecurringEvent) {
+        eventDateTime = new Intl.DateTimeFormat(userLocale, {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "numeric",
+          timeZone: event.timezone,
+        }).format(new Date(event.startdate));
+      } else if (!isMultiDay) {
+        eventDateTime = new Intl.DateTimeFormat(userLocale, {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "numeric",
+          timeZone: event.timezone,
+        }).format(new Date(event.startdate));
+      } else if (isMultiDay) {
+        const fromDateTime = new Intl.DateTimeFormat(userLocale, {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "numeric",
+          timeZone: event.timezone,
+        }).format(new Date(event.startdate));
+        const toDateTime = new Intl.DateTimeFormat(userLocale, {
+          weekday: "short",
+          month: "sort",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "numeric",
+          timeZone: event.timezone,
+        }).format(new Date(event.enddate));
+
+        eventDateTime = `${fromDateTime} - ${toDateTime}`;
+      }
+
+      emailPlainText = emailPlainText.replaceAll(
+        "{RECIPIENT-NAME}",
+        recipient.recipientname
+      );
+      emailPlainText = emailPlainText.replaceAll("{EVENT-TITLE}", event.title);
+      emailPlainText = emailPlainText.replaceAll(
+        "{EVENT-DATETIME}",
+        eventDateTime
+      );
+      emailPlainText = emailPlainText.replaceAll("{DATE-VIEWED}", dateTimeNow);
+      emailPlainText = emailPlainText.replaceAll("{DATE-SENT}", dateTimeSent);
+
+      // TODO:  Send the e-mail
+
+      resolve(emailPlainText);
+    });
+  };
+
   (async (db, res) => {
     const event = eventid
       ? await getEvent(db, eventid).catch(() => null)
@@ -163,6 +291,12 @@ exports.POST = (req, res) => {
       eventid && userid && recipientid
         ? await getRecipient(db, eventid, userid, recipientid).catch(() => null)
         : null;
+
+    // Notify sender
+    if (event && user && recipient) {
+      notifySender(event, user, recipient);
+    }
+
     return res.status(200).send({
       msg: "invite retrieved",
       msgType: "success",
