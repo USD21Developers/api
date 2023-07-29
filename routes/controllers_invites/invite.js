@@ -11,6 +11,9 @@ exports.POST = (req, res) => {
   const eventid = Number(req.body.eventid) || null;
   const userid = Number(req.body.userid) || null;
   const recipientid = req.body.recipientid || null;
+  const timezone = req.body.timezone || null;
+  const emailHtml = req.body.emailHtml || null;
+  const emailPhrases = req.body.emailPhrases || null;
 
   // Validate eventid
   if (!eventid) {
@@ -148,50 +151,8 @@ exports.POST = (req, res) => {
     });
   };
 
-  const notifySender = (event, user, recipient, emailObject) => {
+  const notifySender = (event, user, recipient, emailHtml, emailPhrases) => {
     return new Promise((resolve, reject) => {
-      let emailPlainText = `
-SUBJECT:  {RECIPIENT-NAME} viewed your invite
-
-=========
-
-BODY:
-
-=========
-
-{RECIPIENT-NAME} has viewed the invite you sent for the following event:
-
-
-EVENT:
-{EVENT-TITLE}
-{EVENT-DATETIME}
-
-
-INVITE VIEWED:
-{DATE-VIEWED}
-
-
-INVITE SENT:
-{DATE-SENT}
-
-
-Follow up with {RECIPIENT-NAME}:
-
-https://invites.mobi/recipient/{INVITE-ID}
-
-==========
-
-About the Invites App:
-
-https://invites.mobi/about/
-
-==========
-
-Message ID: {UUID}
-
-==========      
-      `;
-
       const userLocale = `${event.lang}-${event.country.toUpperCase()}`;
       const dateTimeNow = new Intl.DateTimeFormat(userLocale, {
         weekday: "long",
@@ -294,7 +255,7 @@ Message ID: {UUID}
 
     // Notify sender
     if (event && user && recipient) {
-      notifySender(event, user, recipient);
+      notifySender(event, user, recipient, emailHtml, emailPhrases);
     }
 
     return res.status(200).send({
