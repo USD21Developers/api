@@ -151,9 +151,18 @@ exports.POST = (req, res) => {
     });
   };
 
-  const notifySender = (event, user, recipient, emailHtml, emailPhrases) => {
+  const notifySender = (
+    eventObj,
+    userObj,
+    recipientObj,
+    timezone,
+    emailHtml,
+    emailPhrases
+  ) => {
     return new Promise((resolve, reject) => {
-      const userLocale = `${event.lang}-${event.country.toUpperCase()}`;
+      const crypto = require("crypto");
+      const messageID = crypto.randomUUID();
+      const userLocale = `${eventObj.lang}-${eventObj.country.toUpperCase()}`;
       const dateTimeNow = new Intl.DateTimeFormat(userLocale, {
         weekday: "long",
         month: "long",
@@ -161,7 +170,7 @@ exports.POST = (req, res) => {
         year: "numeric",
         hour: "numeric",
         minute: "numeric",
-        timeZone: event.timezone,
+        timeZone: eventObj.timezone,
       }).format(new Date(Date.now()));
       const dateTimeSent = new Intl.DateTimeFormat(userLocale, {
         weekday: "long",
@@ -170,11 +179,21 @@ exports.POST = (req, res) => {
         year: "numeric",
         hour: "numeric",
         minute: "numeric",
-        timeZone: event.timezone,
-      }).format(new Date(recipient.invitedAt));
+        timeZone: eventObj.timezone,
+      }).format(new Date(recipientObj.invitedAt));
       let eventDateTime;
-      const isRecurringEvent = event.frequency === "once" ? false : true;
-      const isMultiDay = event.multidaybegindate ? true : false;
+      const isRecurringEvent = eventObj.frequency === "once" ? false : true;
+      const isMultiDay = eventObj.multidaybegindate ? true : false;
+      let followUpLinkPrefix;
+      const referer = req.headers["referer"];
+      if (referer.indexOf("localhost") >= 0) {
+        followUpLinkPrefix = "http://localhost:5555/recipient/#";
+      } else if (referer.indexOf("staging") >= 0) {
+        followUpLinkPrefix = "https://staging.invites.mobi/recipient/#";
+      } else {
+        followUpLinkPrefix = "https://invites.mobi/recipient/#";
+      }
+      const followUpLink = `${followUpLinkPrefix}/${recipientObj.recipientid}`;
 
       if (isRecurringEvent) {
         eventDateTime = new Intl.DateTimeFormat(userLocale, {
@@ -184,8 +203,8 @@ exports.POST = (req, res) => {
           year: "numeric",
           hour: "numeric",
           minute: "numeric",
-          timeZone: event.timezone,
-        }).format(new Date(event.startdate));
+          timeZone: eventObj.timezone,
+        }).format(new Date(eventObj.startdate));
       } else if (!isMultiDay) {
         eventDateTime = new Intl.DateTimeFormat(userLocale, {
           weekday: "long",
@@ -194,8 +213,8 @@ exports.POST = (req, res) => {
           year: "numeric",
           hour: "numeric",
           minute: "numeric",
-          timeZone: event.timezone,
-        }).format(new Date(event.startdate));
+          timeZone: eventObj.timezone,
+        }).format(new Date(eventObj.startdate));
       } else if (isMultiDay) {
         const fromDateTime = new Intl.DateTimeFormat(userLocale, {
           weekday: "short",
@@ -204,8 +223,8 @@ exports.POST = (req, res) => {
           year: "numeric",
           hour: "numeric",
           minute: "numeric",
-          timeZone: event.timezone,
-        }).format(new Date(event.startdate));
+          timeZone: eventObj.timezone,
+        }).format(new Date(eventObj.startdate));
         const toDateTime = new Intl.DateTimeFormat(userLocale, {
           weekday: "short",
           month: "sort",
@@ -213,30 +232,77 @@ exports.POST = (req, res) => {
           year: "numeric",
           hour: "numeric",
           minute: "numeric",
-          timeZone: event.timezone,
-        }).format(new Date(event.enddate));
+          timeZone: eventObj.timezone,
+        }).format(new Date(eventObj.enddate));
 
         eventDateTime = `${fromDateTime} - ${toDateTime}`;
       }
 
-      emailPlainText = emailPlainText.replaceAll(
+      const jsdom = require("jsdom");
+      const { JSDOM } = jsdom;
+      const { document } = new JSDOM(emailHtml).window;
+
+      document.title = emailPhrases["email-subject-viewed-invite"]
+        .replaceAll("{RECIPIENT-NAME}", recipientObj.recipientname)
+        .replaceAll("{EVENT-TITLE}", eventObj.title);
+
+      // Match i18n keys with template keys
+      document.querySelectorAll("[data-i18n]").forEach((item) => {
+        const key = item.getAttribute("data-i18n");
+        const val = emailPhrases[key];
+
+        item.innerHTML = val;
+        item.removeAttribute("data-i18n");
+      });
+
+      // Match vars with template vars
+      document.querySelectorAll("[data-var]").forEach((item) => {
+        const key = item.getAttribute("data-var");
+
+        item.innerHTML = eval(key);
+        item.removeAttribute("data-var");
+      });
+
+      // Match event data with template event vars
+      document.querySelectorAll("[data-event]").forEach((item) => {
+        const key = item.getAttribute("data-event");
+        const val = eventObj[key];
+
+        item.innerHTML = val;
+        item.removeAttribute("data-event");
+      });
+
+      // Remaining variables
+      let subject = emailPhrases["email-subject-viewed-invite"];
+      subject = subject.replaceAll(
         "{RECIPIENT-NAME}",
-        recipient.recipientname
+        recipientObj.recipientname
       );
-      emailPlainText = emailPlainText.replaceAll("{EVENT-TITLE}", event.title);
-      emailPlainText = emailPlainText.replaceAll(
-        "{EVENT-DATETIME}",
-        eventDateTime
-      );
-      emailPlainText = emailPlainText.replaceAll("{DATE-VIEWED}", dateTimeNow);
-      emailPlainText = emailPlainText.replaceAll("{DATE-SENT}", dateTimeSent);
+      subject = subject.replaceAll("{EVENT-TITLE}", eventObj.title);
+      let body = document.body.innerHTML;
+      body = body.replaceAll("{RECIPIENT-NAME}", recipientObj.recipientname);
+      body = body.replaceAll("{EVENT-TITLE}", eventObj.title);
+      body = body.replaceAll("{FOLLOW-UP-LINK}", followUpLink);
 
-      // TODO:  Send the e-mail
+      const html = `
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${subject}</title>
+  </head>
+  <body>
+    ${body}
+  </body>
+</html>  
+      `.trim();
 
-      resolve(emailPlainText);
+      resolve(html);
     });
   };
 
+  // Main method
   (async (db, res) => {
     const event = eventid
       ? await getEvent(db, eventid).catch(() => null)
@@ -252,10 +318,11 @@ exports.POST = (req, res) => {
       eventid && userid && recipientid
         ? await getRecipient(db, eventid, userid, recipientid).catch(() => null)
         : null;
+    recipient.recipientid = recipientid;
 
     // Notify sender
     if (event && user && recipient) {
-      notifySender(event, user, recipient, emailHtml, emailPhrases);
+      notifySender(event, user, recipient, timezone, emailHtml, emailPhrases);
     }
 
     return res.status(200).send({
