@@ -119,6 +119,7 @@ exports.POST = (req, res) => {
     return new Promise((resolve, reject) => {
       const sql = `
         SELECT
+          invitationid,
           recipientname,
           sharedfromtimezone,
           lang,
@@ -148,6 +149,47 @@ exports.POST = (req, res) => {
 
         return resolve(result[0]);
       });
+    });
+  };
+
+  const recordThatInviteWasViewed = function (invitationid, userid, timezone) {
+    return new Promise((resolve, reject) => {
+      const interactionType = "viewed invite";
+
+      if (!invitationid)
+        return reject(new Error("invitationid is a required argument"));
+      if (!userid) return reject(new Error("userid is a required argument"));
+      if (!timezone)
+        return reject(new Error("timezone is a required argument"));
+
+      const sql = `
+        INSERT INTO interactions(
+          invitationid,
+          userid,
+          recipienttimezone,
+          interactiontype,
+          createdAt
+        ) VALUES (
+          ?,
+          ?,
+          ?,
+          ?,
+          UTC_TIMESTAMP()
+        )
+      `;
+
+      db.query(
+        sql,
+        [invitationid, userid, timezone, interactionType],
+        (error, result) => {
+          if (error) {
+            console.log(error);
+            return reject(new Error("unable to record that invite was viewed"));
+          }
+
+          return resolve(result);
+        }
+      );
     });
   };
 
@@ -187,13 +229,13 @@ exports.POST = (req, res) => {
       let followUpLinkPrefix;
       const referer = req.headers["referer"];
       if (referer.indexOf("localhost") >= 0) {
-        followUpLinkPrefix = "http://localhost:5555/recipient/#";
+        followUpLinkPrefix = "http://localhost:5555/r";
       } else if (referer.indexOf("staging") >= 0) {
-        followUpLinkPrefix = "https://staging.invites.mobi/recipient/#";
+        followUpLinkPrefix = "https://staging.invites.mobi/r";
       } else {
-        followUpLinkPrefix = "https://invites.mobi/recipient/#";
+        followUpLinkPrefix = "https://invites.mobi/r";
       }
-      const followUpLink = `${followUpLinkPrefix}/${recipientObj.recipientid}`;
+      const followUpLink = `${followUpLinkPrefix}/${eventObj.eventid}/${userObj.userid}/${recipientObj.recipientid}`;
 
       if (isRecurringEvent) {
         eventDateTime = new Intl.DateTimeFormat(userLocale, {
@@ -292,13 +334,22 @@ exports.POST = (req, res) => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${subject}</title>
   </head>
-  <body>
+  <body id="invitesemail">
     ${body}
   </body>
 </html>  
       `.trim();
 
-      resolve(html);
+      const result = {
+        sentEmail: false,
+        sentPushMessage: false,
+      };
+
+      // TODO:  Check DB for the most recent time that a notification occurred (only send notification if result is either null or more than 1 day ago)
+      // TODO:  Send the sender a notification via e-mail
+      // TODO:  Send the sender a notification via push message
+
+      resolve(result);
     });
   };
 
@@ -319,6 +370,10 @@ exports.POST = (req, res) => {
         ? await getRecipient(db, eventid, userid, recipientid).catch(() => null)
         : null;
     recipient.recipientid = recipientid;
+
+    // Record that invite was viewed
+    recordThatInviteWasViewed(recipient.invitationid, userid, timezone);
+    delete recipient.invitationid;
 
     // Notify sender
     if (event && user && recipient) {
