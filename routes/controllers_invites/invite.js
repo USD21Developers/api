@@ -87,6 +87,7 @@ exports.POST = (req, res) => {
           churchid,
           firstname,
           lastname,
+          email,
           gender,
           profilephoto,
           lang,
@@ -340,16 +341,74 @@ exports.POST = (req, res) => {
 </html>  
       `.trim();
 
-      const result = {
-        sentEmail: false,
-        sentPushMessage: false,
-      };
-
-      // TODO:  Check DB for the most recent time that a notification occurred (only send notification if result is either null or more than 1 day ago)
-      // TODO:  Send the sender a notification via e-mail
       // TODO:  Send the sender a notification via push message
 
-      resolve(result);
+      const sql = `
+        SELECT
+          lasttimenotified
+        FROM
+          invitations
+        WHERE
+          eventid = ?
+        AND
+          userid = ?
+        AND
+          recipientid = ?
+        LIMIT
+          1
+      `;
+
+      db.query(
+        sql,
+        [eventObj.eventid, userObj.userid, recipientObj.recipientid],
+        async (error, result) => {
+          if (error) {
+            console.log(error);
+            return reject(
+              new Error(
+                "unable to query for last time user was notified about this invite"
+              )
+            );
+          }
+
+          if (!result.length) {
+            return reject(new Error("invite not found"));
+          }
+
+          const lastTimeNotified = result[0].lasttimenotified || null;
+          let proceedWithNotification = true;
+
+          if (lastTimeNotified) {
+            const now = moment().utc();
+            const notified = moment(lastTimeNotified);
+            const okToNotifiy = notified.add(24, "hours");
+
+            if (now.isBefore(okToNotifiy)) {
+              proceedWithNotification = false;
+            }
+          }
+
+          if (!proceedWithNotification) {
+            return reject();
+          }
+
+          const sendEmail = require("./utils").sendEmail;
+
+          const to = `${userObj.firstname} ${userObj.lastname} <${userObj.email}>`;
+          const from = "invites.mobi";
+
+          const emailResult = await sendEmail(to, from, subject, html);
+
+          if (
+            emailResult[0].statusCode >= 200 &&
+            emailResult[0].statusCode < 300
+          ) {
+            return resolve(emailResult);
+          }
+
+          return reject(emailResult);
+        }
+      );
     });
   };
 
@@ -373,11 +432,19 @@ exports.POST = (req, res) => {
 
     // Record that invite was viewed
     recordThatInviteWasViewed(recipient.invitationid, userid, timezone);
-    delete recipient.invitationid;
 
     // Notify sender
     if (event && user && recipient) {
-      notifySender(event, user, recipient, timezone, emailHtml, emailPhrases);
+      await notifySender(
+        event,
+        user,
+        recipient,
+        timezone,
+        emailHtml,
+        emailPhrases
+      );
+      delete recipient.invitationid;
+      delete user.email;
     }
 
     return res.status(200).send({
