@@ -345,6 +345,7 @@ exports.POST = (req, res) => {
 
       const sql = `
         SELECT
+          invitationid,
           lasttimenotified
         FROM
           invitations
@@ -375,6 +376,7 @@ exports.POST = (req, res) => {
             return reject(new Error("invite not found"));
           }
 
+          const invitationid = result[0].invitationid;
           const lastTimeNotified = result[0].lasttimenotified || null;
           let proceedWithNotification = true;
 
@@ -403,7 +405,28 @@ exports.POST = (req, res) => {
             emailResult[0].statusCode >= 200 &&
             emailResult[0].statusCode < 300
           ) {
-            return resolve(emailResult);
+            const sql = `
+              UPDATE
+                invitations
+              SET
+                lasttimenotified = UTC_TIMESTAMP()
+              WHERE
+                invitationid = ?
+              ;
+            `;
+
+            db.query(sql, [invitationid], (error, result) => {
+              if (error) {
+                console.log(error);
+                return reject(
+                  new Error(
+                    "unable to invite with last time user was notified via e-mail"
+                  )
+                );
+              }
+
+              return resolve(emailResult);
+            });
           }
 
           return reject(emailResult);
