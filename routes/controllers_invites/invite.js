@@ -400,11 +400,12 @@ exports.POST = (req, res) => {
           const from = "invites.mobi";
 
           const emailResult = await sendEmail(to, from, subject, html);
+          const emailSucceeded =
+            emailResult[0].statusCode >= 200 && emailResult[0].statusCode < 300
+              ? true
+              : false;
 
-          if (
-            emailResult[0].statusCode >= 200 &&
-            emailResult[0].statusCode < 300
-          ) {
+          if (emailSucceeded) {
             const sql = `
               UPDATE
                 invitations
@@ -427,9 +428,9 @@ exports.POST = (req, res) => {
 
               return resolve(emailResult);
             });
+          } else {
+            return reject(emailResult);
           }
-
-          return reject(emailResult);
         }
       );
     });
