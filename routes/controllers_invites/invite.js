@@ -391,7 +391,7 @@ exports.POST = (req, res) => {
           }
 
           if (!proceedWithNotification) {
-            return reject();
+            return resolve();
           }
 
           const sendEmail = require("./utils").sendEmail;
@@ -459,26 +459,24 @@ exports.POST = (req, res) => {
 
     // Notify sender
     if (event && user && recipient) {
-      await notifySender(
-        event,
-        user,
-        recipient,
-        timezone,
-        emailHtml,
-        emailPhrases
-      );
-      delete recipient.invitationid;
-      delete user.email;
-    }
+      notifySender(event, user, recipient, timezone, emailHtml, emailPhrases)
+        .catch((err) => {
+          console.log(err);
+        })
+        .finally(() => {
+          delete recipient.invitationid;
+          delete user.email;
 
-    return res.status(200).send({
-      msg: "invite retrieved",
-      msgType: "success",
-      invite: {
-        event: event,
-        user: user,
-        recipient: recipient,
-      },
-    });
+          return res.status(200).send({
+            msg: "invite retrieved",
+            msgType: "success",
+            invite: {
+              event: event,
+              user: user,
+              recipient: recipient,
+            },
+          });
+        });
+    }
   })(db, res);
 };
