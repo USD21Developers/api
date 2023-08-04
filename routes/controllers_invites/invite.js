@@ -227,15 +227,17 @@ exports.POST = (req, res) => {
       let eventDateTime;
       const isRecurringEvent = eventObj.frequency === "once" ? false : true;
       const isMultiDay = eventObj.multidaybegindate ? true : false;
+      let domain;
       let followUpLinkPrefix;
       const referer = req.headers["referer"];
       if (referer.indexOf("localhost") >= 0) {
-        followUpLinkPrefix = "http://localhost:5555/r";
+        domain = "http://localhost:5555";
       } else if (referer.indexOf("staging") >= 0) {
-        followUpLinkPrefix = "https://staging.invites.mobi/r";
+        domain = "https://staging.invites.mobi";
       } else {
-        followUpLinkPrefix = "https://invites.mobi/r";
+        domain = "https://invites.mobi";
       }
+      followUpLinkPrefix = `${domain}/r`;
       const followUpLink = `${followUpLinkPrefix}/${eventObj.eventid}/${userObj.userid}/${recipientObj.recipientid}`;
 
       if (isRecurringEvent) {
@@ -314,6 +316,12 @@ exports.POST = (req, res) => {
         item.innerHTML = val;
         item.removeAttribute("data-event");
       });
+
+      // Populate the unsubscribe link
+      const unsubscribeLink = `${domain}/unsubscribe/#/${recipientObj.recipientid}`;
+      document
+        .querySelector("[data-i18n='email-unsubscribe']")
+        .setAttribute("href", unsubscribeLink);
 
       // Remaining variables
       let subject = emailPhrases["email-subject-viewed-invite"];
