@@ -44,12 +44,12 @@ exports.POST = async (req, res) => {
     });
   }
 
-  if (notificationToken === "") {
+  /* if (notificationToken === "") {
     return res.status(400).send({
       msg: "invalid notification token",
       msgType: "error",
     });
-  }
+  } */
 
   // TODO:  Validate notification token
 
