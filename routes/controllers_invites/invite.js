@@ -320,7 +320,7 @@ exports.POST = (req, res) => {
       // Populate the unsubscribe link
       const unsubscribeLink = `${domain}/unsubscribe/#/${recipientObj.recipientid}`;
       document
-        .querySelector("[data-i18n='email-unsubscribe']")
+        .querySelector("#unsubscribe")
         .setAttribute("href", unsubscribeLink);
 
       // Remaining variables
