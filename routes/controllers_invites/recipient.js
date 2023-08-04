@@ -27,9 +27,40 @@ exports.POST = async (req, res) => {
     });
   }
 
-  res.status(200).send({
-    msg: "recipient retrieved",
-    msgType: "success",
-    recipient: recipientid,
+  const sql = `
+    SELECT
+      *
+    FROM
+      invitations
+    WHERE
+      recipientid = ?
+    LIMIT
+      1
+    ;
+  `;
+
+  db.query(sql, [recipientid], (error, result) => {
+    if (error) {
+      console.log(error);
+      return res.status(500).send({
+        msg: "unable to query for invite",
+        msgType: "error",
+      });
+    }
+
+    if (!result.length) {
+      return res.status(404).send({
+        msg: "invite not found",
+        msgType: "error",
+      });
+    }
+
+    const recipient = result[0];
+
+    res.status(200).send({
+      msg: "recipient retrieved",
+      msgType: "success",
+      recipient: recipient,
+    });
   });
 };
