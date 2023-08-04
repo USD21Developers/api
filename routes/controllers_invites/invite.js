@@ -237,7 +237,7 @@ exports.POST = (req, res) => {
       } else {
         domain = "https://invites.mobi";
       }
-      followUpLinkPrefix = `${domain}/r`;
+      followUpLinkPrefix = `${domain}/r/#`;
       const followUpLink = `${followUpLinkPrefix}/${eventObj.eventid}/${userObj.userid}/${recipientObj.recipientid}`;
 
       if (isRecurringEvent) {
