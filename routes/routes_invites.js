@@ -108,3 +108,8 @@ const saveInvite = require("./controllers_invites/invite-send-beacon");
 router.post("/invite-send-beacon", saveInvite.POST);
 
 module.exports = router;
+
+// RECIPIENTS
+
+const recipient = require("./controllers_invites/recipient");
+router.post("/recipient", authenticateToken, recipient.POST);
