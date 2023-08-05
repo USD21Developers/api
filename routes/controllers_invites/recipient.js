@@ -21,7 +21,6 @@ exports.POST = async (req, res) => {
   const eventid = req.body.eventid || "";
   const userid = req.body.userid || "";
   const recipientid = req.body.recipientid || "";
-  const notificationToken = req.body.notificationToken || "";
 
   if (eventid === "") {
     return res.status(400).send({
@@ -43,15 +42,6 @@ exports.POST = async (req, res) => {
       msgType: "error",
     });
   }
-
-  /* if (notificationToken === "") {
-    return res.status(400).send({
-      msg: "invalid notification token",
-      msgType: "error",
-    });
-  } */
-
-  // TODO:  Validate notification token
 
   const sql = `
     SELECT
