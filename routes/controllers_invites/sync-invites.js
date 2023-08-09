@@ -138,11 +138,41 @@ exports.POST = async (req, res) => {
     });
   }
 
+  // Query to retrieve interactions
+  function getInteractions(invitationids) {
+    return new Promise((resolve, reject) => {
+      const sql = `
+        SELECT
+          invitationid,
+          recipienttimezone,
+          interactiontype,
+          DATE_FORMAT(createdAt, '%Y-%m-%dT%TZ') AS utcdate
+        FROM
+          interactions
+        WHERE
+          invitationid IN (?)
+        ORDER BY
+          createdAt ASC
+        ;
+      `;
+
+      db.query(sql, [invitationids], (error, result) => {
+        if (error) {
+          console.log(error);
+          return reject(error);
+        }
+
+        return resolve(result);
+      });
+    });
+  }
+
   // Query to retrieve invites
   function getInvites() {
     return new Promise((resolve, reject) => {
       const sql = `
         SELECT
+          invitationid,
           eventid,
           recipientid,
           recipientname,
@@ -168,6 +198,7 @@ exports.POST = async (req, res) => {
 
         const invites = result.map((item) => {
           const {
+            invitationid,
             eventid,
             recipientid,
             recipientname,
@@ -182,6 +213,7 @@ exports.POST = async (req, res) => {
           const utctime = moment(invitedAt).format("YYYY-MM-DDTHH:mm:ss");
 
           const invite = {
+            invitationid: invitationid,
             eventid: eventid,
             recipient: {
               id: recipientid,
@@ -212,11 +244,20 @@ exports.POST = async (req, res) => {
       invites: invites,
     });
   } else {
-    getInvites().then((invites) => {
+    getInvites().then(async (invites) => {
+      let interactions = [];
+
+      if (invites.length) {
+        const invitationidsArray = invites.map((item) => item.invitationid);
+        const invitationids = invitationidsArray.join();
+        interactions = await getInteractions(invitationids);
+      }
+
       return res.status(200).send({
         msg: "invites synced",
         msgType: "success",
         invites: invites,
+        interactions: interactions,
       });
     });
   }
