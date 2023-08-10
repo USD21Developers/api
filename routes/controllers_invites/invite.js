@@ -238,7 +238,7 @@ exports.POST = (req, res) => {
         domain = "https://invites.mobi";
       }
       followUpLinkPrefix = `${domain}/r/#`;
-      const followUpLink = `${followUpLinkPrefix}/${eventObj.eventid}/${userObj.userid}/${recipientObj.recipientid}`;
+      const followUpLink = `${followUpLinkPrefix}/${recipientObj.invitationid}`;
 
       if (isRecurringEvent) {
         eventDateTime = new Intl.DateTimeFormat(userLocale, {
