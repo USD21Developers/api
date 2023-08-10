@@ -1,4 +1,5 @@
 const moment = require("moment");
+const { getSpecificEvents } = require("./utils");
 
 exports.POST = async (req, res) => {
   // Enforce authorization
@@ -246,11 +247,16 @@ exports.POST = async (req, res) => {
   } else {
     getInvites().then(async (invites) => {
       let interactions = [];
+      let eventsFromMyInvites = [];
 
       if (invites.length) {
         const invitationidsArray = invites.map((item) => item.invitationid);
+        const eventidsArray = invites.map((item) => item.eventid);
         const invitationids = invitationidsArray.join();
+        const utils = require("./utils");
+
         interactions = await getInteractions(invitationids);
+        eventsFromMyInvites = await utils.getSpecificEvents(db, eventidsArray);
       }
 
       return res.status(200).send({
@@ -258,6 +264,7 @@ exports.POST = async (req, res) => {
         msgType: "success",
         invites: invites,
         interactions: interactions,
+        eventsFromMyInvites: eventsFromMyInvites,
       });
     });
   }

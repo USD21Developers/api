@@ -94,7 +94,7 @@ sendEmailViaSMTP = (recipient, emailSenderText, subject, body) => {
   });
 };
 
-sendEmailViaAPI = (recipient, emailSenderText, subject, body) => {
+x = (recipient, emailSenderText, subject, body) => {
   const sender = `${emailSenderText} <${process.env.SENDGRID_API_SENDER_EMAIL}>`;
   const sgMail = require("@sendgrid/mail");
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -389,6 +389,85 @@ exports.getEventsByFollowedUsers = (db, userid, useridOfRequester) => {
       if (error) reject(error);
 
       resolve(result);
+    });
+  });
+};
+
+exports.getSpecificEvents = (db, arrayOfEventIds) => {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT
+        eventid,
+        churchid,
+        type,
+        title,
+        descriptionHeading,
+        description,
+        frequency,
+        duration,
+        durationInHours,
+        timezone,
+
+        CASE 
+          WHEN frequency != 'once' AND startdate < CURDATE() THEN CONCAT(DATE_FORMAT(DATE_ADD(startdate, INTERVAL (DATEDIFF(CURDATE(), startdate) DIV 7 + 1) * 7 DAY), '%Y-%m-%dT%H:%i:%s'), 'Z')
+          ELSE CONCAT(DATE_FORMAT(startdate, '%Y-%m-%dT%H:%i:%s'), 'Z')
+        END AS startdate,
+
+        CONCAT(
+          DATE_FORMAT(multidaybegindate, '%Y-%m-%d'),
+              'T',
+              TIME_FORMAT(multidaybegindate, '%T'),
+              'Z'
+        ) AS multidaybegindate,
+
+        CONCAT(
+          DATE_FORMAT(multidayenddate, '%Y-%m-%d'),
+              'T',
+              TIME_FORMAT(multidayenddate, '%T'),
+              'Z'
+        ) AS multidayenddate,
+        
+        locationvisibility,
+        locationname,
+        locationaddressline1,
+        locationaddressline2,
+        locationaddressline3,
+        locationcoordinates,
+        otherlocationdetails,
+        virtualconnectiondetails,
+        hasvirtual,
+        sharewithfollowers,
+        contactfirstname,
+        contactlastname,
+        contactemail,
+        contactphone,
+        contactphonecountrydata,
+        country,
+        lang
+      FROM
+        events
+      WHERE
+        eventid IN (?)
+      ;
+    `;
+
+    if (!Array.isArray(arrayOfEventIds)) {
+      return reject(new Error("arrayOfEventIds must be an array"));
+    }
+
+    if (!arrayOfEventIds.length) {
+      return reject(new Error("arrayOfEventIds must not be empty"));
+    }
+
+    const eventids = arrayOfEventIds.join();
+
+    db.query(sql, [eventids], (error, result) => {
+      if (error) {
+        console.log(error);
+        return reject(error);
+      }
+
+      return resolve(result);
     });
   });
 };
