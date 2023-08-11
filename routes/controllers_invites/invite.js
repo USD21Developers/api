@@ -460,22 +460,32 @@ exports.POST = (req, res) => {
       eventid && userid && recipientid
         ? await getRecipient(db, eventid, userid, recipientid).catch(() => null)
         : null;
-    recipient.recipientid = recipientid;
+    // if (recipient) recipient.invitationid = recipientid;
 
     // Record that invite was viewed
-    recordThatInviteWasViewed(recipient.invitationid, userid, timezone);
+    if (recipient) {
+      recordThatInviteWasViewed(recipient.invitationid, userid, timezone);
+    }
 
     // Notify sender
     if (event && user && recipient) {
-      notifySender(event, user, recipient, timezone, emailHtml, emailPhrases)
+      return notifySender(
+        event,
+        user,
+        recipient,
+        timezone,
+        emailHtml,
+        emailPhrases
+      )
         .catch((err) => {
           console.log(err);
         })
         .finally(() => {
           delete recipient.invitationid;
           delete user.email;
+          delete user.lastname;
 
-          return res.status(200).send({
+          res.status(200).send({
             msg: "invite retrieved",
             msgType: "success",
             invite: {
@@ -486,5 +496,15 @@ exports.POST = (req, res) => {
           });
         });
     }
+
+    return res.status(200).send({
+      msg: "invite retrieved",
+      msgType: "success",
+      invite: {
+        event: event,
+        user: user,
+        recipient: recipient,
+      },
+    });
   })(db, res);
 };
