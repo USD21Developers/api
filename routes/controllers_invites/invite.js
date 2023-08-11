@@ -381,7 +381,11 @@ exports.POST = (req, res) => {
           }
 
           if (!result.length) {
-            return reject(new Error("invite not found"));
+            return reject(
+              new Error(
+                `invite not found { eventid: ${eventObj.eventid}, userid: ${userObj.userid}, recipientid: ${recipientObj.recipientid} }`
+              )
+            );
           }
 
           const invitationid = result[0].invitationid;
