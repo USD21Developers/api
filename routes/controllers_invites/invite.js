@@ -203,6 +203,10 @@ exports.POST = (req, res) => {
     emailPhrases
   ) => {
     return new Promise((resolve, reject) => {
+      if (!eventObj) return resolve();
+      if (!userObj) return resolve();
+      if (!recipientObj) return resolve();
+
       const crypto = require("crypto");
       const messageID = crypto.randomUUID();
       const userLocale = `${eventObj.lang}-${eventObj.country.toUpperCase()}`;
