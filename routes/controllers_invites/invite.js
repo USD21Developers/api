@@ -362,67 +362,60 @@ exports.POST = (req, res) => {
         FROM
           invitations
         WHERE
-          eventid = ?
-        AND
-          userid = ?
-        AND
-          recipientid = ?
+          invitationid = ?
         LIMIT
           1
       `;
 
-      db.query(
-        sql,
-        [eventObj.eventid, userObj.userid, recipientObj.recipientid],
-        async (error, result) => {
-          if (error) {
-            console.log(error);
-            return reject(
-              new Error(
-                "unable to query for last time user was notified about this invite"
-              )
-            );
+      db.query(sql, [recipientObj.invitationid], async (error, result) => {
+        if (error) {
+          console.log(error);
+          return reject(
+            new Error(
+              "unable to query for last time user was notified about this invite"
+            )
+          );
+        }
+
+        if (!result.length) {
+          return reject(
+            new Error(
+              `invite not found { eventid: ${eventObj.eventid}, userid: ${userObj.userid}, recipientid: ${recipientObj.recipientid} }`
+            )
+          );
+        }
+
+        const invitationid = result[0].invitationid;
+        const lastTimeNotified = result[0].lasttimenotified || null;
+        let proceedWithNotification = true;
+
+        if (lastTimeNotified) {
+          const now = moment().utc();
+          const notified = moment(lastTimeNotified);
+          const okToNotifiy = notified.add(24, "hours");
+
+          if (now.isBefore(okToNotifiy)) {
+            proceedWithNotification = false;
           }
+        }
 
-          if (!result.length) {
-            return reject(
-              new Error(
-                `invite not found { eventid: ${eventObj.eventid}, userid: ${userObj.userid}, recipientid: ${recipientObj.recipientid} }`
-              )
-            );
-          }
+        if (!proceedWithNotification) {
+          return resolve();
+        }
 
-          const invitationid = result[0].invitationid;
-          const lastTimeNotified = result[0].lasttimenotified || null;
-          let proceedWithNotification = true;
+        const sendEmail = require("./utils").sendEmail;
 
-          if (lastTimeNotified) {
-            const now = moment().utc();
-            const notified = moment(lastTimeNotified);
-            const okToNotifiy = notified.add(24, "hours");
+        const to = `${userObj.firstname} ${userObj.lastname} <${userObj.email}>`;
+        const from = "invites.mobi";
 
-            if (now.isBefore(okToNotifiy)) {
-              proceedWithNotification = false;
-            }
-          }
+        const emailResult = await sendEmail(to, from, subject, html);
+        const emailSucceeded =
+          emailResult[0].statusCode >= 200 && emailResult[0].statusCode < 300
+            ? true
+            : false;
 
-          if (!proceedWithNotification) {
-            return resolve();
-          }
-
-          const sendEmail = require("./utils").sendEmail;
-
-          const to = `${userObj.firstname} ${userObj.lastname} <${userObj.email}>`;
-          const from = "invites.mobi";
-
-          const emailResult = await sendEmail(to, from, subject, html);
-          const emailSucceeded =
-            emailResult[0].statusCode >= 200 && emailResult[0].statusCode < 300
-              ? true
-              : false;
-
-          if (emailSucceeded) {
-            const sql = `
+        if (emailSucceeded) {
+          const sql = `
               UPDATE
                 invitations
               SET
@@ -432,23 +425,22 @@ exports.POST = (req, res) => {
               ;
             `;
 
-            db.query(sql, [invitationid], (error, result) => {
-              if (error) {
-                console.log(error);
-                return reject(
-                  new Error(
-                    "unable to invite with last time user was notified via e-mail"
-                  )
-                );
-              }
+          db.query(sql, [invitationid], (error, result) => {
+            if (error) {
+              console.log(error);
+              return reject(
+                new Error(
+                  "unable to invite with last time user was notified via e-mail"
+                )
+              );
+            }
 
-              return resolve(emailResult);
-            });
-          } else {
-            return reject(emailResult);
-          }
+            return resolve(emailResult);
+          });
+        } else {
+          return reject(emailResult);
         }
-      );
+      });
     });
   };
 
