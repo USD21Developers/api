@@ -322,7 +322,7 @@ exports.POST = (req, res) => {
       });
 
       // Populate the unsubscribe link
-      const unsubscribeLink = `${domain}/unsubscribe/#/${recipientObj.recipientid}`;
+      const unsubscribeLink = `${domain}/unsubscribe/#/${recipientObj.invitationid}`;
       document
         .querySelector("#unsubscribe")
         .setAttribute("href", unsubscribeLink);
