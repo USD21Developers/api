@@ -459,9 +459,7 @@ exports.getSpecificEvents = (db, arrayOfEventIds) => {
       return reject(new Error("arrayOfEventIds must not be empty"));
     }
 
-    const eventids = arrayOfEventIds.join();
-
-    db.query(sql, [eventids], (error, result) => {
+    db.query(sql, [arrayOfEventIds], (error, result) => {
       if (error) {
         console.log(error);
         return reject(error);
