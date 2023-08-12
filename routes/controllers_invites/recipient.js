@@ -18,27 +18,11 @@ exports.POST = async (req, res) => {
     ? require("../../database-invites-test")
     : require("../../database-invites");
 
-  const eventid = req.body.eventid || "";
-  const userid = req.body.userid || "";
-  const recipientid = req.body.recipientid || "";
+  const invitationid = req.body.invitationid || "";
 
-  if (eventid === "") {
+  if (invitationid === "") {
     return res.status(400).send({
-      msg: "invalid event id",
-      msgType: "error",
-    });
-  }
-
-  if (userid === "") {
-    return res.status(400).send({
-      msg: "invalid user id",
-      msgType: "error",
-    });
-  }
-
-  if (recipientid === "") {
-    return res.status(400).send({
-      msg: "invalid recipient id",
+      msg: "invalid invitation id",
       msgType: "error",
     });
   }
@@ -49,17 +33,13 @@ exports.POST = async (req, res) => {
     FROM
       invitations
     WHERE
-      eventid = ?
-    AND
-      userid = ?
-    AND
-      recipientid = ?
+      invitationid = ?
     LIMIT
       1
     ;
   `;
 
-  db.query(sql, [eventid, userid, recipientid], (error, result) => {
+  db.query(sql, [invitationid], (error, result) => {
     if (error) {
       console.log(error);
       return res.status(500).send({

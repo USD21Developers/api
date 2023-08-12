@@ -393,7 +393,7 @@ exports.getEventsByFollowedUsers = (db, userid, useridOfRequester) => {
   });
 };
 
-exports.getSpecificEvents = (db, arrayOfEventIds) => {
+exports.getSpecificEvents = (db, arrayOfInviteIds) => {
   return new Promise((resolve, reject) => {
     const sql = `
       SELECT
@@ -445,21 +445,21 @@ exports.getSpecificEvents = (db, arrayOfEventIds) => {
         country,
         lang
       FROM
-        events
+        events e
       WHERE
-        eventid IN (?)
+        eventid IN (SELECT eventid FROM invitations WHERE invitationid IN (?) GROUP BY eventid ORDER BY eventid)
       ;
     `;
 
-    if (!Array.isArray(arrayOfEventIds)) {
-      return reject(new Error("arrayOfEventIds must be an array"));
+    if (!Array.isArray(arrayOfInviteIds)) {
+      return reject(new Error("arrayOfInviteIds must be an array"));
     }
 
-    if (!arrayOfEventIds.length) {
-      return reject(new Error("arrayOfEventIds must not be empty"));
+    if (!arrayOfInviteIds.length) {
+      return reject(new Error("arrayOfInviteIds must not be empty"));
     }
 
-    db.query(sql, [arrayOfEventIds], (error, result) => {
+    db.query(sql, [arrayOfInviteIds], (error, result) => {
       if (error) {
         console.log(error);
         return reject(error);
