@@ -145,9 +145,10 @@ exports.POST = async (req, res) => {
     return new Promise((resolve, reject) => {
       const sql = `
         SELECT
+          interactionid AS id,
           invitationid,
           recipienttimezone,
-          interactiontype,
+          interactiontype AS action,
           DATE_FORMAT(createdAt, '%Y-%m-%dT%TZ') AS utcdate
         FROM
           interactions
@@ -251,11 +252,18 @@ exports.POST = async (req, res) => {
       let eventsFromMyInvites = [];
 
       if (invites.length) {
-        const invitationids = Array.from(
-          new Set(invites.map((item) => item.eventid).sort())
+        const invitationidset = Array.from(
+          new Set(invites.map((item) => item.invitationid).sort())
         );
 
-        interactions = await getInteractions(invitationids);
+        const invitationids = [];
+        for (let i = 0; i < invitationidset.length; i++) {
+          invitationids.push(invitationidset[i]);
+        }
+
+        interactions = Array.isArray(invitationids)
+          ? await getInteractions(invitationids)
+          : [];
 
         const events = await utils.getSpecificEvents(db, invitationids);
 
