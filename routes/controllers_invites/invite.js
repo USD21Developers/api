@@ -341,12 +341,14 @@ exports.POST = (req, res) => {
         .setAttribute("href", unsubscribeLink);
 
       // Remaining variables
-      const viewInviteLinkEl = document.querySelector("viewInviteLink");
-      if (latitude && longitude) {
-        const viewInviteLink = `https://www.google.com/maps?layer=c&cbll=${latitude},${longitude}`;
-        viewInviteLinkEl.setAttribute("href", viewInviteLink);
-      } else {
-        viewInviteLinkEl.remove();
+      const viewInviteLinkEl = document.querySelector("#viewInviteLink");
+      if (viewInviteLinkEl) {
+        if (latitude && longitude) {
+          const viewInviteLink = `https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`;
+          viewInviteLinkEl.setAttribute("href", viewInviteLink);
+        } else {
+          viewInviteLinkEl.remove();
+        }
       }
 
       let subject = emailPhrases["email-subject-viewed-invite"];
