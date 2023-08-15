@@ -291,6 +291,19 @@ exports.POST = (req, res) => {
       const { JSDOM } = jsdom;
       const { document } = new JSDOM(emailHtml).window;
 
+      let latitude;
+      let longitude;
+
+      if (eventObj.hasOwnProperty("locationcoordinates")) {
+        if (eventObj.locationcoordinates.hasOwnProperty("x")) {
+          latitude = eventObj.locationcoordinates.x;
+        }
+
+        if (eventObj.locationcoordinates.hasOwnProperty("y")) {
+          longitude = eventObj.locationcoordinates.y;
+        }
+      }
+
       document.title = emailPhrases["email-subject-viewed-invite"]
         .replaceAll("{RECIPIENT-NAME}", recipientObj.recipientname)
         .replaceAll("{EVENT-TITLE}", eventObj.title);
@@ -328,6 +341,14 @@ exports.POST = (req, res) => {
         .setAttribute("href", unsubscribeLink);
 
       // Remaining variables
+      const viewInviteLinkEl = document.querySelector("viewInviteLink");
+      if (latitude && longitude) {
+        const viewInviteLink = `https://www.google.com/maps?layer=c&cbll=${latitude},${longitude}`;
+        viewInviteLinkEl.setAttribute("href", viewInviteLink);
+      } else {
+        viewInviteLinkEl.remove();
+      }
+
       let subject = emailPhrases["email-subject-viewed-invite"];
       subject = subject.replaceAll(
         "{RECIPIENT-NAME}",
