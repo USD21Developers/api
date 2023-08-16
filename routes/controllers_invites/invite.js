@@ -345,7 +345,9 @@ exports.POST = (req, res) => {
       if (viewInviteLinkEl) {
         if (latitude && longitude) {
           const viewInviteLink = `https://www.google.com/maps/search/?api=1&query=${latitude}%2C${longitude}`;
-          viewInviteLinkEl.setAttribute("href", viewInviteLink);
+          if (viewInviteLinkEl.hasAttribute("href")) {
+            viewInviteLinkEl.setAttribute("href", viewInviteLink);
+          }
         } else {
           viewInviteLinkEl.remove();
         }
