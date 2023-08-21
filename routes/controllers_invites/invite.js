@@ -14,6 +14,7 @@ exports.POST = (req, res) => {
   const timezone = req.body.timezone || null;
   const emailHtml = req.body.emailHtml || null;
   const emailPhrases = req.body.emailPhrases || null;
+  const loadedAlready = req.body.loadedAlready || false;
 
   // Validate eventid
   if (!eventid) {
@@ -153,10 +154,16 @@ exports.POST = (req, res) => {
     });
   };
 
-  const recordThatInviteWasViewed = function (invitationid, userid, timezone) {
+  const recordThatInviteWasViewed = function (
+    invitationid,
+    userid,
+    timezone,
+    loadedAlready
+  ) {
     return new Promise((resolve, reject) => {
       const interactionType = "viewed invite";
 
+      if (loadedAlready) return resolve();
       if (!invitationid)
         return reject(new Error("invitationid is a required argument"));
       if (!userid) return reject(new Error("userid is a required argument"));
@@ -489,7 +496,12 @@ exports.POST = (req, res) => {
 
     // Record that invite was viewed
     if (recipient) {
-      recordThatInviteWasViewed(recipient.invitationid, userid, timezone);
+      recordThatInviteWasViewed(
+        recipient.invitationid,
+        userid,
+        timezone,
+        loadedAlready
+      );
     }
 
     // Notify sender
