@@ -370,6 +370,7 @@ exports.POST = (req, res) => {
       body = body.replaceAll("{RECIPIENT-NAME}", recipientObj.recipientname);
       body = body.replaceAll("{EVENT-TITLE}", eventObj.title);
       body = body.replaceAll("{FOLLOW-UP-LINK}", followUpLink);
+      body = body.replaceAll("{EVENT-TIMEZONE}", eventObj.timezone);
 
       const html = `
 <!DOCTYPE html>
