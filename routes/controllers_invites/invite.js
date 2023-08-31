@@ -15,6 +15,7 @@ exports.POST = (req, res) => {
   const emailHtml = req.body.emailHtml || null;
   const emailPhrases = req.body.emailPhrases || null;
   const loadedAlready = req.body.loadedAlready || false;
+  const isUser = req.body.isUser || false;
 
   // Validate eventid
   if (!eventid) {
@@ -158,12 +159,14 @@ exports.POST = (req, res) => {
     invitationid,
     userid,
     timezone,
-    loadedAlready
+    loadedAlready,
+    isUser
   ) {
     return new Promise((resolve, reject) => {
       const interactionType = "viewed invite";
 
       if (loadedAlready) return resolve();
+      if (isUser) return resolve();
       if (!invitationid)
         return reject(new Error("invitationid is a required argument"));
       if (!userid) return reject(new Error("userid is a required argument"));
@@ -207,12 +210,14 @@ exports.POST = (req, res) => {
     recipientObj,
     timezone,
     emailHtml,
-    emailPhrases
+    emailPhrases,
+    isUser
   ) => {
     return new Promise((resolve, reject) => {
       if (!eventObj) return resolve();
       if (!userObj) return resolve();
       if (!recipientObj) return resolve();
+      if (isUser) return resolve();
 
       const crypto = require("crypto");
       const messageID = crypto.randomUUID();
@@ -328,7 +333,12 @@ exports.POST = (req, res) => {
       document.querySelectorAll("[data-var]").forEach((item) => {
         const key = item.getAttribute("data-var");
 
-        item.innerHTML = eval(key);
+        if (key === "messageID") {
+          item.innerHTML = messageID;
+        } else {
+          item.innerHTML = eval(key);
+        }
+
         item.removeAttribute("data-var");
       });
 
@@ -501,7 +511,8 @@ exports.POST = (req, res) => {
         recipient.invitationid,
         userid,
         timezone,
-        loadedAlready
+        loadedAlready,
+        isUser
       );
     }
 
@@ -513,7 +524,8 @@ exports.POST = (req, res) => {
         recipient,
         timezone,
         emailHtml,
-        emailPhrases
+        emailPhrases,
+        isUser
       )
         .catch((err) => {
           console.log(err);
