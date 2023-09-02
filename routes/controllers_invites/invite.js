@@ -492,6 +492,14 @@ exports.POST = (req, res) => {
     const event = eventid
       ? await getEvent(db, eventid).catch(() => null)
       : null;
+    
+    if (!event) {
+      return res.status(404).send({
+        msg: "event not found",
+        msgType: "error"
+      });
+    }
+
     if (event.frequency !== "once") {
       event.startDateOriginal =
         moment(event.startdate).format("YYYY-MM-DDTHH:mm:ss") + "Z";
