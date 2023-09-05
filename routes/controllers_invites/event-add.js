@@ -852,83 +852,40 @@ exports.POST = (req, res) => {
         multidayEnd: sqlMultidayEnd,
       };
 
-      const sql = `
-        SELECT
-          eventid
-        FROM
-          events
-        WHERE
-          createdBy = ?
-        AND
-          churchid = ?
-        AND
-          type = ?
-        AND
-          title = ?
-        AND
-          startdate = ?
-        AND
-          multidaybegindate IS NULL
-        AND
-          multidayenddate IS NULL
-        LIMIT 1
-        ;
-      `;
+      const momentStartDateTime = moment.tz(
+        moment(`${startdate} ${starttime}`).format(),
+        timezone
+      );
+      let sql = "";
+      let sqlWeekday = parseInt(momentStartDateTime.format("d"));
 
-      db.query(
-        sql,
-        [req.user.userid, churchid, eventtype, eventtitle, sqlStartDate],
-        (error, result) => {
-          if (error) {
-            console.log(error);
-            return res.status(500).send({
-              msg: "unable to query for duplicate events",
-              msgType: "error",
-              error: error,
-            });
-          }
-          if (result.length) {
-            return res.status(400).send({
-              msg: "duplicate event",
-              msgType: "error",
-              eventid: result[0].eventid,
-            });
-          }
+      if (moment(momentStartDateTime).isValid()) {
+        switch (sqlWeekday) {
+          case 0:
+            sqlWeekday = 6;
+            break;
+          case 1:
+            sqlWeekday = 0;
+            break;
+          case 2:
+            sqlWeekday = 1;
+            break;
+          case 3:
+            sqlWeekday = 2;
+            break;
+          case 4:
+            sqlWeekday = 3;
+            break;
+          case 5:
+            sqlWeekday = 4;
+            break;
+          case 6:
+            sqlWeekday = 5;
+            break;
+        }
+      }
 
-          const momentStartDateTime = moment.tz(
-            moment(`${startdate} ${starttime}`).format(),
-            timezone
-          );
-          let sql = "";
-          let sqlWeekday = parseInt(momentStartDateTime.format("d"));
-
-          if (moment(momentStartDateTime).isValid()) {
-            switch (sqlWeekday) {
-              case 0:
-                sqlWeekday = 6;
-                break;
-              case 1:
-                sqlWeekday = 0;
-                break;
-              case 2:
-                sqlWeekday = 1;
-                break;
-              case 3:
-                sqlWeekday = 2;
-                break;
-              case 4:
-                sqlWeekday = 3;
-                break;
-              case 5:
-                sqlWeekday = 4;
-                break;
-              case 6:
-                sqlWeekday = 5;
-                break;
-            }
-          }
-
-          sql = `
+      sql = `
           SELECT
             title
           FROM
@@ -949,91 +906,89 @@ exports.POST = (req, res) => {
           ;
         `;
 
+      db.query(
+        sql,
+        [req.user.userid, churchid, eventtype, sqlWeekday],
+        (error, result) => {
+          if (error) {
+            console.log(error);
+            return res.status(500).send({
+              msg: "unable to query for overlapping recurring events",
+              msgType: "error",
+              error: error,
+            });
+          }
+          if (result.length) {
+            return res.status(400).send({
+              msg: "overlapping recurring event",
+              msgType: "error",
+              title: result[0].title,
+            });
+          }
+
           db.query(
-            sql,
-            [req.user.userid, churchid, eventtype, sqlWeekday],
-            (error, result) => {
+            sqlInsertRecord,
+            [
+              churchid,
+              eventtype,
+              eventtitle,
+              descriptionheadline,
+              eventdescription,
+              frequency,
+              timezone,
+              sqlDates.startdate,
+              sqlDuration,
+              sqlDurationInHours,
+              sqlDates.multidayStart,
+              sqlDates.multidayEnd,
+              locationvisibility,
+              locationname,
+              sqlAddress.line1,
+              sqlAddress.line2,
+              sqlAddress.line3,
+              sqlAddress.coordinates,
+              sqlOtherLocationDetails,
+              virtualDetails,
+              hasvirtual,
+              shareWithFollowers,
+              contact.firstname,
+              contact.lastname,
+              contact.email,
+              contact.phone,
+              contact.phonedata,
+              country,
+              language,
+              req.user.userid,
+            ],
+            async (error, result) => {
               if (error) {
                 console.log(error);
                 return res.status(500).send({
-                  msg: "unable to query for overlapping recurring events",
+                  msg: "unable to insert new event",
                   msgType: "error",
                   error: error,
                 });
               }
-              if (result.length) {
-                return res.status(400).send({
-                  msg: "overlapping recurring event",
+
+              const getEventsByUser =
+                require("../controllers_invites/utils").getEventsByUser;
+              const events = await getEventsByUser(
+                db,
+                req.user.userid,
+                req.user.userid
+              ).catch((error) => {
+                console.log(error);
+                return res.status(500).send({
+                  msg: "unable to return events",
                   msgType: "error",
-                  title: result[0].title,
                 });
-              }
+              });
 
-              db.query(
-                sqlInsertRecord,
-                [
-                  churchid,
-                  eventtype,
-                  eventtitle,
-                  descriptionheadline,
-                  eventdescription,
-                  frequency,
-                  timezone,
-                  sqlDates.startdate,
-                  sqlDuration,
-                  sqlDurationInHours,
-                  sqlDates.multidayStart,
-                  sqlDates.multidayEnd,
-                  locationvisibility,
-                  locationname,
-                  sqlAddress.line1,
-                  sqlAddress.line2,
-                  sqlAddress.line3,
-                  sqlAddress.coordinates,
-                  sqlOtherLocationDetails,
-                  virtualDetails,
-                  hasvirtual,
-                  shareWithFollowers,
-                  contact.firstname,
-                  contact.lastname,
-                  contact.email,
-                  contact.phone,
-                  contact.phonedata,
-                  country,
-                  language,
-                  req.user.userid,
-                ],
-                async (error, result) => {
-                  if (error) {
-                    console.log(error);
-                    return res.status(500).send({
-                      msg: "unable to insert new event",
-                      msgType: "error",
-                      error: error,
-                    });
-                  }
-
-                  const getEventsByUser =
-                    require("../controllers_invites/utils").getEventsByUser;
-                  const events = await getEventsByUser(
-                    db,
-                    req.user.userid,
-                    req.user.userid
-                  ).catch((error) => {
-                    console.log(error);
-                    return res.status(500).send({
-                      msg: "unable to return events",
-                      msgType: "error",
-                    });
-                  });
-
-                  return res.status(200).send({
-                    msg: "event added",
-                    msgType: "success",
-                    events: events,
-                  });
-                }
-              );
+              return res.status(200).send({
+                msg: "event added",
+                msgType: "success",
+                events: events,
+              });
             }
           );
         }
