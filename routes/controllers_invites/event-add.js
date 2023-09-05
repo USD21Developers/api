@@ -885,112 +885,69 @@ exports.POST = (req, res) => {
         }
       }
 
-      sql = `
-          SELECT
-            title
-          FROM
-            events
-          WHERE
-            createdBy = ?
-          AND
-            churchid = ?
-          AND
-            type = ?
-          AND
-            type <> 'other'
-          AND
-            frequency <> 'once'
-          AND
-            WEEKDAY(startdate) = ?
-          LIMIT 1
-          ;
-        `;
-
       db.query(
-        sql,
-        [req.user.userid, churchid, eventtype, sqlWeekday],
-        (error, result) => {
+        sqlInsertRecord,
+        [
+          churchid,
+          eventtype,
+          eventtitle,
+          descriptionheadline,
+          eventdescription,
+          frequency,
+          timezone,
+          sqlDates.startdate,
+          sqlDuration,
+          sqlDurationInHours,
+          sqlDates.multidayStart,
+          sqlDates.multidayEnd,
+          locationvisibility,
+          locationname,
+          sqlAddress.line1,
+          sqlAddress.line2,
+          sqlAddress.line3,
+          sqlAddress.coordinates,
+          sqlOtherLocationDetails,
+          virtualDetails,
+          hasvirtual,
+          shareWithFollowers,
+          contact.firstname,
+          contact.lastname,
+          contact.email,
+          contact.phone,
+          contact.phonedata,
+          country,
+          language,
+          req.user.userid,
+        ],
+        async (error, result) => {
           if (error) {
             console.log(error);
             return res.status(500).send({
-              msg: "unable to query for overlapping recurring events",
+              msg: "unable to insert new event",
               msgType: "error",
               error: error,
             });
           }
-          if (result.length) {
-            return res.status(400).send({
-              msg: "overlapping recurring event",
+
+          const getEventsByUser =
+            require("../controllers_invites/utils").getEventsByUser;
+          const events = await getEventsByUser(
+            db,
+            req.user.userid,
+            req.user.userid
+          ).catch((error) => {
+            console.log(error);
+            return res.status(500).send({
+              msg: "unable to return events",
               msgType: "error",
-              title: result[0].title,
             });
-          }
+          });
 
-          db.query(
-            sqlInsertRecord,
-            [
-              churchid,
-              eventtype,
-              eventtitle,
-              descriptionheadline,
-              eventdescription,
-              frequency,
-              timezone,
-              sqlDates.startdate,
-              sqlDuration,
-              sqlDurationInHours,
-              sqlDates.multidayStart,
-              sqlDates.multidayEnd,
-              locationvisibility,
-              locationname,
-              sqlAddress.line1,
-              sqlAddress.line2,
-              sqlAddress.line3,
-              sqlAddress.coordinates,
-              sqlOtherLocationDetails,
-              virtualDetails,
-              hasvirtual,
-              shareWithFollowers,
-              contact.firstname,
-              contact.lastname,
-              contact.email,
-              contact.phone,
-              contact.phonedata,
-              country,
-              language,
-              req.user.userid,
-            ],
-            async (error, result) => {
-              if (error) {
-                console.log(error);
-                return res.status(500).send({
-                  msg: "unable to insert new event",
-                  msgType: "error",
-                  error: error,
-                });
-              }
-
-              const getEventsByUser =
-                require("../controllers_invites/utils").getEventsByUser;
-              const events = await getEventsByUser(
-                db,
-                req.user.userid,
-                req.user.userid
-              ).catch((error) => {
-                console.log(error);
-                return res.status(500).send({
-                  msg: "unable to return events",
-                  msgType: "error",
-                });
-              });
-
-              return res.status(200).send({
-                msg: "event added",
-                msgType: "success",
-                events: events,
-              });
-            }
-          );
+          return res.status(200).send({
+            msg: "event added",
+            msgType: "success",
+            events: events,
+          });
         }
       );
 
