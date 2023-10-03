@@ -72,6 +72,7 @@ exports.POST = async (req, res) => {
       return new Promise(async (resolve, reject) => {
         const {
           date,
+          lastModified,
           eventid,
           invitationid,
           noteid,
@@ -85,8 +86,12 @@ exports.POST = async (req, res) => {
         if (!isUserAuthor) reject(new Error("user must be the invite author"));
 
         const timeMomentObj = moment.utc(date);
+        const lastNotifiedObj = moment.utc(lastModified);
+        const nowObj = moment.utc();
         const createdAt = timeMomentObj.format("YYYY-MM-DD HH:mm:ss");
+        const updatedAt = (lastNotifiedObj = moment.utc(lastModified));
         const deleteNote = item.hasOwnProperty("delete") ? true : false;
+        const updateNote = lastNotifiedObj.isAfter(timeMomentObj);
 
         if (deleteNote) {
           const sql = `
@@ -107,6 +112,34 @@ exports.POST = async (req, res) => {
 
             return resolve();
           });
+        }
+
+        if (updateNote) {
+          const sql = `
+            UPDATE
+              notes
+            SET
+              note = ?,
+              updatedAt = ?
+            WHERE
+              noteid = ?
+            AND
+              userid = ?
+            ;
+          `;
+
+          db.query(
+            sql,
+            [note, updatedAt, noteid, req.user.userid],
+            (error, result) => {
+              if (error) {
+                console.log(error);
+                return reject(error);
+              }
+
+              return resolve();
+            }
+          );
         }
 
         const note = JSON.stringify({
