@@ -89,7 +89,7 @@ exports.POST = async (req, res) => {
         const lastNotifiedObj = moment.utc(lastModified);
         const nowObj = moment.utc();
         const createdAt = timeMomentObj.format("YYYY-MM-DD HH:mm:ss");
-        const updatedAt = (lastNotifiedObj = moment.utc(lastModified));
+        const updatedAt = lastNotifiedObj.format("YYYY-MM-DD HH:mm:ss");
         const deleteNote = item.hasOwnProperty("delete") ? true : false;
         const updateNote = lastNotifiedObj.isAfter(timeMomentObj);
 
