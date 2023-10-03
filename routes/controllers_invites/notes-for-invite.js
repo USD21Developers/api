@@ -1,4 +1,6 @@
-exports.POST = (req, res) => {
+const moment = require("moment");
+
+exports.POST = async (req, res) => {
   // Set database
   const isStaging =
     req.headers?.referer?.indexOf("staging") >= 0 ? true : false;
@@ -116,7 +118,7 @@ exports.POST = (req, res) => {
         });
 
         const sql = `
-          INSERT INTO notes(
+          REPLACE INTO notes(
             noteid,
             userid,
             invitationid,
@@ -150,10 +152,14 @@ exports.POST = (req, res) => {
     });
 
     Promise.allSettled(unsyncedNotePromises, (values) => {
-      return Promise.resolve(values);
+      return new Promise((resolve, reject) => {
+        resolve(values);
+      });
     }).catch((err) => {
       console.log(err);
-      return Promise.reject(err);
+      return new Promise((resolve, reject) => {
+        reject(err);
+      });
     });
   }
 
@@ -169,7 +175,7 @@ exports.POST = (req, res) => {
           n.note
         FROM
           notes n
-        INNER JOIN invitations i ON i.eventid = n.eventid
+        INNER JOIN invitations i ON i.invitationid = n.invitationid
         WHERE
           n.invitationid = ?
         AND
@@ -187,7 +193,7 @@ exports.POST = (req, res) => {
 
         const notes = result.map((item) => {
           const { date, eventid, invitationid, noteid, note } = item;
-          const { recipient, summary, text, timezone } = note;
+          const { recipient, summary, text, timezone } = JSON.parse(note);
           const noteObj = {
             date: date,
             eventid: eventid,
@@ -207,13 +213,12 @@ exports.POST = (req, res) => {
   }
 
   if (unsyncedNotesLength) {
-    saveUnsyncedNotes(unsyncedNotes).then(() => {
-      getNotesForInvite(invitationid).then((notes) => {
-        return res.status(200).send({
-          msg: "notes for invite retrieved",
-          msgType: "success",
-          notes: notes,
-        });
+    await saveUnsyncedNotes(unsyncedNotes);
+    getNotesForInvite(invitationid).then((notes) => {
+      return res.status(200).send({
+        msg: "notes for invite retrieved",
+        msgType: "success",
+        notes: notes,
       });
     });
   } else {
