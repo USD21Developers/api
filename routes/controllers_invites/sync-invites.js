@@ -132,7 +132,6 @@ exports.POST = async (req, res) => {
     });
 
     Promise.allSettled(unsyncedInvitePromises, (values) => {
-      console.log(values);
       return Promise.resolve(values);
     }).catch((err) => {
       console.log(err);
