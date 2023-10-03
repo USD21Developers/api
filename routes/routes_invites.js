@@ -107,9 +107,14 @@ router.post("/invite", invite.POST);
 const saveInvite = require("./controllers_invites/invite-send-beacon");
 router.post("/invite-send-beacon", saveInvite.POST);
 
-module.exports = router;
-
 // RECIPIENTS
 
 const recipient = require("./controllers_invites/recipient");
 router.post("/recipient", authenticateToken, recipient.POST);
+
+// NOTES
+
+const notesForInvite = require("./controllers_invites/notes-for-invite");
+router.post("/notes-for-invite", authenticateToken, notesForInvite.POST);
+
+module.exports = router;
