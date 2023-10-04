@@ -1,6 +1,6 @@
 const moment = require("moment");
 
-exports.POST = async (req, res) => {
+exports.POST = (req, res) => {
   // Set database
   const isStaging =
     req.headers?.referer?.indexOf("staging") >= 0 ? true : false;
@@ -32,124 +32,31 @@ exports.POST = async (req, res) => {
     });
   }
 
-  let unsyncedNotesLength = unsyncedNotes.length;
-
-  // Query to verify that user is the author of the related invitation
-  function verifyAuthorshipOfInvitation(invitationid) {
+  function addOrUpdateNote(unsyncedNote) {
     return new Promise((resolve, reject) => {
-      const sql = `
-        SELECT
-          invitationid
-        FROM
-          invitations
-        WHERE
-          invitationid = ?
-        AND
-          userid = ?
-        LIMIT
-          1
-        ;
-      `;
-
-      db.query(sql, [invitationid, req.user.userid], (error, result) => {
-        if (error) {
-          console.log(error);
-          return reject(error);
-        }
-
-        if (!result.length) {
-          return resolve(false);
-        }
-
-        return resolve(true);
+      const {
+        date,
+        eventid,
+        invitationid,
+        lastModified,
+        noteid,
+        recipient,
+        summary,
+        text,
+        timezone,
+      } = unsyncedNote;
+      const createdAt = moment.utc(date).format("YYYY-MM-DD HH:mm:ss");
+      const updatedAt = moment.utc(lastModified).format("YYYY-MM-DD HH:mm:ss");
+      const action = date === lastModified ? "add" : "update";
+      const note = JSON.stringify({
+        eventid: eventid,
+        recipient: recipient,
+        summary: summary,
+        text: text,
+        timezone: timezone,
       });
-    });
-  }
 
-  // Query to store unsynced invites
-  function saveUnsyncedNotes(unsyncedNotes) {
-    const unsyncedNotePromises = unsyncedNotes.map((item) => {
-      return new Promise(async (resolve, reject) => {
-        const {
-          date,
-          lastModified,
-          eventid,
-          invitationid,
-          noteid,
-          recipient,
-          summary,
-          text,
-          timezone,
-        } = item;
-
-        const isUserAuthor = await verifyAuthorshipOfInvitation(invitationid);
-        if (!isUserAuthor) reject(new Error("user must be the invite author"));
-
-        const timeMomentObj = moment.utc(date);
-        const lastNotifiedObj = moment.utc(lastModified);
-        const nowObj = moment.utc();
-        const createdAt = timeMomentObj.format("YYYY-MM-DD HH:mm:ss");
-        const updatedAt = lastNotifiedObj.format("YYYY-MM-DD HH:mm:ss");
-        const deleteNote = item.hasOwnProperty("delete") ? true : false;
-        const updateNote = lastNotifiedObj.isAfter(timeMomentObj);
-
-        if (deleteNote) {
-          const sql = `
-            DELETE FROM
-              notes
-            WHERE
-              noteid = ?
-            AND
-              userid = ?
-            ;
-          `;
-
-          db.query(sql, [noteid, req.user.userid], (error, result) => {
-            if (error) {
-              console.log(error);
-              return reject(error);
-            }
-
-            return resolve();
-          });
-        }
-
-        if (updateNote) {
-          const sql = `
-            UPDATE
-              notes
-            SET
-              note = ?,
-              updatedAt = ?
-            WHERE
-              noteid = ?
-            AND
-              userid = ?
-            ;
-          `;
-
-          db.query(
-            sql,
-            [note, updatedAt, noteid, req.user.userid],
-            (error, result) => {
-              if (error) {
-                console.log(error);
-                return reject(error);
-              }
-
-              return resolve();
-            }
-          );
-        }
-
-        const note = JSON.stringify({
-          eventid: eventid,
-          recipient: recipient,
-          summary: summary,
-          text: text,
-          timezone: timezone,
-        });
-
+      if (action === "add") {
         const sql = `
           REPLACE INTO notes(
             noteid,
@@ -158,20 +65,19 @@ exports.POST = async (req, res) => {
             note,
             createdAt,
             updatedAt
-          )
-          VALUES (
+          ) VALUES (
             ?,
             ?,
             ?,
             ?,
             ?,
-            UTC_TIMESTAMP()
-          )
+            ?
+          );
         `;
 
         db.query(
           sql,
-          [noteid, req.user.userid, invitationid, note, createdAt],
+          [noteid, req.user.userid, invitationid, note, createdAt, createdAt],
           (error, result) => {
             if (error) {
               console.log(error);
@@ -181,18 +87,74 @@ exports.POST = async (req, res) => {
             return resolve();
           }
         );
+      } else if (action === "update") {
+        const sql = `
+          UPDATE notes
+          SET
+            note = ?,
+            updatedAt = ?
+          WHERE
+            noteid = ?
+          AND
+            userid = ?
+          ;
+        `;
+
+        db.query(
+          sql,
+          [note, updatedAt, noteid, req.user.userid],
+          (error, result) => {
+            if (error) {
+              console.log(error);
+              return reject(error);
+            }
+
+            return resolve();
+          }
+        );
+      }
+    });
+  }
+
+  function deleteNote(unsyncedNote) {
+    return new Promise((resolve, reject) => {
+      if (!item.delete) return reject();
+
+      const { noteid } = unsyncedNote;
+
+      const sql = `
+        DELETE FROM notes
+        WHERE noteid = ?
+        AND userid = ?
+        ;
+      `;
+
+      db.query(sql, [noteid, req.user.userid], (error, result) => {
+        if (error) {
+          console.log(error);
+          return reject(error);
+        }
+
+        return resolve();
       });
     });
+  }
 
-    Promise.allSettled(unsyncedNotePromises, (values) => {
-      return new Promise((resolve, reject) => {
-        resolve(values);
-      });
+  // Query to store unsynced invites
+  function saveUnsyncedNotes(unsyncedNotes) {
+    const unsyncedNotePromises = unsyncedNotes.map((item) => {
+      if (item.delete) {
+        return deleteNote(item);
+      } else {
+        return addOrUpdateNote(item);
+      }
+    });
+
+    Promise.all(unsyncedNotePromises, () => {
+      return true;
     }).catch((err) => {
       console.log(err);
-      return new Promise((resolve, reject) => {
-        reject(err);
-      });
+      return false;
     });
   }
 
@@ -245,22 +207,13 @@ exports.POST = async (req, res) => {
     });
   }
 
-  if (unsyncedNotesLength) {
-    await saveUnsyncedNotes(unsyncedNotes);
-    getNotesForInvite(invitationid).then((notes) => {
-      return res.status(200).send({
-        msg: "notes for invite retrieved",
-        msgType: "success",
-        notes: notes,
-      });
+  if (unsyncedNotes.length) saveUnsyncedNotes(unsyncedNotes);
+
+  getNotesForInvite(invitationid).then((notes) => {
+    return res.status(200).send({
+      msg: "notes for invite retrieved",
+      msgType: "success",
+      notes: notes,
     });
-  } else {
-    getNotesForInvite(invitationid).then((notes) => {
-      return res.status(200).send({
-        msg: "notes for invite retrieved",
-        msgType: "success",
-        notes: notes,
-      });
-    });
-  }
+  });
 };
