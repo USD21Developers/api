@@ -56,6 +56,8 @@ exports.POST = (req, res) => {
         timezone: timezone,
       });
 
+      unsyncedNote.action = action;
+
       if (action === "add") {
         const sql = `
           REPLACE INTO notes(
@@ -81,10 +83,10 @@ exports.POST = (req, res) => {
           (error, result) => {
             if (error) {
               console.log(error);
-              return reject(error);
+              return reject(error, unsyncedNote);
             }
 
-            return resolve();
+            return resolve(unsyncedNote);
           }
         );
       } else if (action === "update") {
@@ -106,10 +108,10 @@ exports.POST = (req, res) => {
           (error, result) => {
             if (error) {
               console.log(error);
-              return reject(error);
+              return reject(error, unsyncedNote);
             }
 
-            return resolve();
+            return resolve(unsyncedNote);
           }
         );
       }
@@ -118,7 +120,9 @@ exports.POST = (req, res) => {
 
   function deleteNote(unsyncedNote) {
     return new Promise((resolve, reject) => {
-      if (!item.delete) return reject();
+      unsyncedNote.action = "delete";
+
+      if (!unsyncedNote.delete) return reject(unsyncedNote);
 
       const { noteid } = unsyncedNote;
 
@@ -132,10 +136,10 @@ exports.POST = (req, res) => {
       db.query(sql, [noteid, req.user.userid], (error, result) => {
         if (error) {
           console.log(error);
-          return reject(error);
+          return reject(error, unsyncedNote);
         }
 
-        return resolve();
+        return resolve(unsyncedNote);
       });
     });
   }
@@ -150,12 +154,7 @@ exports.POST = (req, res) => {
       }
     });
 
-    Promise.all(unsyncedNotePromises, () => {
-      return true;
-    }).catch((err) => {
-      console.log(err);
-      return false;
-    });
+    return Promise.allSettled(unsyncedNotePromises);
   }
 
   function getNotesForInvite(invitationid) {
@@ -207,13 +206,23 @@ exports.POST = (req, res) => {
     });
   }
 
-  if (unsyncedNotes.length) saveUnsyncedNotes(unsyncedNotes);
-
-  getNotesForInvite(invitationid).then((notes) => {
-    return res.status(200).send({
-      msg: "notes for invite retrieved",
-      msgType: "success",
-      notes: notes,
+  if (unsyncedNotes.length) {
+    saveUnsyncedNotes(unsyncedNotes).then((results) => {
+      getNotesForInvite(invitationid).then((notes) => {
+        return res.status(200).send({
+          msg: "notes for invite retrieved",
+          msgType: "success",
+          notes: notes,
+        });
+      });
     });
-  });
+  } else {
+    getNotesForInvite(invitationid).then((notes) => {
+      return res.status(200).send({
+        msg: "notes for invite retrieved",
+        msgType: "success",
+        notes: notes,
+      });
+    });
+  }
 };
