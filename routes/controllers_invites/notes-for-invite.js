@@ -120,9 +120,8 @@ exports.POST = (req, res) => {
 
   function deleteNote(unsyncedNote) {
     return new Promise((resolve, reject) => {
-      unsyncedNote.action = "delete";
-
-      if (!unsyncedNote.delete) return reject(unsyncedNote);
+      const okToDelete = unsyncedNote.delete ? true : false;
+      if (!okToDelete) return reject(unsyncedNote);
 
       const { noteid } = unsyncedNote;
 
@@ -144,8 +143,8 @@ exports.POST = (req, res) => {
     });
   }
 
-  // Query to store unsynced invites
-  function saveUnsyncedNotes(unsyncedNotes) {
+  // Query to process unsynced invites
+  function processUnsyncedNotes(unsyncedNotes) {
     const unsyncedNotePromises = unsyncedNotes.map((item) => {
       if (item.delete) {
         return deleteNote(item);
@@ -210,7 +209,7 @@ exports.POST = (req, res) => {
   }
 
   if (unsyncedNotes.length) {
-    saveUnsyncedNotes(unsyncedNotes).then((results) => {
+    processUnsyncedNotes(unsyncedNotes).then((results) => {
       getNotesForInvite(invitationid).then((notes) => {
         return res.status(200).send({
           msg: "notes for invite retrieved",
