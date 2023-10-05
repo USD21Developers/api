@@ -163,6 +163,7 @@ exports.POST = (req, res) => {
       const sql = `
         SELECT
           n.createdAt AS date,
+          n.updatedAt AS lastModified,
           i.eventid,
           n.invitationid,
           n.noteid,
@@ -186,10 +187,12 @@ exports.POST = (req, res) => {
         }
 
         const notes = result.map((item) => {
-          const { date, eventid, invitationid, noteid, note } = item;
+          const { date, lastModified, eventid, invitationid, noteid, note } =
+            item;
           const { recipient, summary, text, timezone } = JSON.parse(note);
           const noteObj = {
             date: date,
+            lastModified: lastModified,
             eventid: eventid,
             invitationid: invitationid,
             noteid: noteid,
