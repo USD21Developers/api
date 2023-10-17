@@ -117,4 +117,7 @@ router.post("/recipient", authenticateToken, recipient.POST);
 const notesForInvite = require("./controllers_invites/notes-for-invite");
 router.post("/notes-for-invite", authenticateToken, notesForInvite.POST);
 
+const syncNotes = require("./controllers_invites/sync-notes");
+router.post("/sync-notes", authenticateToken, syncNotes.POST);
+
 module.exports = router;
