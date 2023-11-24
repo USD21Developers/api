@@ -57,7 +57,15 @@ exports.POST = async (req, res) => {
   function saveUnsyncedInvites(unsyncedInvites) {
     const unsyncedInvitePromises = unsyncedInvites.map((item) => {
       return new Promise((resolve, reject) => {
-        const { eventid, sentvia, coords, utctime, timezone, recipient } = item;
+        const {
+          eventid,
+          followup,
+          sentvia,
+          coords,
+          utctime,
+          timezone,
+          recipient,
+        } = item;
         const timeMomentObj = moment.utc(utctime);
         const invitedAt = timeMomentObj.format("YYYY-MM-DD HH:mm:ss");
         const createdAt = moment.utc().format("YYYY-MM-DD HH:mm:ss");
@@ -85,6 +93,7 @@ exports.POST = async (req, res) => {
             sharedfromcoordinates,
             sharedfromtimezone,
             lang,
+            followup,
             invitedAt,
             createdAt
           ) VALUES (
@@ -96,6 +105,7 @@ exports.POST = async (req, res) => {
             ?,
             ?,
             ST_GeomFromText( ? ),
+            ?,
             ?,
             ?,
             ?,
@@ -116,6 +126,7 @@ exports.POST = async (req, res) => {
             pointCoords,
             timezone,
             req.user.lang,
+            followup,
             invitedAt,
             createdAt,
           ],
@@ -176,6 +187,7 @@ exports.POST = async (req, res) => {
         SELECT
           invitationid,
           eventid,
+          followup,
           recipientid,
           recipientname,
           recipientsms,
@@ -202,6 +214,7 @@ exports.POST = async (req, res) => {
           const {
             invitationid,
             eventid,
+            followup,
             recipientid,
             recipientname,
             recipientsms,
@@ -217,6 +230,7 @@ exports.POST = async (req, res) => {
           const invite = {
             invitationid: invitationid,
             eventid: eventid,
+            followup: followup,
             recipient: {
               id: recipientid,
               name: recipientname,
