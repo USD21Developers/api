@@ -80,6 +80,7 @@ exports.POST = async (req, res) => {
         const encryptedEmail = recipientemail
           ? JSON.stringify(recipientemail)
           : null;
+        const followUp = followup ? followup : 0;
 
         const sql = `
           REPLACE INTO invitations(
@@ -126,7 +127,7 @@ exports.POST = async (req, res) => {
             pointCoords,
             timezone,
             req.user.lang,
-            followup,
+            followUp,
             invitedAt,
             createdAt,
           ],
