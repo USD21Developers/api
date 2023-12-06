@@ -66,6 +66,13 @@ router.get("/sync-events", authenticateToken, syncEvents.GET);
 const syncInvites = require("./controllers_invites/sync-invites");
 router.post("/sync-invites", authenticateToken, syncInvites.POST);
 
+const syncUpdatedInvites = require("./controllers_invites/sync-updated-invites");
+router.post(
+  "/sync-updated-invites",
+  authenticateToken,
+  syncUpdatedInvites.POST
+);
+
 // USERS
 
 const usersAll = require("./controllers_invites/users-all");
