@@ -24,6 +24,7 @@ exports.POST = async (req, res) => {
 
   // Params
   const unsyncedInvites = req.body.unsyncedInvites || [];
+  const unsyncedFollowups = req.body.unsyncedFollowups || [];
 
   // Validate:  unsyncedInvites must be an array
   if (!Array.isArray(unsyncedInvites)) {
@@ -33,9 +34,16 @@ exports.POST = async (req, res) => {
     });
   }
 
-  let unsyncedInvitesLength = unsyncedInvites.length;
+  // Validate:  unsyncedFollowups must be an array
+  if (!Array.isArray(unsyncedFollowups)) {
+    return res.status(400).send({
+      msg: "unsyncedFollowups must be an array",
+      msgType: "error",
+    });
+  }
 
   // Validate:  eventid must be a valid integer
+  let unsyncedInvitesLength = unsyncedInvites.length;
   if (unsyncedInvitesLength) {
     let validInteger = true;
     for (i = 0; i < unsyncedInvitesLength; i++) {
@@ -51,6 +59,45 @@ exports.POST = async (req, res) => {
         msgType: "error",
       });
     }
+  }
+
+  // Query to store unsynced followups
+  function saveUnsyncedFollowups(unsyncedFollowups) {
+    const unsyncedFollowupPromises = unsyncedFollowups.map((item) => {
+      return new Promise((resolve, reject) => {
+        const { invitationid, followup } = item;
+        const sql = `
+          UPDATE
+            invitations
+          SET
+            followup = ?
+          WHERE
+            invitationid = ?
+          AND
+            userid =  ?
+          ;
+        `;
+        db.query(
+          sql,
+          [followup, invitationid, req.user.userid],
+          (error, result) => {
+            if (error) {
+              console.log(error);
+              return reject(new Error("unable to set followup status"));
+            }
+
+            return resolve(invitationid);
+          }
+        );
+      });
+    });
+
+    Promise.allSettled(unsyncedFollowupPromises, (values) => {
+      return Promise.resolve(values);
+    }).catch((err) => {
+      console.log(err);
+      return Promise.reject(err);
+    });
   }
 
   // Query to store unsynced invites
@@ -253,6 +300,7 @@ exports.POST = async (req, res) => {
   }
 
   if (unsyncedInvitesLength) {
+    await saveUnsyncedFollowups(unsyncedFollowups);
     await saveUnsyncedInvites(unsyncedInvites);
     const invites = await getInvites();
     return res.status(200).send({
