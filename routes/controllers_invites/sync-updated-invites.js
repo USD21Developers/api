@@ -56,19 +56,17 @@ exports.POST = async (req, res) => {
         ;
       `;
 
-      invitationids.forEach((id) => {
-        db.query(
-          sql,
-          [value, invitationids, req.user.userid],
-          (error, result) => {
-            if (error) {
-              console.log(error);
-              reject(error);
-            }
-            resolve(result);
+      db.query(
+        sql,
+        [value, invitationids, req.user.userid],
+        (error, result) => {
+          if (error) {
+            console.log(error);
+            reject(error);
           }
-        );
-      });
+          resolve(result);
+        }
+      );
     });
   };
 
@@ -87,11 +85,8 @@ exports.POST = async (req, res) => {
     promiseArray.push(promise);
   }
 
-  // Wait for all promises to resolve, then return out
-  Promise.allSettled(promiseArray, () => {
-    return res.status(200).send({
-      msg: "updated invites synced",
-      msgType: "success",
-    });
+  return res.status(200).send({
+    msg: "updated invites synced",
+    msgType: "success",
   });
 };
