@@ -72,19 +72,26 @@ exports.POST = async (req, res) => {
     });
   };
 
+  // Set promise array
+  const promiseArray = [];
+
   // Process unsynced followups
   const followup0 = unsyncedFollowups.filter((item) => item.followup === 0);
   const followup1 = unsyncedFollowups.filter((item) => item.followup === 1);
   if (followup0.length) {
-    setFollowups(followup0, 0);
+    const promise = setFollowups(followup0, 0);
+    promiseArray.push(promise);
   }
   if (followup1.length) {
-    setFollowups(followup1, 1);
+    const promise = setFollowups(followup1, 1);
+    promiseArray.push(promise);
   }
 
   // Wait for all promises to resolve, then return out
-  return res.status(200).send({
-    msg: "updated invites synced",
-    msgType: "success",
+  Promise.allSettled(promiseArray, () => {
+    return res.status(200).send({
+      msg: "updated invites synced",
+      msgType: "success",
+    });
   });
 };
