@@ -32,14 +32,18 @@ exports.POST = async (req, res) => {
   }
 
   // Function to update database with followup info
-  const setFollowups = (invitationids, value) => {
+  const setFollowups = (unsyncedFollowups, value) => {
     return new Promise((resolve, reject) => {
-      if (!Array.isArray(invitationids)) resolve();
-      if (!invitationids.length) resolve();
+      if (!Array.isArray(unsyncedFollowups)) resolve();
+      if (!unsyncedFollowups.length) resolve();
       if (typeof value !== "number") reject();
       if (value !== 0 && value !== 1) reject();
 
-      const ids = invitationids.join(",");
+      const invitationids = unsyncedFollowups.map((item) => {
+        const { invitationid } = item;
+        return invitationid;
+      });
+
       const sql = `
         UPDATE
           invitations
@@ -51,36 +55,36 @@ exports.POST = async (req, res) => {
           userid = ?
         ;
       `;
-      db.query(sql, [value, ids, req.user.id], (error, result) => {
-        if (error) {
-          console.log(error);
-          reject();
-        }
-        resolve();
+
+      invitationids.forEach((id) => {
+        db.query(
+          sql,
+          [value, invitationids, req.user.userid],
+          (error, result) => {
+            if (error) {
+              console.log(error);
+              reject(error);
+            }
+            resolve(result);
+          }
+        );
       });
     });
   };
-
-  // Set a promise array to store promises for all DB queries
-  const promiseArray = [];
 
   // Process unsynced followups
   const followup0 = unsyncedFollowups.filter((item) => item.followup === 0);
   const followup1 = unsyncedFollowups.filter((item) => item.followup === 1);
   if (followup0.length) {
-    const promise = setFollowups(followup0, 0);
-    promiseArray.push(promise);
+    setFollowups(followup0, 0);
   }
   if (followup1.length) {
-    const promise = setFollowups(followup1, 1);
-    promiseArray.push(promise);
+    setFollowups(followup1, 1);
   }
 
   // Wait for all promises to resolve, then return out
-  Promise.allSettled(promiseArray, () => {
-    return res.status(200).send({
-      msg: "updated invites synced",
-      msgType: "success",
-    });
+  return res.status(200).send({
+    msg: "updated invites synced",
+    msgType: "success",
   });
 };
