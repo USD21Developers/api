@@ -526,6 +526,8 @@ exports.getEventsForAllInvites = (db, userid) => {
       INNER JOIN invitations i ON e.eventid = i.eventid
       WHERE
         i.userid = ?
+      ORDER BY
+        e.eventid ASC
       ;
     `;
 
