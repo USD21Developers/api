@@ -473,61 +473,59 @@ exports.getSpecificEvents = (db, arrayOfInviteIds) => {
 exports.getEventsForAllInvites = (db, userid) => {
   return new Promise((resolve, reject) => {
     const sql = `
-      SELECT
+      SELECT DISTINCT
         e.eventid,
-        e.churchid,
-        e.type,
-        e.title,
-        e.descriptionHeading,
-        e.description,
-        e.frequency,
-        e.duration,
-        e.durationInHours,
-        e.timezone,
+        churchid,
+        type,
+        title,
+        descriptionHeading,
+        description,
+        frequency,
+        duration,
+        durationInHours,
+        timezone,
 
         CASE 
-          WHEN e.frequency != 'once' AND e.startdate < CURDATE() THEN CONCAT(DATE_FORMAT(DATE_ADD(e.startdate, INTERVAL (DATEDIFF(CURDATE(), e.startdate) DIV 7 + 1) * 7 DAY), '%Y-%m-%dT%H:%i:%s'), 'Z')
-          ELSE CONCAT(DATE_FORMAT(e.startdate, '%Y-%m-%dT%H:%i:%s'), 'Z')
-        END AS e.startdate,
+          WHEN frequency != 'once' AND startdate < CURDATE() THEN CONCAT(DATE_FORMAT(DATE_ADD(startdate, INTERVAL (DATEDIFF(CURDATE(), startdate) DIV 7 + 1) * 7 DAY), '%Y-%m-%dT%H:%i:%s'), 'Z')
+          ELSE CONCAT(DATE_FORMAT(startdate, '%Y-%m-%dT%H:%i:%s'), 'Z')
+        END AS startdate,
 
         CONCAT(
-          DATE_FORMAT(e.multidaybegindate, '%Y-%m-%d'),
+          DATE_FORMAT(multidaybegindate, '%Y-%m-%d'),
               'T',
-              TIME_FORMAT(e.multidaybegindate, '%T'),
+              TIME_FORMAT(multidaybegindate, '%T'),
               'Z'
-        ) AS e.multidaybegindate,
+        ) AS multidaybegindate,
 
         CONCAT(
-          DATE_FORMAT(e.multidayenddate, '%Y-%m-%d'),
+          DATE_FORMAT(multidayenddate, '%Y-%m-%d'),
               'T',
-              TIME_FORMAT(e.multidayenddate, '%T'),
+              TIME_FORMAT(multidayenddate, '%T'),
               'Z'
-        ) AS e.multidayenddate,
+        ) AS multidayenddate,
         
-        e.locationvisibility,
-        e.locationname,
-        e.locationaddressline1,
-        e.locationaddressline2,
-        e.locationaddressline3,
-        e.locationcoordinates,
-        e.otherlocationdetails,
-        e.virtualconnectiondetails,
-        e.hasvirtual,
-        e.sharewithfollowers,
-        e.contactfirstname,
-        e.contactlastname,
-        e.contactemail,
-        e.contactphone,
-        e.contactphonecountrydata,
-        e.country,
+        locationvisibility,
+        locationname,
+        locationaddressline1,
+        locationaddressline2,
+        locationaddressline3,
+        locationcoordinates,
+        otherlocationdetails,
+        virtualconnectiondetails,
+        hasvirtual,
+        sharewithfollowers,
+        contactfirstname,
+        contactlastname,
+        contactemail,
+        contactphone,
+        contactphonecountrydata,
+        country,
         e.lang
       FROM
         events e
       INNER JOIN invitations i ON e.eventid = i.eventid
       WHERE
         i.userid = ?
-      ORDER BY
-        i.invitationid
       ;
     `;
 
