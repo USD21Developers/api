@@ -61,7 +61,7 @@ exports.GET = async (req, res) => {
   // Query for events for all invites
   const getEventsForAllInvites =
     require("../controllers_invites/utils").getEventsForAllInvites;
-  const eventsForAllInvites = await getEventsForAllInvites(
+  const eventsFromMyInvites = await getEventsForAllInvites(
     db,
     req.user.userid
   ).catch((error) => {
@@ -90,6 +90,6 @@ exports.GET = async (req, res) => {
     events: events,
     eventsByFollowedUsers: eventsByFollowedUsers,
     followedUsers: followedUsers,
-    eventsForAllInvites: eventsForAllInvites,
+    eventsFromMyInvites: eventsFromMyInvites,
   });
 };
