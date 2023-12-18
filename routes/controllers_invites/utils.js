@@ -470,6 +470,78 @@ exports.getSpecificEvents = (db, arrayOfInviteIds) => {
   });
 };
 
+exports.getEventsForAllInvites = (db, userid) => {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT
+        eventid,
+        churchid,
+        type,
+        title,
+        descriptionHeading,
+        description,
+        frequency,
+        duration,
+        durationInHours,
+        timezone,
+
+        CASE 
+          WHEN frequency != 'once' AND startdate < CURDATE() THEN CONCAT(DATE_FORMAT(DATE_ADD(startdate, INTERVAL (DATEDIFF(CURDATE(), startdate) DIV 7 + 1) * 7 DAY), '%Y-%m-%dT%H:%i:%s'), 'Z')
+          ELSE CONCAT(DATE_FORMAT(startdate, '%Y-%m-%dT%H:%i:%s'), 'Z')
+        END AS startdate,
+
+        CONCAT(
+          DATE_FORMAT(multidaybegindate, '%Y-%m-%d'),
+              'T',
+              TIME_FORMAT(multidaybegindate, '%T'),
+              'Z'
+        ) AS multidaybegindate,
+
+        CONCAT(
+          DATE_FORMAT(multidayenddate, '%Y-%m-%d'),
+              'T',
+              TIME_FORMAT(multidayenddate, '%T'),
+              'Z'
+        ) AS multidayenddate,
+        
+        locationvisibility,
+        locationname,
+        locationaddressline1,
+        locationaddressline2,
+        locationaddressline3,
+        locationcoordinates,
+        otherlocationdetails,
+        virtualconnectiondetails,
+        hasvirtual,
+        sharewithfollowers,
+        contactfirstname,
+        contactlastname,
+        contactemail,
+        contactphone,
+        contactphonecountrydata,
+        country,
+        lang
+      FROM
+        events e
+      INNER JOIN invitations i ON e.eventid = i.eventid
+      WHERE
+        i.userid = ?
+      ORDER BY
+        i.invitationid
+      ;
+    `;
+
+    db.query(sql, [userid], (error, result) => {
+      if (error) {
+        console.log(error);
+        return reject(error);
+      }
+
+      return resolve(result);
+    });
+  });
+};
+
 exports.removeLocationInfoFromDiscreetEvents = (arrayOfEvents) => {
   if (!Array.isArray(arrayOfEvents)) return [];
 
