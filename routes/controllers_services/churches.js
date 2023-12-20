@@ -1,4 +1,6 @@
 exports.GET = (req, res) => {
+  const NodeCache = require("node-cache");
+  const cache = new NodeCache();
   const db = require("../../database-services");
 
   const sql = `
@@ -22,6 +24,17 @@ exports.GET = (req, res) => {
   db.query(sql, [], (err, result) => {
     if (err) {
       console.log(err);
+
+      const cachedData = cache.get("churches");
+
+      if (cachedData && cachedData.length) {
+        return res.status(200).send({
+          msg: "churches retrieved",
+          msgType: "success",
+          churches: cachedData,
+        });
+      }
+
       return res.status(500).send({
         msg: "unable to query service for churches",
         msgType: "error",
@@ -46,6 +59,9 @@ exports.GET = (req, res) => {
       };
     });
 
+    const oneWeek = 604800;
+    cache.set("churches", data, oneWeek);
+
     return res.status(200).send({
       msg: "churches retrieved",
       msgType: "success",
@@ -55,6 +71,8 @@ exports.GET = (req, res) => {
 };
 
 exports.FETCH = async () => {
+  const NodeCache = require("node-cache");
+  const cache = new NodeCache();
   const db = require("../../database-services");
 
   const sql = `
@@ -79,8 +97,18 @@ exports.FETCH = async () => {
     db.query(sql, [], (err, result) => {
       if (err) {
         console.log(err);
+
+        const cachedData = cache.get("churches");
+
+        if (cachedData && cachedData.length) {
+          return resolve(cachedData);
+        }
+
         return reject(new Error("unable to query service for churches"));
       }
+
+      const oneWeek = 604800;
+      cache.set("churches", result, oneWeek);
 
       resolve(result);
     });

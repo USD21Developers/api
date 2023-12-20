@@ -1,8 +1,12 @@
 exports.GET = (req, res) => {
+  const NodeCache = require("node-cache");
+  const cache = new NodeCache();
   let churchid = req.params["churchid"];
   const db = require("../../database-services");
 
   churchid = Math.abs(parseInt(churchid));
+
+  const cachedChurchId = `church_${churchid}`;
 
   const sql = `
     SELECT
@@ -24,6 +28,16 @@ exports.GET = (req, res) => {
   db.query(sql, [churchid], (err, result) => {
     if (err) {
       console.log(err);
+
+      const cachedChurch = cache.get(cachedChurchId);
+      if (cachedChurch && cachedChurch.hasOwnProperty("churchID")) {
+        return res.status(200).send({
+          msg: "church info retrieved",
+          msgType: "success",
+          info: cachedChurch,
+        });
+      }
+
       return res.status(500).send({
         msg: "unable to query for church",
         msgType: "error",
@@ -38,6 +52,8 @@ exports.GET = (req, res) => {
         churchid: churchid,
       });
     }
+
+    cache.set(cachedChurchId, result[0], oneWeek);
 
     return res.status(200).send({
       msg: "church info retrieved",

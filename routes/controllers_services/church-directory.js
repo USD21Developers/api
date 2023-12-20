@@ -1,4 +1,6 @@
 exports.GET = (req, res) => {
+  const NodeCache = require("node-cache");
+  const cache = new NodeCache();
   const db = require("../../database-services");
 
   const sql = `
@@ -26,11 +28,24 @@ exports.GET = (req, res) => {
   db.query(sql, [], (err, result) => {
     if (err) {
       console.log(err);
+
+      const cachedData = cache.get("churchDirectory");
+      if (cachedData && cachedData.length) {
+        return res.status(200).send({
+          msg: "churches retrieved",
+          msgType: "success",
+          churches: cachedData,
+        });
+      }
+
       return res.status(500).send({
         msg: "unable to query service for churches",
         msgType: "error",
       });
     }
+
+    const oneWeek = 604800;
+    cache.set("churchDirectory", result, oneWeek);
 
     return res.status(200).send({
       msg: "churches retrieved",
