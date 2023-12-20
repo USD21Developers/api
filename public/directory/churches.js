@@ -32,6 +32,11 @@ function getChurches() {
     })
       .then((res) => res.json())
       .then(async (data) => {
+        if (data.msgType && data.msgType === "error") {
+          reject(data.msg);
+          return;
+        }
+
         const churchesToStore = JSON.stringify(data.churches);
         localStorage.setItem("churches", churchesToStore);
         resolve(data.churches);
