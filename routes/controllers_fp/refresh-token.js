@@ -17,7 +17,6 @@ exports.POST = (req, res) => {
     process.env.REFRESH_TOKEN_SECRET,
     (err, userdata) => {
       if (err) {
-        console.log(err);
         return res
           .status(403)
           .send({ msg: "invalid refresh token", msgType: "error" });
@@ -68,7 +67,8 @@ exports.POST = (req, res) => {
           result[0].passwordmustchange === 1 ? true : false;
         const may_redeem_coupons = result[0].may_redeem_coupons;
         const may_create_coupons = result[0].may_create_coupons;
-        const may_create_preauthorized_users = result[0].may_create_preauthorized_users;
+        const may_create_preauthorized_users =
+          result[0].may_create_preauthorized_users;
 
         const refreshToken = jsonwebtoken.sign(
           {

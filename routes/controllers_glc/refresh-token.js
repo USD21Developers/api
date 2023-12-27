@@ -17,7 +17,6 @@ exports.POST = (req, res) => {
     process.env.REFRESH_TOKEN_SECRET,
     (err, userdata) => {
       if (err) {
-        console.log(err);
         return res
           .status(403)
           .send({ msg: "invalid refresh token", msgType: "error" });
@@ -62,7 +61,7 @@ exports.POST = (req, res) => {
 
         const accessToken = jsonwebtoken.sign(
           {
-            userid: userid
+            userid: userid,
           },
           process.env.ACCESS_TOKEN_SECRET,
           { expiresIn: "10m" }
