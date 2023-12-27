@@ -53,6 +53,7 @@ exports.GET = (req, res) => {
       });
     }
 
+    const oneWeek = 604800;
     cache.set(cachedChurchId, result[0], oneWeek);
 
     return res.status(200).send({
