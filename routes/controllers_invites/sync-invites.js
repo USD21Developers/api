@@ -243,7 +243,11 @@ exports.POST = async (req, res) => {
           sharedvia,
           sharedfromcoordinates,
           sharedfromtimezone,
-          invitedAt          
+          invitedAt,
+          unsubscribedFromEmail,
+          unsubscribedFromEmailAt,
+          unsubscribedFromPush,
+          unsubscribedFromPushAt
         FROM
           invitations
         WHERE
@@ -271,9 +275,18 @@ exports.POST = async (req, res) => {
             sharedfromcoordinates,
             sharedfromtimezone,
             invitedAt,
+            unsubscribedFromEmail,
+            unsubscribedFromEmailAt,
+            unsubscribedFromPush,
+            unsubscribedFromPushAt,
           } = item;
 
           const utctime = moment(invitedAt).format("YYYY-MM-DDTHH:mm:ss");
+
+          const isUnsubscribedFromEmail =
+            unsubscribedFromEmail === 1 ? true : false;
+          const isUnsubscribedFromPush =
+            unsubscribedFromPush === 1 ? true : false;
 
           const invite = {
             invitationid: invitationid,
@@ -289,6 +302,10 @@ exports.POST = async (req, res) => {
             coords: sharedfromcoordinates,
             utctime: utctime,
             timezone: sharedfromtimezone,
+            unsubscribedFromEmail: isUnsubscribedFromEmail,
+            unsubscribedFromEmailAt: unsubscribedFromEmailAt,
+            unsubscribedFromPush: isUnsubscribedFromPush,
+            unsubscribedFromPushAt: unsubscribedFromPushAt,
           };
 
           return invite;
