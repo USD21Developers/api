@@ -1,5 +1,3 @@
-const moment = require("moment");
-
 exports.POST = async (req, res) => {
   // Enforce authorization
   const usertype = req.user.usertype;
