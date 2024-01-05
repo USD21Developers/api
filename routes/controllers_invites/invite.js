@@ -400,15 +400,13 @@ exports.POST = (req, res) => {
 
       const sql = `
         SELECT
-          i.invitationid,
-          i.unsubscribedFromEmail,
-          i.lasttimenotified,
-          u.settings
+          invitationid,
+          unsubscribedFromEmail,
+          lasttimenotified
         FROM
-          invitations i
-        INNER JOIN users u ON u.userid = i.userid
+          invitations
         WHERE
-          i.invitationid = ?
+          invitationid = ?
         LIMIT
           1
       `;
