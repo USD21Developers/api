@@ -449,13 +449,13 @@ exports.POST = (req, res) => {
           proceedWithNotification = false;
         }
 
-        if (
+        /* if (
           settings &&
           settings.enableEmailNotifications &&
           settings.enableEmailNotifications === 0
         ) {
           proceedWithNotification = false;
-        }
+        } */
 
         if (!proceedWithNotification) {
           return resolve();
