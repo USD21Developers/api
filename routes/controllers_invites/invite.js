@@ -443,7 +443,7 @@ exports.POST = (req, res) => {
           }
         }
 
-        if (unsubscribedFromEmail) {
+        if (unsubscribedFromEmail === 1) {
           proceedWithNotification = false;
         }
 
