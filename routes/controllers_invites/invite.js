@@ -400,13 +400,15 @@ exports.POST = (req, res) => {
 
       const sql = `
         SELECT
-          invitationid,
-          unsubscribedFromEmail,
-          lasttimenotified
+          i.invitationid,
+          i.unsubscribedFromEmail,
+          i.lasttimenotified,
+          u.settings
         FROM
-          invitations
+          invitations i
+        INNER JOIN users u ON u.userid = i.userid
         WHERE
-          invitationid = ?
+          i.invitationid = ?
         LIMIT
           1
       `;
@@ -431,6 +433,9 @@ exports.POST = (req, res) => {
 
         const invitationid = result[0].invitationid;
         const lastTimeNotified = result[0].lasttimenotified || null;
+        const unsubscribedFromEmail = result[0].unsubscribedFromEmail || null;
+        const settings = result[0].settings || null;
+
         let proceedWithNotification = true;
 
         if (lastTimeNotified) {
@@ -443,17 +448,17 @@ exports.POST = (req, res) => {
           }
         }
 
-        if (unsubscribedFromEmail === 1) {
+        if (unsubscribedFromEmail && unsubscribedFromEmail === 1) {
           proceedWithNotification = false;
         }
 
-        /* if (
+        if (
           settings &&
-          settings.enableEmailNotifications &&
+          settings.hasOwnProperty("enableEmailNotifications") &&
           settings.enableEmailNotifications === 0
         ) {
           proceedWithNotification = false;
-        } */
+        }
 
         if (!proceedWithNotification) {
           return resolve();
