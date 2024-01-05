@@ -401,6 +401,7 @@ exports.POST = (req, res) => {
       const sql = `
         SELECT
           invitationid,
+          unsubscribedFromEmail,
           lasttimenotified
         FROM
           invitations
@@ -440,6 +441,10 @@ exports.POST = (req, res) => {
           if (now.isBefore(okToNotifiy)) {
             proceedWithNotification = false;
           }
+        }
+
+        if (unsubscribedFromEmail) {
+          proceedWithNotification = false;
         }
 
         if (!proceedWithNotification) {
@@ -492,11 +497,11 @@ exports.POST = (req, res) => {
     const event = eventid
       ? await getEvent(db, eventid).catch(() => null)
       : null;
-    
+
     if (!event) {
       return res.status(404).send({
         msg: "event not found",
-        msgType: "error"
+        msgType: "error",
       });
     }
 
