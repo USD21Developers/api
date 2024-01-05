@@ -400,13 +400,15 @@ exports.POST = (req, res) => {
 
       const sql = `
         SELECT
-          invitationid,
-          unsubscribedFromEmail,
-          lasttimenotified
+          i.invitationid,
+          i.unsubscribedFromEmail,
+          i.lasttimenotified,
+          u.settings
         FROM
-          invitations
+          invitations i
+        INNER JOIN users u ON u.userid = i.userid
         WHERE
-          invitationid = ?
+          i.invitationid = ?
         LIMIT
           1
       `;
@@ -444,6 +446,14 @@ exports.POST = (req, res) => {
         }
 
         if (unsubscribedFromEmail === 1) {
+          proceedWithNotification = false;
+        }
+
+        if (
+          settings &&
+          settings.enableEmailNotifications &&
+          settings.enableEmailNotifications === 0
+        ) {
           proceedWithNotification = false;
         }
 
