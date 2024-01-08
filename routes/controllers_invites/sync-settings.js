@@ -21,6 +21,16 @@ exports.POST = async (req, res) => {
   // Params
   const settings = req.body.settings || {};
 
+  // Ensure that custom invite text is no longer than 1000 characters
+  if (settings.hasOwnProperty("customInviteText")) {
+    const maxCharacterQuantity = 1000;
+    const truncatedText = settings.customInviteText.substring(
+      0,
+      maxCharacterQuantity
+    );
+    settings.customInviteText = truncatedText;
+  }
+
   const sql = `
     UPDATE
       users
