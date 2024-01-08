@@ -76,6 +76,9 @@ router.post(
 const syncNotifications = require("./controllers_invites/sync-notifications");
 router.post("/sync-notifications", authenticateToken, syncNotifications.POST);
 
+const syncSettings = require("./controllers_invites/sync-settings");
+router.post("/sync-settings", authenticateToken, syncSettings.POST);
+
 // USERS
 
 const usersAll = require("./controllers_invites/users-all");
