@@ -28,7 +28,7 @@ exports.POST = async (req, res) => {
       0,
       maxCharacterQuantity
     );
-    settings.customInviteText = truncatedText;
+    settings.customInviteText = truncatedText.trim();
   }
 
   const sql = `
