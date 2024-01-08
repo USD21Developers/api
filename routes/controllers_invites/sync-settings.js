@@ -38,13 +38,34 @@ exports.POST = async (req, res) => {
       if (error) {
         console.log(error);
         return res.status(500).send({
-          msg: "unable to sync settings",
+          msg: "unable to update settings",
           msgType: "error",
         });
       }
-      return res.status(200).send({
-        msg: "settings synced",
-        msgType: "success",
+
+      const sql = `
+        SELECT
+          settings
+        FROM
+          users
+        WHERE
+          userid = ?
+        ;
+      `;
+
+      db.query(sql, [req.user.userid], (error, result) => {
+        if (error) {
+          console.log(error);
+          return res.status(500).send({
+            msg: "unable to sync settings",
+            msgType: "error",
+          });
+        }
+        return res.status(200).send({
+          msg: "settings synced",
+          msgType: "success",
+          settings: result[0],
+        });
       });
     }
   );
