@@ -23,6 +23,13 @@ exports.POST = (req, res) => {
   const emailLinkText = req.body.emailLinkText || "";
   const emailSignature = req.body.emailSignature || "";
   const datakey = req.body.dataKey || "";
+  const settings = JSON.stringify({
+    openingPage: "home",
+    customInviteText: "",
+    enableEmailNotifications: true,
+    enablePushNotifications: false,
+    autoAddToFollowupList: false,
+  });
 
   const isUsd21Email =
     email.substring(email.length - 10, email.length) === "@usd21.org"
@@ -235,9 +242,9 @@ exports.POST = (req, res) => {
 
           const sql = `
             INSERT INTO users(
-              churchid, username, password, firstname, lastname, gender, email, usertype, lang, country, datakey, isAuthorized, canAuthorize, canAuthToAuth, createdAt
+              churchid, username, password, firstname, lastname, gender, email, usertype, lang, country, datakey, isAuthorized, canAuthorize, canAuthToAuth, settings, createdAt
             ) VALUES (
-              ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, utc_timestamp()
+              ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, utc_timestamp()
             );
           `;
           db.query(
@@ -257,6 +264,7 @@ exports.POST = (req, res) => {
               isAuthorized,
               canAuthorize,
               canAuthToAuth,
+              settings,
             ],
             async (err, result) => {
               if (err) {
