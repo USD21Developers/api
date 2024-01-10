@@ -19,40 +19,45 @@ exports.POST = async (req, res) => {
     : require("../../database-invites");
 
   // Params
-  const settings = req.body.settings || {};
+  const unsyncedSettings = req.body.unsyncedSettings || null;
 
   // Ensure that custom invite text is no longer than 1000 characters
-  if (settings.hasOwnProperty("customInviteText")) {
+  if (unsyncedSettings && unsyncedSettings.hasOwnProperty("customInviteText")) {
     const maxCharacterQuantity = 1000;
-    const truncatedText = settings.customInviteText.substring(
+    const truncatedText = unsyncedSettings.customInviteText.substring(
       0,
       maxCharacterQuantity
     );
-    settings.customInviteText = truncatedText.trim();
+    unsyncedSettings.customInviteText = truncatedText.trim();
   }
 
-  const sql = `
-    UPDATE
-      users
-    SET
-      settings = ?
-    WHERE
-      userid = ?
-    ;
-  `;
+  const update = (db, unsyncedSettings) => {
+    return new Promise((resolve, reject) => {
+      const sql = `
+        UPDATE
+          users
+        SET
+          settings = ?
+        WHERE
+          userid = ?
+        ;
+      `;
 
-  db.query(
-    sql,
-    [JSON.stringify(settings), req.user.userid],
-    (error, result) => {
-      if (error) {
-        console.log(error);
-        return res.status(500).send({
-          msg: "unable to update settings",
-          msgType: "error",
-        });
-      }
+      const json = JSON.stringify(unsyncedSettings);
 
+      db.query(sql, [json, req.user.userid], (error, result) => {
+        if (error) {
+          console.log(error);
+          reject(error);
+        }
+
+        resolve(result[0]);
+      });
+    });
+  };
+
+  const retrieve = (db) => {
+    return new Promise((resolve, reject) => {
       const sql = `
         SELECT
           settings
@@ -66,17 +71,23 @@ exports.POST = async (req, res) => {
       db.query(sql, [req.user.userid], (error, result) => {
         if (error) {
           console.log(error);
-          return res.status(500).send({
-            msg: "unable to sync settings",
-            msgType: "error",
-          });
+          reject(error);
         }
-        return res.status(200).send({
-          msg: "settings synced",
-          msgType: "success",
-          settings: result[0],
-        });
+
+        resolve(result[0]);
       });
-    }
-  );
+    });
+  };
+
+  if (unsyncedSettings) {
+    await update(db, unsyncedSettings);
+  }
+
+  const response = await retrieve(db);
+
+  return res.status(200).send({
+    msg: "settings synced",
+    msgType: "success",
+    settings: JSON.parse(response.settings),
+  });
 };
