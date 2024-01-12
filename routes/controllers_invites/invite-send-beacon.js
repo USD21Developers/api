@@ -21,7 +21,15 @@ exports.POST = (req, res) => {
           .send("invalid access token");
       }
 
-      const { eventid, sentvia, coords, utctime, timezone, recipient } = invite;
+      const {
+        eventid,
+        followup,
+        sentvia,
+        coords,
+        utctime,
+        timezone,
+        recipient,
+      } = invite;
 
       const {
         id: recipientid,
@@ -75,6 +83,7 @@ exports.POST = (req, res) => {
       let sql = `
         REPLACE INTO invitations(
           eventid,
+          followup,
           userid,
           recipientid,
           recipientname,
@@ -94,6 +103,7 @@ exports.POST = (req, res) => {
             ?,
             ?,
             ?,
+            ?,
             ST_GeomFromText( ? ),
             ?,
             ?,
@@ -106,6 +116,7 @@ exports.POST = (req, res) => {
         sql,
         [
           eventid,
+          followup,
           userdata.userid,
           recipientid,
           recipientname,

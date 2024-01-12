@@ -132,6 +132,7 @@ exports.POST = async (req, res) => {
         const sql = `
           REPLACE INTO invitations(
             eventid,
+            followup,
             userid,
             recipientid,
             recipientname,
@@ -146,6 +147,7 @@ exports.POST = async (req, res) => {
             createdAt
           ) VALUES (
             ?,
+            ?
             ?,
             ?,
             ?,
@@ -165,6 +167,7 @@ exports.POST = async (req, res) => {
           sql,
           [
             eventid,
+            followup,
             req.user.userid,
             recipientid,
             recipientname,
