@@ -175,7 +175,6 @@ exports.POST = async (req, res) => {
             pointCoords,
             timezone,
             req.user.lang,
-            followUp,
             invitedAt,
             createdAt,
           ],
