@@ -142,12 +142,11 @@ exports.POST = async (req, res) => {
             sharedfromcoordinates,
             sharedfromtimezone,
             lang,
-            followup,
             invitedAt,
             createdAt
           ) VALUES (
             ?,
-            ?
+            ?,
             ?,
             ?,
             ?,
@@ -155,7 +154,6 @@ exports.POST = async (req, res) => {
             ?,
             ?,
             ST_GeomFromText( ? ),
-            ?,
             ?,
             ?,
             ?,
