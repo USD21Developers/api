@@ -443,7 +443,8 @@ exports.getSpecificEvents = (db, arrayOfInviteIds) => {
         contactphone,
         contactphonecountrydata,
         country,
-        lang
+        lang,
+        isDeleted
       FROM
         events e
       WHERE
@@ -520,7 +521,8 @@ exports.getEventsForAllInvites = (db, userid) => {
         contactphone,
         contactphonecountrydata,
         country,
-        e.lang
+        e.lang,
+        isDeleted
       FROM
         events e
       INNER JOIN invitations i ON e.eventid = i.eventid
