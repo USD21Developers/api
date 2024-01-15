@@ -378,7 +378,22 @@ exports.POST = (req, res) => {
       subject = subject.replaceAll("{EVENT-TITLE}", eventObj.title);
       let body = document.body.innerHTML;
       body = body.replaceAll("{RECIPIENT-NAME}", recipientObj.recipientname);
-      body = body.replaceAll("{EVENT-TITLE}", eventObj.title);
+
+      if (eventObj.isDeleted === 1) {
+        const deletedColor = "#f44336"; // On front end, corresponds to the color for "--var(danger)"
+        const isDeleted = emailPhrases["email-event-is-deleted"] || "";
+        const eventIsDeletedHTML = `
+          <strike style="color: ${deletedColor}">${eventObj.title}</strike></a>
+          <span style="white-space: nowrap">
+            &nbsp;
+            <span style="color: ${deletedColor}">${isDeleted}</span>
+          </span>
+        `;
+        body = body.replaceAll("{EVENT-TITLE}", eventIsDeletedHTML);
+      } else {
+        body = body.replaceAll("{EVENT-TITLE}", eventObj.title);
+      }
+
       body = body.replaceAll("{FOLLOW-UP-LINK}", followUpLink);
       body = body.replaceAll("{EVENT-TIMEZONE}", eventObj.timezone);
 
