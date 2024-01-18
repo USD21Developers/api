@@ -77,8 +77,9 @@ exports.GET = async (req, res) => {
     return res.status(200).send({
       msg: "no events found",
       msgType: "success",
-      events: [],
-      eventsByFollowedUsers: [],
+      events: events,
+      eventsByFollowedUsers: eventsByFollowedUsers,
+      eventsFromMyInvites: eventsFromMyInvites,
       followedUsers: followedUsers,
     });
   }
