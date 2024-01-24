@@ -116,13 +116,21 @@ exports.POST = (req, res) => {
     : require("../../database-invites");
 
   // Parameters
-  const authHeader = req.headers["authorization"];
-  const jwt = authHeader && authHeader.split(" ")[1];
+  const jwt = req.body.jwt || null;
+
+  // Validate
+  if (!jwt) {
+    return res.status(404).send({
+      msg: "invite not retrieved",
+      msgType: "error",
+    });
+  }
+
   const jsonwebtoken = require("jsonwebtoken");
   jsonwebtoken.verify(
     jwt,
     process.env.INVITES_HMAC_SECRET,
-    async (err, userdata) => {
+    async (err, jwtData) => {
       if (err) {
         return res.status(403).send({
           msg: "invalid unsubscribe token",
@@ -131,7 +139,7 @@ exports.POST = (req, res) => {
         });
       }
 
-      const { invitationid, userid } = userdata;
+      const { invitationid, userid } = jwtData;
       const invite = await getInvite(db, invitationid, userid).catch(
         () => null
       );
