@@ -169,7 +169,7 @@ exports.POST = (req, res) => {
       return res.status(200).send({
         msg: "invite retrieved",
         msgType: "success",
-        invite: {
+        inviteData: {
           invite: invite,
           event: event,
           user: user,
