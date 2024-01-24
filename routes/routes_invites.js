@@ -133,4 +133,9 @@ router.post("/notes-for-invite", authenticateToken, notesForInvite.POST);
 const syncNotes = require("./controllers_invites/sync-notes");
 router.post("/sync-notes", authenticateToken, syncNotes.POST);
 
+// UNSUBSCRIBING
+
+const unsubscribeBefore = require("./controllers_invites/unsubscribe-before");
+router.post("/unsubscribe-before", unsubscribeBefore.POST);
+
 module.exports = router;
