@@ -138,4 +138,7 @@ router.post("/sync-notes", authenticateToken, syncNotes.POST);
 const unsubscribeBefore = require("./controllers_invites/unsubscribe-before");
 router.post("/unsubscribe-before", unsubscribeBefore.POST);
 
+const unsubscribe = require("./controllers_invites/unsubscribe");
+router.post("/unsubscribe", unsubscribe.POST);
+
 module.exports = router;
