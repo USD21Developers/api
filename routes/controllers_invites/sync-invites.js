@@ -154,39 +154,87 @@ exports.POST = async (req, res) => {
             }
 
             if (result.length) {
-              resolve();
+              const invitationid = result[0].invitationid;
+              const sql = `
+                UPDATE invitations
+                SET
+                  eventid = ?,
+                  followup = ?,
+                  userid = ?,
+                  recipientid = ?,
+                  recipientname = ?,
+                  recipientsms = ?,
+                  recipientemail = ?,
+                  sharedvia = ?,
+                  sharedfromcoordinates = ?,
+                  sharedfromtimezone = ?,
+                  lang = ?,
+                  invitedAt = ?,
+                  createdAt = ?
+                WHERE
+                  invitationid = ?
+                ;
+              `;
+
+              db.query(
+                sql,
+                [
+                  eventid,
+                  followup,
+                  req.user.userid,
+                  recipientid,
+                  recipientname,
+                  encryptedSms,
+                  encryptedEmail,
+                  sentvia,
+                  pointCoords,
+                  timezone,
+                  req.user.lang,
+                  invitedAt,
+                  createdAt,
+                  invitationid,
+                ],
+                (error, result) => {
+                  if (error) {
+                    console.log(error);
+                    return reject(error);
+                  }
+
+                  return resolve();
+                }
+              );
             } else {
               const sql = `
-              INSERT INTO invitations(
-                eventid,
-                followup,
-                userid,
-                recipientid,
-                recipientname,
-                recipientsms,
-                recipientemail,
-                sharedvia,
-                sharedfromcoordinates,
-                sharedfromtimezone,
-                lang,
-                invitedAt,
-                createdAt
-              ) VALUES (
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ST_GeomFromText( ? ),
-                ?,
-                ?,
-                ?,
-                ?
-              )
-            `;
+                INSERT INTO invitations(
+                  eventid,
+                  followup,
+                  userid,
+                  recipientid,
+                  recipientname,
+                  recipientsms,
+                  recipientemail,
+                  sharedvia,
+                  sharedfromcoordinates,
+                  sharedfromtimezone,
+                  lang,
+                  invitedAt,
+                  createdAt
+                ) VALUES (
+                  ?,
+                  ?,
+                  ?,
+                  ?,
+                  ?,
+                  ?,
+                  ?,
+                  ?,
+                  ST_GeomFromText( ? ),
+                  ?,
+                  ?,
+                  ?,
+                  ?
+                )
+              `;
 
               db.query(
                 sql,

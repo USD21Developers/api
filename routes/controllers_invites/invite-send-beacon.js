@@ -102,7 +102,55 @@ exports.POST = (req, res) => {
         }
 
         if (result.length) {
-          resolve();
+          const invitationid = result[0].invitationid;
+          const sql = `
+            UPDATE invitations
+            SET
+              eventid = ?,
+              followup = ?,
+              userid = ?,
+              recipientid = ?,
+              recipientname = ?,
+              recipientsms = ?,
+              recipientemail = ?,
+              sharedvia = ?,
+              sharedfromcoordinates = ?,
+              sharedfromtimezone = ?,
+              lang = ?,
+              invitedAt = ?,
+              createdAt = ?
+            WHERE
+              invitationid = ?
+            ;
+          `;
+
+          db.query(
+            sql,
+            [
+              eventid,
+              followup,
+              userid,
+              recipientid,
+              recipientname,
+              encryptedSms,
+              encryptedEmail,
+              sentvia,
+              pointCoords,
+              timezone,
+              lang,
+              invitedAt,
+              createdAt,
+              invitationid,
+            ],
+            (error, result) => {
+              if (error) {
+                console.log(error);
+                return reject(error);
+              }
+
+              return resolve();
+            }
+          );
         } else {
           let sql = `
             INSERT INTO invitations(
