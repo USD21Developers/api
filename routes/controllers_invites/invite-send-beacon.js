@@ -98,7 +98,10 @@ exports.POST = (req, res) => {
       db.query(sql, [eventid, userid, recipientid], (error, result) => {
         if (error) {
           console.log(error);
-          return reject(error);
+          return res
+            .setHeader("Content-Type", "text/plain")
+            .status(500)
+            .send("unable to save invite via sendBeacon");
         }
 
         if (result.length) {
@@ -145,10 +148,16 @@ exports.POST = (req, res) => {
             (error, result) => {
               if (error) {
                 console.log(error);
-                return reject(error);
+                return res
+                  .setHeader("Content-Type", "text/plain")
+                  .status(500)
+                  .send("unable to save invite via sendBeacon");
               }
 
-              return resolve();
+              return res
+                .setHeader("Content-Type", "text/plain")
+                .status(200)
+                .send("invite successfully saved via sendBeacon");
             }
           );
         } else {
