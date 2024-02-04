@@ -130,61 +130,91 @@ exports.POST = async (req, res) => {
         const followUp = followup ? followup : 0;
 
         const sql = `
-          REPLACE INTO invitations(
-            eventid,
-            followup,
-            userid,
-            recipientid,
-            recipientname,
-            recipientsms,
-            recipientemail,
-            sharedvia,
-            sharedfromcoordinates,
-            sharedfromtimezone,
-            lang,
-            invitedAt,
-            createdAt
-          ) VALUES (
-            ?,
-            ?,
-            ?,
-            ?,
-            ?,
-            ?,
-            ?,
-            ?,
-            ST_GeomFromText( ? ),
-            ?,
-            ?,
-            ?,
-            ?
-          )
+          SELECT
+            invitationid
+          FROM
+            invitations
+          WHERE
+            eventid = ?
+          AND
+            userid = ?
+          AND
+            recipientid = ?
+          LIMIT 1
+          ;
         `;
 
         db.query(
           sql,
-          [
-            eventid,
-            followup,
-            req.user.userid,
-            recipientid,
-            recipientname,
-            encryptedSms,
-            encryptedEmail,
-            sentvia,
-            pointCoords,
-            timezone,
-            req.user.lang,
-            invitedAt,
-            createdAt,
-          ],
+          [eventid, req.user.userid, recipientid],
           (error, result) => {
             if (error) {
               console.log(error);
               return reject(error);
             }
 
-            return resolve();
+            if (result.length) {
+              resolve();
+            } else {
+              const sql = `
+              INSERT INTO invitations(
+                eventid,
+                followup,
+                userid,
+                recipientid,
+                recipientname,
+                recipientsms,
+                recipientemail,
+                sharedvia,
+                sharedfromcoordinates,
+                sharedfromtimezone,
+                lang,
+                invitedAt,
+                createdAt
+              ) VALUES (
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ST_GeomFromText( ? ),
+                ?,
+                ?,
+                ?,
+                ?
+              )
+            `;
+
+              db.query(
+                sql,
+                [
+                  eventid,
+                  followup,
+                  req.user.userid,
+                  recipientid,
+                  recipientname,
+                  encryptedSms,
+                  encryptedEmail,
+                  sentvia,
+                  pointCoords,
+                  timezone,
+                  req.user.lang,
+                  invitedAt,
+                  createdAt,
+                ],
+                (error, result) => {
+                  if (error) {
+                    console.log(error);
+                    return reject(error);
+                  }
+
+                  return resolve();
+                }
+              );
+            }
           }
         );
       });

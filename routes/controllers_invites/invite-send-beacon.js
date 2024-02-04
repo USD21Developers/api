@@ -80,70 +80,96 @@ exports.POST = (req, res) => {
         ? JSON.stringify(recipientemail)
         : null;
 
-      let sql = `
-        REPLACE INTO invitations(
-          eventid,
-          followup,
-          userid,
-          recipientid,
-          recipientname,
-          recipientsms,
-          recipientemail,
-          sharedvia,
-          sharedfromcoordinates,
-          sharedfromtimezone,
-          lang,
-          invitedAt,
-          createdAt
-        ) VALUES (
-            ?,
-            ?,
-            ?,
-            ?,
-            ?,
-            ?,
-            ?,
-            ?,
-            ST_GeomFromText( ? ),
-            ?,
-            ?,
-            ?,
-            ?
-        );
+      const sql = `
+        SELECT
+          invitationid
+        FROM
+          invitations
+        WHERE
+          eventid = ?
+        AND
+          userid = ?
+        AND
+          recipientid = ?
+        LIMIT 1
+        ;
       `;
 
-      db.query(
-        sql,
-        [
-          eventid,
-          followup,
-          userdata.userid,
-          recipientid,
-          recipientname,
-          encryptedSms,
-          encryptedEmail,
-          sentvia,
-          pointCoords,
-          timezone,
-          userdata.lang,
-          invitedAt,
-          createdAt,
-        ],
-        (err, result) => {
-          if (err) {
-            console.log(err);
-            return res
-              .setHeader("Content-Type", "text/plain")
-              .status(500)
-              .send("unable to save invite via sendBeacon");
-          }
-
-          return res
-            .setHeader("Content-Type", "text/plain")
-            .status(200)
-            .send("invite successfully saved via sendBeacon");
+      db.query(sql, [eventid, userid, recipientid], (error, result) => {
+        if (error) {
+          console.log(error);
+          return reject(error);
         }
-      );
+
+        if (result.length) {
+          resolve();
+        } else {
+          let sql = `
+            INSERT INTO invitations(
+              eventid,
+              followup,
+              userid,
+              recipientid,
+              recipientname,
+              recipientsms,
+              recipientemail,
+              sharedvia,
+              sharedfromcoordinates,
+              sharedfromtimezone,
+              lang,
+              invitedAt,
+              createdAt
+            ) VALUES (
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ST_GeomFromText( ? ),
+                ?,
+                ?,
+                ?,
+                ?
+            );
+          `;
+
+          db.query(
+            sql,
+            [
+              eventid,
+              followup,
+              userdata.userid,
+              recipientid,
+              recipientname,
+              encryptedSms,
+              encryptedEmail,
+              sentvia,
+              pointCoords,
+              timezone,
+              userdata.lang,
+              invitedAt,
+              createdAt,
+            ],
+            (err, result) => {
+              if (err) {
+                console.log(err);
+                return res
+                  .setHeader("Content-Type", "text/plain")
+                  .status(500)
+                  .send("unable to save invite via sendBeacon");
+              }
+
+              return res
+                .setHeader("Content-Type", "text/plain")
+                .status(200)
+                .send("invite successfully saved via sendBeacon");
+            }
+          );
+        }
+      });
     }
   );
 };
