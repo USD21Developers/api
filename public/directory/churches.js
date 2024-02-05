@@ -272,6 +272,7 @@ async function showChurches() {
 
 async function showChurchesAlphabetically() {
   const directory = document.querySelector("#global-church-directory");
+  localStorage.removeItem("churches"); // Comment out this line once things get stabilized
   const storedChurches = localStorage.getItem("churches");
   const { website } = getPhrases();
   let syncChurchesNeeded = true;
