@@ -41,6 +41,8 @@ exports.POST = (req, res) => {
     });
   }
 
+  // TODO: either verify eventid, userid, and recipientid, OR record this query as an interaction.
+
   const sql = `
     SELECT DISTINCT
       lang
