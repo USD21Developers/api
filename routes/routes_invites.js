@@ -141,4 +141,9 @@ router.post("/unsubscribe-before", unsubscribeBefore.POST);
 const unsubscribe = require("./controllers_invites/unsubscribe");
 router.post("/unsubscribe", unsubscribe.POST);
 
+// MAPS
+
+const mapStatic = require("./controllers_invites/map-static");
+router.post("map-static", mapStatic.POST);
+
 module.exports = router;
