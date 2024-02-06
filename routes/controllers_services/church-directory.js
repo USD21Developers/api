@@ -6,15 +6,15 @@ exports.GET = (req, res) => {
   const sql = `
     SELECT 
       churchID,
-      CONVERT(CAST(church_name as BINARY) USING utf8) AS church_name,
+      church_name AS church_name,
       church_URL,
-      CONVERT(CAST(contact_name as BINARY) USING utf8) AS contact_name,
-      CONVERT(CAST(contact_number as BINARY) USING utf8) AS contact_number,
+      contact_name AS contact_name,
+      contact_number AS contact_number,
       image AS contact_image,
-      CONVERT(CAST(mailing_city as BINARY) USING utf8) AS mailing_city,
-      CONVERT(CAST(mailing_state as BINARY) USING utf8) AS mailing_state,
-      CONVERT(CAST(mailing_country as BINARY) USING utf8) AS mailing_country,
-      CONVERT(CAST(identifying_place as BINARY) USING utf8) AS identifying_place,
+      mailing_city AS mailing_city,
+      mailing_state AS mailing_state,
+      mailing_country AS mailing_country,
+      identifying_place AS identifying_place,
       LCASE(country_iso) AS country_iso
     FROM 
       churches
