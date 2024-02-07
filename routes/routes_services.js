@@ -10,9 +10,6 @@ router.get("/churches", churches.GET);
 const churchDirectory = require("./controllers_services/church-directory");
 router.get("/church-directory", churchDirectory.GET);
 
-const churchDirectory2 = require("./controllers_services/church-directory2");
-router.get("/church-directory2", churchDirectory2.GET);
-
 const countryNames = require("./controllers_services/country-names");
 router.get("/country-names/:lang", countryNames.GET);
 
