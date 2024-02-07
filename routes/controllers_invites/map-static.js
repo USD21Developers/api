@@ -1,11 +1,18 @@
 const crypto = require("crypto");
 const url = require("url");
+const { getAddressCoordinates } = require("./utils");
 
 exports.POST = async (req, res) => {
-  "use strict";
+  // Set database
+  const isStaging =
+    req.headers?.referer?.indexOf("staging") >= 0 ? true : false;
+  const db = isStaging
+    ? require("../../database-invites-test")
+    : require("../../database-invites");
 
+  // Params
   const {
-    place,
+    place = "",
     label,
     width = 400,
     height = 400,
@@ -18,7 +25,7 @@ exports.POST = async (req, res) => {
 
   // Place
   if (!place || !place.length) {
-    return req.status(400).send({
+    return res.status(400).send({
       msg: "place is required",
       msgType: "error",
     });
@@ -26,7 +33,7 @@ exports.POST = async (req, res) => {
 
   // Label
   if (!label || !label.length) {
-    return req.status(400).send({
+    return res.status(400).send({
       msg: "label is required",
       msgType: "error",
     });
@@ -34,7 +41,7 @@ exports.POST = async (req, res) => {
 
   // Width
   if (isNaN(width)) {
-    return req.status(400).send({
+    return res.status(400).send({
       msg: "width must be numeric",
       msgType: "error",
     });
@@ -42,7 +49,7 @@ exports.POST = async (req, res) => {
 
   // Height
   if (isNaN(height)) {
-    return req.status(400).send({
+    return res.status(400).send({
       msg: "height must be numeric",
       msgType: "error",
     });
@@ -50,7 +57,7 @@ exports.POST = async (req, res) => {
 
   // Zoom
   if (isNaN(zoom)) {
-    return req.status(400).send({
+    return res.status(400).send({
       msg: "zoom must be numeric",
       msgType: "error",
     });
@@ -59,7 +66,7 @@ exports.POST = async (req, res) => {
   // Map Type
   const validMapTypes = ["roadmap", "satellite", "hybrid", "terrain"];
   if (!validMapTypes.includes(maptype)) {
-    return req.status(400).send({
+    return res.status(400).send({
       msg: "maptype must be one of 'roadmap', 'satellite', 'hybrid' or 'terrain'",
       msgType: "error",
     });
@@ -79,26 +86,34 @@ exports.POST = async (req, res) => {
     "brown",
   ];
   if (!validMarkerColors.includes(markerColor)) {
-    return req.status(400).send({
+    return res.status(400).send({
       msg: "markerColor must be one of 'red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'white', 'black' or 'brown'",
       msgType: "error",
     });
   }
 
-  const encodedLabel = encodeURIComponent(label);
-  const encodedPlace = encodeURIComponent(place);
+  const coordinatesObj = await getAddressCoordinates(db, {
+    country: "us",
+    line1: "3328 W. Kimberly Way",
+    line2: "Phoenix, AZ",
+    line3: "",
+  });
+
+  const coordinates = `${coordinatesObj.lat},${coordinatesObj.lng}`;
+
+  const encodedPlace = encodeURIComponent(coordinates);
   const urlPrefix = "https://maps.googleapis.com";
   const urlBase = `/maps/api/staticmap?center=${encodedPlace}&zoom=${zoom}&size=${Math.abs(
     width
   )}x${Math.abs(
     height
-  )}&maptype=${maptype}&markers=color:${markerColor}%7Clabel:${encodedLabel}&key=${
+  )}&maptype=${maptype}&markers=color:${markerColor}|${coordinates}&key=${
     process.env.GOOGLE_MAPS_API_KEY
   }`;
-  const signature = sign(urlBase, process.env.GOOGLE_MAPS_URL_SIGNING_SECRET);
-  const imageURL = `${urlPrefix}${urlBase}&signature=${signature}`;
+  const signed = sign(urlBase, process.env.GOOGLE_MAPS_URL_SIGNING_SECRET);
+  const imageURL = `${urlPrefix}${signed}`;
 
-  return req.status(200).send({
+  return res.status(200).send({
     msg: "image url generated",
     msgType: "success",
     imageURL: imageURL,
@@ -163,6 +178,7 @@ exports.POST = async (req, res) => {
     const uri = url.parse(path);
     const safeSecret = decodeBase64Hash(removeWebSafe(secret));
     const hashedSignature = makeWebSafe(encodeBase64Hash(safeSecret, uri.path));
-    return url.format(uri) + "&signature=" + hashedSignature;
+    const signed = url.format(uri) + "&signature=" + hashedSignature;
+    return signed;
   }
 };
