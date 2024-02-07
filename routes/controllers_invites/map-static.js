@@ -14,8 +14,8 @@ exports.POST = async (req, res) => {
   const {
     place = "",
     label,
-    width = 400,
-    height = 400,
+    width = 200,
+    height = 200,
     zoom = 12,
     maptype = "roadmap",
     markerColor = "red",
@@ -103,7 +103,7 @@ exports.POST = async (req, res) => {
 
   const encodedPlace = encodeURIComponent(coordinates);
   const urlPrefix = "https://maps.googleapis.com";
-  const urlBase = `/maps/api/staticmap?center=${encodedPlace}&zoom=${zoom}&size=${Math.abs(
+  const urlBase = `/maps/api/staticmap?center=${encodedPlace}&zoom=${zoom}&scale=2&size=${Math.abs(
     width
   )}x${Math.abs(
     height
