@@ -92,20 +92,19 @@ exports.POST = async (req, res) => {
     });
   }
 
-  /* const coordinatesObj = await getAddressCoordinates(db, {
-    country: "us",
-    line1: "3328 W. Kimberly Way",
-    line2: "Phoenix, AZ",
-    line3: "",
-  }); */
-
   const latLongRegex =
     /^([-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)),\s*([-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?))$/;
   const isCoordinates = latLongRegex.test(place);
 
   // TODO:  provide a way to parse different types of locations (not just coordinates)
+  /* const {lat, lng} = await getAddressCoordinates(db, {
+    country: "",
+    line1: "",
+    line2: "",
+    line3: "",
+  }); */
 
-  const encodedPlace = isCoordinates ? encodeURIComponent(coordinates) : place;
+  const encodedPlace = isCoordinates ? encodeURIComponent(place) : place;
   const urlPrefix = "https://maps.googleapis.com";
   const urlBase = `/maps/api/staticmap?center=${encodedPlace}&zoom=${zoom}&scale=2&size=${Math.abs(
     width
