@@ -104,9 +104,9 @@ exports.POST = async (req, res) => {
     line3: "",
   }); */
 
-  const encodedPlace = isCoordinates ? encodeURIComponent(place) : place;
+  const coordinates = isCoordinates ? encodeURIComponent(place) : place;
   const urlPrefix = "https://maps.googleapis.com";
-  const urlBase = `/maps/api/staticmap?center=${encodedPlace}&zoom=${zoom}&scale=2&size=${Math.abs(
+  const urlBase = `/maps/api/staticmap?center=${coordinates}&zoom=${zoom}&scale=2&size=${Math.abs(
     width
   )}x${Math.abs(
     height
