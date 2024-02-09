@@ -16,6 +16,7 @@ exports.POST = (req, res) => {
     return new Promise((resolve, reject) => {
       const sql = `
         SELECT
+          recipientid,
           recipientname,
           sharedvia,
           lang,
@@ -52,6 +53,7 @@ exports.POST = (req, res) => {
     return new Promise((resolve, reject) => {
       const sql = `
         SELECT
+          userid,
           firstname,
           lastname,
           gender,
@@ -123,7 +125,7 @@ exports.POST = (req, res) => {
           return reject(new Error("event not found"));
         }
 
-        return resolve([result[0]]);
+        return resolve(result[0]);
       });
     });
   };
@@ -136,10 +138,17 @@ exports.POST = (req, res) => {
 
   Promise.all([event, user, invite]).then((values) => {
     // debugger;
+    const event = values[0];
+    const user = values[1];
+    const recipient = values[2];
     return res.status(200).send({
       msg: "invite info retrieved",
       msgType: "success",
-      info: values,
+      invite: {
+        event: event,
+        user: user,
+        recipient: recipient,
+      },
     });
   });
 };
