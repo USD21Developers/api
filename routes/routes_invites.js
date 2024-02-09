@@ -121,7 +121,7 @@ const saveInvite = require("./controllers_invites/invite-send-beacon");
 router.post("/invite-send-beacon", saveInvite.POST);
 
 const altEventsInvite = require("./controllers_invites/alt-events-invite");
-router.post("alt-events-invite", altEventsInvite.POST);
+router.post("/alt-events-invite", altEventsInvite.POST);
 
 // RECIPIENTS
 
@@ -155,3 +155,8 @@ module.exports = router;
 
 const languagesOfEvents = require("./controllers_invites/languages-of-events");
 router.post("/languages-of-events", languagesOfEvents.POST);
+
+// ALTERNATIVE EVENTS
+
+const altEventSearch = require("./controllers_invites/alt-events-search");
+router.post("/alt-events-search", altEventSearch.POST);
