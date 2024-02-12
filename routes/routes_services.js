@@ -16,4 +16,7 @@ router.get("/country-names/:lang", countryNames.GET);
 const church = require("./controllers_services/church");
 router.get("/church/:churchid", church.GET);
 
+const countryOfCoordinates = require("./controllers_services/country-of-coordinates");
+router.post("/country-of-coordinates", countryOfCoordinates.POST);
+
 module.exports = router;
