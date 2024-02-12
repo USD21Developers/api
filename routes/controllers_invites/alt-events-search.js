@@ -40,6 +40,92 @@ exports.POST = (req, res) => {
   const dateFromUTC = req.body.dateFromUTC;
   const dateToUTC = req.body.dateToUTC;
 
+  // VALIDATE
+  if (!eventid) {
+    return res.status(400).send({
+      msg: "eventid is required",
+      msgType: "error",
+    });
+  }
+  if (isNaN(eventid)) {
+    return res.status(400).send({
+      msg: "eventid must be numeric",
+      msgType: "error",
+    });
+  }
+  if (!userid) {
+    return res.status(400).send({
+      msg: "userid is required",
+      msgType: "error",
+    });
+  }
+  if (isNaN(userid)) {
+    return res.status(400).send({
+      msg: "userid must be numeric",
+      msgType: "error",
+    });
+  }
+  if (!recipientid || !recipientid.length) {
+    return res.status(400).send({
+      msg: "recipientid is required",
+      msgType: "error",
+    });
+  }
+  if (!countryFromIP || !countryFromIP.length) {
+    return res.status(400).send({
+      msg: "countryFromIP is required",
+      msgType: "error",
+    });
+  }
+  if (!lang || lang.length !== 2) {
+    return res.status(400).send({
+      msg: "lang is required and must be 2 characters",
+      msgType: "error",
+    });
+  }
+  if (!originLocation) {
+    return res.status(400).send({
+      msg: "originLocation is required",
+      msgType: "error",
+    });
+  }
+  if (!radius) {
+    return res.status(400).send({
+      msg: "radius is required",
+      msgType: "error",
+    });
+  }
+  if (isNaN(radius)) {
+    return res.status(400).send({
+      msg: "radius must be numeric",
+      msgType: "error",
+    });
+  }
+  if (!distanceUnit) {
+    return res.status(400).send({
+      msg: "distanceUnit is required",
+      msgType: "error",
+    });
+  }
+  if (!["miles", "kilometers"].includes(distanceUnit)) {
+    return res.status(400).send({
+      msg: "distanceUnit must be either miles or kilometers",
+      msgType: "error",
+    });
+  }
+  if (!dateFromUTC || !dateFromUTC.length) {
+    return res.status(400).send({
+      msg: "dateFromUTC is required",
+      msgType: "error",
+    });
+  }
+  if (!dateToUTC || !dateToUTC.length) {
+    return res.status(400).send({
+      msg: "dateToUTC is required",
+      msgType: "error",
+    });
+  }
+
   // MAIN LOGIC
 
   const events = []; // Populate this from the DB
