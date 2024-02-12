@@ -32,6 +32,7 @@ exports.POST = (req, res) => {
   const eventid = Number(req.body.eventid) || null;
   const userid = Number(req.body.userid) || null;
   const recipientid = req.body.recipientid || null;
+  const country = req.body.country;
   const countryFromIP = req.body.countryFromIP;
   const lang = req.body.lang;
   const originLocation = req.body.originLocation;
@@ -71,9 +72,9 @@ exports.POST = (req, res) => {
       msgType: "error",
     });
   }
-  if (!countryFromIP || !countryFromIP.length) {
+  if (!country || !country.length) {
     return res.status(400).send({
-      msg: "countryFromIP is required",
+      msg: "country is required",
       msgType: "error",
     });
   }
