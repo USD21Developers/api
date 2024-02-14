@@ -129,7 +129,75 @@ exports.POST = (req, res) => {
 
   // MAIN LOGIC
 
+  function distanceInMeters(quantity, distanceUnit) {
+    if (quantity <= 0) {
+      throw new Error("Quantity must be a positive integer.");
+    }
+
+    let meters;
+    switch (distanceUnit.toLowerCase()) {
+      case "miles":
+        meters = quantity * 1609.34; // 1 mile is approximately 1609.34 meters
+        break;
+      case "kilometers":
+        meters = quantity * 1000; // 1 kilometer is 1000 meters
+        break;
+      default:
+        throw new Error(
+          'Invalid distance unit. Please use "miles" or "kilometers".'
+        );
+    }
+
+    return meters;
+  }
+
   const events = []; // Populate this from the DB
+  const radiusInMeters = distanceInMeters(radius, distanceUnit);
+
+  function getInPersonEvents() {
+    return new Promise((resolve, reject) => {
+      const sql = `
+        SELECT
+          e.eventid,
+          e.churchid,
+          e.type,
+          e.title,
+          e.frequency,
+          e.duration,
+          e.durationInHours,
+          e.timezone,
+          e.startdate,
+          e.multidaybegindate,
+          e.locationcoordinates,
+          e.hasvirtual,
+          e.country,
+          e.lang
+        FROM
+          events e
+        WHERE
+          isDeleted = 0
+        AND
+          lang = ?
+        AND
+          (
+            e.startdate <> NULL
+            AND
+            e.startdate >= ?
+            AND
+            e.startdate <= ?
+          )
+          OR
+          (
+            e.multidaybegindate <> NULL
+            AND
+            e.multidaybegindate >= ?
+            AND
+            e.multidaybegindate <= ?
+          )
+        
+      `;
+    });
+  }
 
   return res.status(200).send({
     msg: "alternative events retrieved",
