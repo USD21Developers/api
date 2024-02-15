@@ -20,7 +20,33 @@ function calculateZoomLevel(map, markers, origin, radius) {
   return zoomLevel;
 }
 
-exports.POST = (req, res) => {
+function isLatLongPair(str) {
+  // e.g. "40.689247,-74.044502"
+  const regex =
+    /^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/;
+  return regex.test(str);
+}
+
+function getCoordinates(db, originLocation, country) {
+  return new Promise(async (resolve, reject) => {
+    const isCoordinates = isLatLongPair(originLocation);
+    if (isCoordinates) {
+      const coords = originLocation.replaceAll(" ", "").split(",");
+      const coordsObject = {
+        latitude: coords[0],
+        longitude: coords[1],
+      };
+      return resolve(coordsObject);
+    }
+
+    const { geocodeLocation } = require("./utils");
+    const coordsObject = await geocodeLocation(db, originLocation, country);
+
+    return resolve(coordsObject);
+  });
+}
+
+exports.POST = async (req, res) => {
   // Set database
   const isStaging =
     req.headers?.referer?.indexOf("staging") >= 0 ? true : false;
@@ -129,6 +155,12 @@ exports.POST = (req, res) => {
 
   // MAIN LOGIC
 
+  const { latitude, longitude } = await getCoordinates(
+    db,
+    originLocation,
+    country
+  );
+
   function distanceInMeters(quantity, distanceUnit) {
     if (quantity <= 0) {
       throw new Error("Quantity must be a positive integer.");
@@ -151,57 +183,87 @@ exports.POST = (req, res) => {
     return meters;
   }
 
-  const events = []; // Populate this from the DB
-  const radiusInMeters = distanceInMeters(radius, distanceUnit);
-
-  function getInPersonEvents() {
+  function getInPersonEvents(radiusInMeters) {
     return new Promise((resolve, reject) => {
       const sql = `
         SELECT
-          e.eventid,
-          e.churchid,
-          e.type,
-          e.title,
-          e.frequency,
-          e.duration,
-          e.durationInHours,
-          e.timezone,
-          e.startdate,
-          e.multidaybegindate,
-          e.locationcoordinates,
-          e.hasvirtual,
-          e.country,
-          e.lang
+          e1.eventid,
+          e1.churchid,
+          e1.type,
+          e1.title,
+          e1.frequency,
+          e1.duration,
+          e1.durationInHours,
+          e1.timezone,
+          e1.startdate,
+          e1.multidaybegindate,
+          e1.locationcoordinates,
+          e1.hasvirtual,
+          e1.country,
+          e1.lang
         FROM
-          events e
+          events e1
         WHERE
           isDeleted = 0
-        AND
-          lang = ?
-        AND
-          (
-            e.startdate <> NULL
-            AND
-            e.startdate >= ?
-            AND
-            e.startdate <= ?
-          )
-          OR
-          (
-            e.multidaybegindate <> NULL
-            AND
-            e.multidaybegindate >= ?
-            AND
-            e.multidaybegindate <= ?
-          )
-        
+        AND lang = ?
+        AND (
+          CASE 
+            WHEN e1.startdate IS NOT NULL THEN e1.startdate >= ? AND e1.startdate <= ?
+            ELSE e1.multidaybegindate >= ? AND e1.multidaybegindate <= ?
+          END
+        )
+        AND ST_Distance_Sphere(e1.locationcoordinates, @pointOfOrigin) <= 300
+        AND NOT EXISTS (
+          SELECT
+            1
+          FROM
+            events e2
+          WHERE
+            e1.eventid <> e2.eventid
+          AND ST_Distance_Sphere(e1.locationcoordinates, e2.locationcoordinates) <= 300
+        )
+        ORDER BY
+          ST_Distance_Sphere(e1.locationcoordinates, POINT(?, ?)),
+          CASE 
+            WHEN e1.startdate IS NOT NULL THEN e1.startdate 
+            ELSE e1.multidaybegindate 
+          END
+        LIMIT 20;
       `;
+
+      db.query(
+        sql,
+        [
+          lang,
+          dateFromUTC,
+          dateToUTC,
+          dateFromUTC,
+          dateToUTC,
+          latitude,
+          longitude,
+        ],
+        (error, results) => {
+          if (error) {
+            console.log(error);
+            return reject(error);
+          }
+
+          return resolve(results);
+        }
+      );
     });
   }
+
+  const radiusInMeters = distanceInMeters(Number(radius), distanceUnit);
+  const inPersonEvents = await getInPersonEvents(radiusInMeters);
+  const virtualEvents = []; // TODO
 
   return res.status(200).send({
     msg: "alternative events retrieved",
     msgType: "success",
-    events: events,
+    events: {
+      inPerson: inPersonEvents,
+      virtual: virtualEvents,
+    },
   });
 };
