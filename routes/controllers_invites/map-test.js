@@ -48,6 +48,7 @@ exports.POST = async (req, res) => {
       return res.status(500).send({
         msg: "unable to query for map test",
         msgType: "error",
+        error: error,
       });
     }
 
