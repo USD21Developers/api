@@ -563,7 +563,7 @@ exports.POST = (req, res) => {
       line3: addressLine3.trim().length ? addressLine3.trim() : null,
       coordinates:
         latitude.trim().length && longitude.trim().length
-          ? `POINT(${latitude.trim()} ${longitude.trim()})`
+          ? `POINT(${longitude.trim()} ${latitude.trim()})`
           : null,
     };
 
@@ -582,7 +582,7 @@ exports.POST = (req, res) => {
       if (typeof geocodedAddress === "object") {
         const { lat, lng } = geocodedAddress;
         if (typeof lat === "number" && typeof lng === "number") {
-          sqlAddress.coordinates = `POINT(${lat} ${lng})`;
+          sqlAddress.coordinates = `POINT(${lng} ${lat})`;
         } else {
           sqlAddress.coordinates = null;
         }

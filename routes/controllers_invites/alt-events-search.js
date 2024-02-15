@@ -212,7 +212,7 @@ exports.POST = async (req, res) => {
             ELSE e1.multidaybegindate >= ? AND e1.multidaybegindate <= ?
           END
         )
-        AND ST_Distance_Sphere(e1.locationcoordinates, @pointOfOrigin) <= 300
+        AND ST_Distance_Sphere(ST_GeomFromText(e1.locationcoordinates), ST_GeomFromText(POINT(?, ?))) <= 300
         AND NOT EXISTS (
           SELECT
             1
@@ -220,7 +220,7 @@ exports.POST = async (req, res) => {
             events e2
           WHERE
             e1.eventid <> e2.eventid
-          AND ST_Distance_Sphere(e1.locationcoordinates, e2.locationcoordinates) <= 300
+          AND ST_Distance_Sphere(ST_GeomFromText(e1.locationcoordinates), ST_GeomFromText(e2.locationcoordinates)) <= 300
         )
         ORDER BY
           ST_Distance_Sphere(e1.locationcoordinates, POINT(?, ?)),
@@ -239,8 +239,10 @@ exports.POST = async (req, res) => {
           dateToUTC,
           dateFromUTC,
           dateToUTC,
+          longitude,
           latitude,
           longitude,
+          latitude,
         ],
         (error, results) => {
           if (error) {

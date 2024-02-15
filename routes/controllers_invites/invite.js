@@ -354,11 +354,11 @@ exports.POST = (req, res) => {
 
       if (eventObj.hasOwnProperty("locationcoordinates")) {
         if (eventObj.locationcoordinates.hasOwnProperty("x")) {
-          latitude = eventObj.locationcoordinates.x;
+          longitude = eventObj.locationcoordinates.x;
         }
 
         if (eventObj.locationcoordinates.hasOwnProperty("y")) {
-          longitude = eventObj.locationcoordinates.y;
+          latitude = eventObj.locationcoordinates.y;
         }
       }
 
