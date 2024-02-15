@@ -38,7 +38,7 @@ exports.POST = async (req, res) => {
       eventid,
       locationcoordinates
     FROM
-      EVENTS
+      events
     ;
   `;
 
