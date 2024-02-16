@@ -184,16 +184,18 @@ exports.POST = async (req, res) => {
   }
 
   function getInPersonEvents(radiusInMeters) {
+    // TODO:  remember, startdate and multidaybegindate are for the INITIAL dates. As time goes on, recurring dates will need to be calculated from them programatically.
     return new Promise((resolve, reject) => {
       const sql = `
-        SELECT
-          e1.eventid,
-          e1.churchid,
-          e1.type,
-          e1.title,
-          e1.frequency,
-          e1.duration,
-          e1.durationInHours,
+      SELECT
+      ST_Distance_Sphere(e1.locationcoordinates, ST_GeomFromText('POINT(? ?)')) AS distanceInMeters,
+      e1.eventid,
+      e1.churchid,
+      e1.type,
+      e1.title,
+      e1.frequency,
+      e1.duration,
+        e1.durationInHours,
           e1.timezone,
           e1.startdate,
           e1.multidaybegindate,
@@ -204,46 +206,19 @@ exports.POST = async (req, res) => {
         FROM
           events e1
         WHERE
-          isDeleted = 0
-        AND lang = ?
-        AND (
-          CASE 
-            WHEN e1.startdate IS NOT NULL THEN e1.startdate >= ? AND e1.startdate <= ?
-            ELSE e1.multidaybegindate >= ? AND e1.multidaybegindate <= ?
-          END
-        )
-        AND ST_Distance_Sphere(ST_GeomFromText(e1.locationcoordinates), ST_GeomFromText(POINT(?, ?))) <= 300
-        AND NOT EXISTS (
-          SELECT
-            1
-          FROM
-            events e2
-          WHERE
-            e1.eventid <> e2.eventid
-          AND ST_Distance_Sphere(ST_GeomFromText(e1.locationcoordinates), ST_GeomFromText(e2.locationcoordinates)) <= 300
-        )
+          e1.isDeleted = 0
+        AND
+          e1.lang = ?
         ORDER BY
-          ST_Distance_Sphere(e1.locationcoordinates, POINT(?, ?)),
-          CASE 
-            WHEN e1.startdate IS NOT NULL THEN e1.startdate 
-            ELSE e1.multidaybegindate 
-          END
-        LIMIT 20;
+          distanceInMeters
+        LIMIT
+          20
+        ;
       `;
 
       db.query(
         sql,
-        [
-          lang,
-          dateFromUTC,
-          dateToUTC,
-          dateFromUTC,
-          dateToUTC,
-          longitude,
-          latitude,
-          longitude,
-          latitude,
-        ],
+        [Number(longitude), Number(latitude), lang],
         (error, results) => {
           if (error) {
             console.log(error);
