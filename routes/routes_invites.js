@@ -149,9 +149,6 @@ router.post("/unsubscribe", unsubscribe.POST);
 const mapStatic = require("./controllers_invites/map-static");
 router.post("/map-static", mapStatic.POST);
 
-const mapTest = require("./controllers_invites/map-test");
-router.post("/map-test", mapTest.POST);
-
 module.exports = router;
 
 // LANGUAGES OF EVENTS
