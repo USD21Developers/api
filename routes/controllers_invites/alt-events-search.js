@@ -36,13 +36,13 @@ function getCoordinates(db, originLocation, country) {
         latitude: coords[0],
         longitude: coords[1],
       };
-      return resolve(coordsObject);
+      resolve(coordsObject);
     }
 
-    const { geocodeLocation } = require("./utils");
+    const { geocodeLocation, geocodeLocation } = require("./utils");
     const coordsObject = await geocodeLocation(db, originLocation, country);
 
-    return resolve(coordsObject);
+    resolve(coordsObject);
   });
 }
 
@@ -224,7 +224,7 @@ exports.POST = async (req, res) => {
     });
   }
 
-  function getInPersonEvents(originLongitude, originLatitude, radiusInMeters) {
+  function getInPersonEvents(longitude, latitude, radiusInMeters) {
     return new Promise(async (resolve, reject) => {
       // TODO:  remember, startdate and multidaybegindate are for the INITIAL dates. As time goes on, recurring dates will need to be calculated from them programatically.
       const { min_lat, max_lat, min_long, max_long } = await getBoundingBox();
@@ -275,33 +275,35 @@ exports.POST = async (req, res) => {
       db.query(
         sql,
         [
-          Number(originLongitude),
-          Number(originLatitude),
-          Number(originLongitude),
-          Number(originLatitude),
+          Number(longitude),
+          Number(latitude),
           lang,
           min_lat,
           max_lat,
           min_long,
           max_long,
-          originLongitude,
-          originLatitude,
+          Number(longitude),
+          Number(latitude),
           radiusInMeters,
         ],
         (error, results) => {
           if (error) {
             console.log(error);
-            return reject(error);
+            reject(error);
           }
 
-          return resolve(results);
+          resolve(results);
         }
       );
     });
   }
 
   const radiusInMeters = distanceInMeters(Number(radius), distanceUnit);
-  const inPersonEvents = await getInPersonEvents(radiusInMeters);
+  const inPersonEvents = await getInPersonEvents(
+    longitude,
+    latitude,
+    radiusInMeters
+  );
   const virtualEvents = []; // TODO
 
   return res.status(200).send({
