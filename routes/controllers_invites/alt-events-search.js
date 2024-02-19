@@ -129,28 +129,42 @@ function getInPersonEvents(db) {
   return new Promise((resolve, reject) => {
     const sql = `
       SELECT
-        DATE_ADD(startdate, INTERVAL (1 + TIMESTAMPDIFF(WEEK, startdate, NOW())) WEEK) AS eventDate
+        eventid,
+        DATE_ADD(startdate, INTERVAL (1 + TIMESTAMPDIFF(WEEK, startdate, UTC_TIMESTAMP())) WEEK) AS eventDate,
+        type,
+        title,
+        frequency,
+        duration,
+        durationInHours,
+        timezone,
+        hasvirtual,
+        country,
+        lang
       FROM
         events
       WHERE
-        startdate IS NOT NULL
-      AND
-        startdate < NOW()
-      AND
         frequency <> 'once'
       AND
         isDeleted = 0
-
+      
       UNION ALL
 
       SELECT
-        startdate AS eventDate
+        eventid,
+        startdate AS eventDate,
+        type,
+        title,
+        frequency,
+        duration,
+        durationInHours,
+        timezone,
+        hasvirtual,
+        country,
+        lang
       FROM
         events
       WHERE
-        startdate IS NOT NULL
-      AND
-        startdate >= NOW()
+        startdate >= UTC_TIMESTAMP()
       AND
         frequency <> 'once'
       AND
@@ -159,16 +173,24 @@ function getInPersonEvents(db) {
       UNION ALL
 
       SELECT
-        multidaybegindate AS eventDate
+        eventid,
+        multidaybegindate AS eventDate,
+        type,
+        title,
+        frequency,
+        duration,
+        durationInHours,
+        timezone,
+        hasvirtual,
+        country,
+        lang
       FROM
         events
       WHERE
-        multidaybegindate IS NOT NULL
-      AND
-        multidaybegindate >= NOW()
+        multidaybegindate >= UTC_TIMESTAMP()
       AND
         isDeleted = 0
-      
+
       ORDER BY
         eventDate ASC
       ;
@@ -205,59 +227,6 @@ function distanceInMeters(quantity, distanceUnit) {
   }
 
   return meters;
-}
-
-function getInPersonEvents(db, lang, dateFromUTC, dateToUTC) {
-  return new Promise(async (resolve, reject) => {
-    /* const { minLat, maxLat, minLng, maxLng } = await geolib.getBounds([
-      { latitude: latitude, longitude: longitude },
-    ]); */
-
-    const sql = `
-      SELECT
-        eventid,
-        churchid,
-        type,
-        title,
-        frequency,
-        duration,
-        durationInHours,
-        timezone,
-        startdate,
-        CASE 
-          WHEN startdate >= ? THEN startdate
-          ELSE DATE_ADD(startdate, INTERVAL DATEDIFF(?, startdate) DIV 7 * 7 DAY)
-        END AS future_date,
-        locationcoordinates,
-        hasvirtual,
-        country,
-        lang
-      FROM
-        events
-      WHERE
-        isDeleted = 0
-      AND
-        lang = ?
-      AND startdate >= ?
-      AND startdate <= ?
-      LIMIT
-        20
-      ;
-    `;
-
-    db.query(
-      sql,
-      [dateFromUTC, dateFromUTC, lang, dateFromUTC, dateToUTC],
-      (error, results) => {
-        if (error) {
-          console.log(error);
-          reject(error);
-        }
-
-        resolve(results);
-      }
-    );
-  });
 }
 
 function calculateZoomLevel(map, markers, origin, radius) {
