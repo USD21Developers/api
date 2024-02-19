@@ -183,19 +183,67 @@ exports.POST = async (req, res) => {
     return meters;
   }
 
-  function getInPersonEvents(radiusInMeters) {
-    // TODO:  remember, startdate and multidaybegindate are for the INITIAL dates. As time goes on, recurring dates will need to be calculated from them programatically.
+  function getBoundingBox() {
     return new Promise((resolve, reject) => {
       const sql = `
-      SELECT
-      ST_Distance_Sphere(e1.locationcoordinates, ST_GeomFromText('POINT(? ?)')) AS distanceInMeters,
-      e1.eventid,
-      e1.churchid,
-      e1.type,
-      e1.title,
-      e1.frequency,
-      e1.duration,
-        e1.durationInHours,
+        SELECT 
+          MIN(ST_Y(locationcoordinates)) AS min_lat,
+          MAX(ST_Y(locationcoordinates)) AS max_lat,
+          MIN(ST_X(locationcoordinates)) AS min_long,
+          MAX(ST_X(locationcoordinates)) AS max_long
+        FROM
+          events
+        LIMIT
+          1
+        ;
+      `;
+
+      db.query(sql, [], (error, result) => {
+        if (error) {
+          console.log(error);
+          reject(error);
+        }
+
+        if (!result.length) {
+          const errorText =
+            "cannot calculate bounding box because there are no records in the events table";
+          console.log(errorText);
+          reject(new Error(errorText));
+        }
+
+        const { min_lat, max_lat, min_long, max_long } = result[0];
+        const bounding_box = {
+          min_lat: min_lat + 0.01,
+          max_lat: max_lat + 0.01,
+          min_long: min_long + 0.01,
+          max_long: max_long + 0.01,
+        };
+
+        resolve(bounding_box);
+      });
+    });
+  }
+
+  function getInPersonEvents(originLongitude, originLatitude, radiusInMeters) {
+    return new Promise(async (resolve, reject) => {
+      // TODO:  remember, startdate and multidaybegindate are for the INITIAL dates. As time goes on, recurring dates will need to be calculated from them programatically.
+      const { min_lat, max_lat, min_long, max_long } = await getBoundingBox();
+
+      const sql = `
+        SELECT
+          (
+            ST_Distance_Sphere(e1.locationcoordinates, ST_GeomFromText('POINT(? ?)'))
+          ) AS distance_in_meters,
+          (
+            distance_in_meters * 0.000621371192
+          ) AS distance_in_miles,
+          e1.eventid,
+          e1.churchid,
+          e1.type,
+          e1.title,
+          e1.frequency,
+          e1.duration,
+          e1.durationInHours,
           e1.timezone,
           e1.startdate,
           e1.multidaybegindate,
@@ -209,8 +257,16 @@ exports.POST = async (req, res) => {
           e1.isDeleted = 0
         AND
           e1.lang = ?
+        AND
+          ST_Y(locationcoordinates) BETWEEN ? AND ?
+        AND
+          ST_X(locationcoordinates) BETWEEN ? AND ?
+        AND
+          ST_Distance_Sphere(e1.locationcoordinates, ST_GeomFromText('POINT(? ?)'))
+        AND
+          distance_in_meters < ?
         ORDER BY
-          distanceInMeters
+          distance_in_meters
         LIMIT
           20
         ;
@@ -218,7 +274,20 @@ exports.POST = async (req, res) => {
 
       db.query(
         sql,
-        [Number(longitude), Number(latitude), lang],
+        [
+          Number(originLongitude),
+          Number(originLatitude),
+          Number(originLongitude),
+          Number(originLatitude),
+          lang,
+          min_lat,
+          max_lat,
+          min_long,
+          max_long,
+          originLongitude,
+          originLatitude,
+          radiusInMeters,
+        ],
         (error, results) => {
           if (error) {
             console.log(error);
