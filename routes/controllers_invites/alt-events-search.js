@@ -128,83 +128,60 @@ exports.POST = async (req, res) => {
 function getInPersonEvents(db, dateFromUTC, dateToUTC) {
   return new Promise((resolve, reject) => {
     const sql = `
-      SELECT
-        eventid,
-        DATE_ADD(startdate, INTERVAL (1 + TIMESTAMPDIFF(WEEK, startdate, ?)) WEEK) AS eventDate,
-        type,
-        title,
-        frequency,
-        duration,
-        durationInHours,
-        timezone,
-        hasvirtual,
-        country,
-        lang
-      FROM
-        events
-      WHERE
-        isDeleted = 0
-      AND
-        frequency <> 'once'
-      AND
-        startdate < ?
-      
-      UNION ALL
+      WITH RECURSIVE recurring_dates AS (
+        SELECT 
+          eventid,
+          startdate AS eventDate,
+          type,
+          title,
+          frequency,
+          duration,
+          durationInHours,
+          timezone,
+          hasvirtual,
+          country,
+          lang
+        FROM 
+          events
+        WHERE 
+          isDeleted = 0
+          AND frequency <> 'once'
+          AND startdate < ? -- dateToUTC
 
-      SELECT
-        eventid,
-        startdate AS eventDate,
-        type,
-        title,
-        frequency,
-        duration,
-        durationInHours,
-        timezone,
-        hasvirtual,
-        country,
-        lang
-      FROM
-        events
-      WHERE
-        isDeleted = 0
-      AND
-        frequency <> 'once'
-      AND
-        startdate >= ?
-      AND
-        startdate < ?
-      
-      UNION ALL
+        UNION ALL
 
-      SELECT
-        eventid,
-        multidaybegindate AS eventDate,
-        type,
-        title,
-        frequency,
-        duration,
-        durationInHours,
-        timezone,
-        hasvirtual,
-        country,
-        lang
-      FROM
-        events
-      WHERE
-        isDeleted = 0
-      AND
-        multidaybegindate >= ?
-      AND
-        multidaybegindate <= ?
-
-      ORDER BY
+        SELECT 
+          eventid,
+          DATE_ADD(eventDate, INTERVAL 1 WEEK) AS eventDate,
+          type,
+          title,
+          frequency,
+          duration,
+          durationInHours,
+          timezone,
+          hasvirtual,
+          country,
+          lang
+        FROM 
+          recurring_dates
+        WHERE 
+          eventDate < ? -- dateToUTC
+      )
+      SELECT 
+        *
+      FROM 
+        recurring_dates
+      WHERE 
+        eventDate BETWEEN ? -- dateFromUTC
+        AND ? -- dateToUTC
+      ORDER BY 
         eventDate ASC
-      ;
+      ;    
     `;
 
     db.query(
       sql,
-      [dateFromUTC, dateToUTC, dateFromUTC, dateToUTC, dateFromUTC, dateToUTC],
+      [dateToUTC, dateToUTC, dateFromUTC, dateToUTC],
       function (error, result) {
         if (error) {
           console.log(error);
