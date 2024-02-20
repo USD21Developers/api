@@ -115,7 +115,7 @@ exports.POST = async (req, res) => {
       : await getCoordinates(db, originLocation, country);
 
   const radiusInMeters = distanceInMeters(Number(radius), distanceUnit);
-  const inPersonEvents = await getInPersonEvents(db);
+  const inPersonEvents = await getInPersonEvents(db, dateFromUTC, dateToUTC);
   const virtualEvents = []; // TODO
 
   return res.status(200).send({
@@ -125,12 +125,12 @@ exports.POST = async (req, res) => {
   });
 };
 
-function getInPersonEvents(db) {
+function getInPersonEvents(db, dateFromUTC, dateToUTC) {
   return new Promise((resolve, reject) => {
     const sql = `
       SELECT
         eventid,
-        DATE_ADD(startdate, INTERVAL (1 + TIMESTAMPDIFF(WEEK, startdate, UTC_TIMESTAMP())) WEEK) AS eventDate,
+        DATE_ADD(startdate, INTERVAL (1 + TIMESTAMPDIFF(WEEK, startdate, ?)) WEEK) AS eventDate,
         type,
         title,
         frequency,
@@ -143,9 +143,11 @@ function getInPersonEvents(db) {
       FROM
         events
       WHERE
+        isDeleted = 0
+      AND
         frequency <> 'once'
       AND
-        isDeleted = 0
+        startdate < ?
       
       UNION ALL
 
@@ -164,11 +166,13 @@ function getInPersonEvents(db) {
       FROM
         events
       WHERE
-        startdate >= UTC_TIMESTAMP()
+        isDeleted = 0
       AND
         frequency <> 'once'
       AND
-        isDeleted = 0
+        startdate >= ?
+      AND
+        startdate < ?
       
       UNION ALL
 
@@ -187,23 +191,29 @@ function getInPersonEvents(db) {
       FROM
         events
       WHERE
-        multidaybegindate >= UTC_TIMESTAMP()
-      AND
         isDeleted = 0
+      AND
+        multidaybegindate >= ?
+      AND
+        multidaybegindate <= ?
 
       ORDER BY
         eventDate ASC
       ;
     `;
 
-    db.query(sql, [], function (error, result) {
-      if (error) {
-        console.log(error);
-        reject(error); // Reject the promise if there's an error
-      }
+    db.query(
+      sql,
+      [dateFromUTC, dateToUTC, dateFromUTC, dateToUTC, dateFromUTC, dateToUTC],
+      function (error, result) {
+        if (error) {
+          console.log(error);
+          reject(error); // Reject the promise if there's an error
+        }
 
-      resolve(result);
-    });
+        resolve(result);
+      }
+    );
   });
 }
 
