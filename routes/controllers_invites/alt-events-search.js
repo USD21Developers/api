@@ -130,23 +130,28 @@ function getInPersonEvents(db, dateFromUTC, dateToUTC) {
     const sql = `
       WITH RECURSIVE recurring_dates AS (
         SELECT 
-          eventid,
-          startdate AS eventDate,
-          type,
-          title,
-          frequency,
-          duration,
-          durationInHours,
-          timezone,
-          hasvirtual,
-          country,
-          lang
+          e.eventid,
+          e.startdate AS eventDate,
+          e.type,
+          e.title,
+          e.frequency,
+          e.duration,
+          e.durationInHours,
+          e.timezone,
+          e.hasvirtual,
+          e.country,
+          e.lang,
+          e.locationcoordinates,
+          e.createdBy,
+          u.canAuthToAuth,
+          u.canAuthorize
         FROM 
-          events
+          events e
+        INNER JOIN USERS u ON e.createdBy = u.userid
         WHERE 
-          isDeleted = 0
-          AND frequency <> 'once'
-          AND startdate < ? -- dateToUTC
+          e.isDeleted = 0
+          AND e.frequency <> 'once'
+          AND e.startdate < ? -- dateToUTC
 
         UNION ALL
 
@@ -161,7 +166,11 @@ function getInPersonEvents(db, dateFromUTC, dateToUTC) {
           timezone,
           hasvirtual,
           country,
-          lang
+          lang,
+          locationcoordinates,
+          createdBy,
+          canAuthToAuth,
+          canAuthorize
         FROM 
           recurring_dates
         WHERE 
@@ -174,6 +183,65 @@ function getInPersonEvents(db, dateFromUTC, dateToUTC) {
       WHERE 
         eventDate BETWEEN ? -- dateFromUTC
         AND ? -- dateToUTC
+      
+      UNION
+
+      SELECT
+        e.eventid,
+        e.startdate AS eventDate,
+        e.type,
+        e.title,
+        e.frequency,
+        e.duration,
+        e.durationInHours,
+        e.timezone,
+        e.hasvirtual,
+        e.country,
+        e.lang,
+        e.locationcoordinates,
+        e.createdBy,
+        u.canAuthToAuth,
+        u.canAuthorize
+      FROM
+        events e
+      INNER JOIN USERS u ON e.createdBy = u.userid
+      WHERE
+        e.isDeleted = 0
+      AND
+        e.frequency = 'once'
+      AND
+        e.startdate > ? -- dateFromUTC
+      AND
+        e.startdate < ? -- dateToUTC
+      
+      UNION
+
+      SELECT
+        e.eventid,
+        e.multidaybegindate AS eventDate,
+        e.type,
+        e.title,
+        e.frequency,
+        e.duration,
+        e.durationInHours,
+        e.timezone,
+        e.hasvirtual,
+        e.country,
+        e.lang,
+        e.locationcoordinates,
+        e.createdBy,
+        u.canAuthToAuth,
+        u.canAuthorize
+      FROM
+        events e
+      INNER JOIN USERS u ON e.createdBy = u.userid
+      WHERE
+        e.isDeleted = 0
+      AND
+        e.multidaybegindate > ? -- dateFromUTC
+      AND
+        e.multidaybegindate < ? -- dateToUTC
+
       ORDER BY 
         eventDate ASC
       ;    
@@ -181,14 +249,53 @@ function getInPersonEvents(db, dateFromUTC, dateToUTC) {
 
     db.query(
       sql,
-      [dateToUTC, dateToUTC, dateFromUTC, dateToUTC],
+      [
+        dateToUTC,
+        dateToUTC,
+        dateFromUTC,
+        dateToUTC,
+        dateFromUTC,
+        dateToUTC,
+        dateFromUTC,
+        dateToUTC,
+      ],
       function (error, result) {
         if (error) {
           console.log(error);
           reject(error); // Reject the promise if there's an error
         }
 
-        resolve(result);
+        const { getDistance } = geolib;
+        const overlaps = [];
+
+        if (result.length === 1) {
+          result.overlaps = overlaps;
+          return resolve(result);
+        }
+
+        let lastPoint;
+
+        result.forEach((item) => {
+          if (!lastPoint) {
+            lastPoint = item.locationcoordinates;
+            return;
+          }
+
+          const distance = getDistance(
+            { latitude: lastPoint.y, longitude: lastPoint.x },
+            {
+              latitude: item.locationcoordinates.y,
+              longitude: item.locationcoordinates.x,
+            },
+            1
+          );
+
+          if (distance < 300) overlaps.push(item);
+        });
+
+        result.overlaps = overlaps;
+
+        return resolve(result);
       }
     );
   });
