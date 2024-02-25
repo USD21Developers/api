@@ -115,7 +115,14 @@ exports.POST = async (req, res) => {
       : await getCoordinates(db, originLocation, country);
 
   const radiusInMeters = distanceInMeters(Number(radius), distanceUnit);
-  const inPersonEvents = await getInPersonEvents(db, dateFromUTC, dateToUTC);
+  const inPersonEvents = await getInPersonEvents(
+    db,
+    dateFromUTC,
+    dateToUTC,
+    latitude,
+    longitude,
+    radiusInMeters
+  );
   const virtualEvents = []; // TODO
 
   return res.status(200).send({
@@ -125,7 +132,14 @@ exports.POST = async (req, res) => {
   });
 };
 
-function getInPersonEvents(db, dateFromUTC, dateToUTC) {
+function getInPersonEvents(
+  db,
+  dateFromUTC,
+  dateToUTC,
+  latitude,
+  longitude,
+  radiusInMeters
+) {
   return new Promise((resolve, reject) => {
     const sql = `
       WITH RECURSIVE recurring_dates AS (
@@ -241,7 +255,11 @@ function getInPersonEvents(db, dateFromUTC, dateToUTC) {
         e.multidaybegindate > ? -- dateFromUTC
       AND
         e.multidaybegindate < ? -- dateToUTC
-
+      AND
+        ST_distance_sphere(
+          point(?, ?),
+          e.locationcoordinates
+        ) <= ?
       ORDER BY 
         eventDate ASC
       ;    
@@ -258,6 +276,9 @@ function getInPersonEvents(db, dateFromUTC, dateToUTC) {
         dateToUTC,
         dateFromUTC,
         dateToUTC,
+        latitude,
+        longitude,
+        radiusInMeters,
       ],
       function (error, result) {
         if (error) {
