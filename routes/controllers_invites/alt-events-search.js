@@ -163,7 +163,7 @@ function getInPersonEvents(
           u.canAuthorize
         FROM 
           events e
-        INNER JOIN USERS u ON e.createdBy = u.userid
+        INNER JOIN users u ON e.createdBy = u.userid
         WHERE 
           e.isDeleted = 0
           AND e.frequency <> 'once'
@@ -222,7 +222,7 @@ function getInPersonEvents(
         u.canAuthorize
       FROM
         events e
-      INNER JOIN USERS u ON e.createdBy = u.userid
+      INNER JOIN users u ON e.createdBy = u.userid
       WHERE
         e.isDeleted = 0
       AND
@@ -253,7 +253,7 @@ function getInPersonEvents(
         u.canAuthorize
       FROM
         events e
-      INNER JOIN USERS u ON e.createdBy = u.userid
+      INNER JOIN users u ON e.createdBy = u.userid
       WHERE
         e.isDeleted = 0
       AND
