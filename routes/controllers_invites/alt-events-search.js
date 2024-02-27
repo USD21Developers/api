@@ -158,12 +158,9 @@ function getInPersonEvents(
           e.lang,
           ST_Y(e.locationcoordinates) AS latitude,
           ST_X(e.locationcoordinates) AS longitude,
-          e.createdBy,
-          u.canAuthToAuth,
-          u.canAuthorize
+          e.createdBy
         FROM 
           events e
-        INNER JOIN users u ON e.createdBy = u.userid
         WHERE 
           e.isDeleted = 0
           AND e.frequency <> 'once'
@@ -185,9 +182,7 @@ function getInPersonEvents(
           lang,
           latitude,
           longitude,
-          createdBy,
-          canAuthToAuth,
-          canAuthorize
+          createdBy
         FROM 
           recurring_dates
         WHERE 
@@ -217,12 +212,9 @@ function getInPersonEvents(
         e.lang,
         ST_Y(e.locationcoordinates) AS latitude,
         ST_X(e.locationcoordinates) AS longitude,
-        e.createdBy,
-        u.canAuthToAuth,
-        u.canAuthorize
+        e.createdBy
       FROM
         events e
-      INNER JOIN users u ON e.createdBy = u.userid
       WHERE
         e.isDeleted = 0
       AND
@@ -248,12 +240,9 @@ function getInPersonEvents(
         e.lang,
         ST_Y(e.locationcoordinates) AS latitude,
         ST_X(e.locationcoordinates) AS longitude,
-        e.createdBy,
-        u.canAuthToAuth,
-        u.canAuthorize
+        e.createdBy
       FROM
         events e
-      INNER JOIN users u ON e.createdBy = u.userid
       WHERE
         e.isDeleted = 0
       AND
