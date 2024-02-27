@@ -115,6 +115,7 @@ exports.POST = async (req, res) => {
       : await getCoordinates(db, originLocation, country);
 
   const radiusInMeters = distanceInMeters(Number(radius), distanceUnit);
+
   const inPersonEvents = await getInPersonEvents(
     db,
     dateFromUTC,
@@ -155,7 +156,8 @@ function getInPersonEvents(
           e.hasvirtual,
           e.country,
           e.lang,
-          e.locationcoordinates,
+          ST_Y(e.locationcoordinates) AS latitude,
+          ST_X(e.locationcoordinates) AS longitude,
           e.createdBy,
           u.canAuthToAuth,
           u.canAuthorize
@@ -167,7 +169,7 @@ function getInPersonEvents(
           AND e.frequency <> 'once'
           AND e.startdate < ? -- dateToUTC
 
-        UNION ALL
+        UNION
 
         SELECT 
           eventid,
@@ -181,7 +183,8 @@ function getInPersonEvents(
           hasvirtual,
           country,
           lang,
-          locationcoordinates,
+          latitude,
+          longitude,
           createdBy,
           canAuthToAuth,
           canAuthorize
@@ -212,7 +215,8 @@ function getInPersonEvents(
         e.hasvirtual,
         e.country,
         e.lang,
-        e.locationcoordinates,
+        ST_Y(e.locationcoordinates) AS latitude,
+        ST_X(e.locationcoordinates) AS longitude,
         e.createdBy,
         u.canAuthToAuth,
         u.canAuthorize
@@ -242,7 +246,8 @@ function getInPersonEvents(
         e.hasvirtual,
         e.country,
         e.lang,
-        e.locationcoordinates,
+        ST_Y(e.locationcoordinates) AS latitude,
+        ST_X(e.locationcoordinates) AS longitude,
         e.createdBy,
         u.canAuthToAuth,
         u.canAuthorize
@@ -256,14 +261,25 @@ function getInPersonEvents(
       AND
         e.multidaybegindate < ? -- dateToUTC
       AND
-        ST_distance_sphere(
-          point(?, ?),
-          e.locationcoordinates
-        ) <= ?
+        ST_X(locationcoordinates) BETWEEN ? AND ?
+      AND
+        ST_Y(locationcoordinates) BETWEEN ? AND ?
       ORDER BY 
         eventDate ASC
+      LIMIT
+        20
       ;    
     `;
+
+    const boundingBox = geolib.getBoundsOfDistance(
+      { latitude, longitude },
+      radiusInMeters
+    );
+
+    const minLat = boundingBox[0].latitude;
+    const minLon = boundingBox[0].longitude;
+    const maxLat = boundingBox[1].latitude;
+    const maxLon = boundingBox[1].longitude;
 
     db.query(
       sql,
@@ -276,45 +292,23 @@ function getInPersonEvents(
         dateToUTC,
         dateFromUTC,
         dateToUTC,
+        longitude,
+        latitude,
+        radiusInMeters,
+        longitude,
         latitude,
         longitude,
-        radiusInMeters,
+        latitude,
+        minLat,
+        maxLat,
+        minLon,
+        maxLon,
       ],
       function (error, result) {
         if (error) {
           console.log(error);
           reject(error); // Reject the promise if there's an error
         }
-
-        const { getDistance } = geolib;
-        const overlaps = [];
-
-        if (result.length === 1) {
-          result.overlaps = overlaps;
-          return resolve(result);
-        }
-
-        let lastPoint;
-
-        result.forEach((item) => {
-          if (!lastPoint) {
-            lastPoint = item.locationcoordinates;
-            return;
-          }
-
-          const distance = getDistance(
-            { latitude: lastPoint.y, longitude: lastPoint.x },
-            {
-              latitude: item.locationcoordinates.y,
-              longitude: item.locationcoordinates.x,
-            },
-            1
-          );
-
-          if (distance < 300) overlaps.push(item);
-        });
-
-        result.overlaps = overlaps;
 
         return resolve(result);
       }
