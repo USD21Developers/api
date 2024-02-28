@@ -253,6 +253,11 @@ function getInPersonEvents(
         ST_X(locationcoordinates) BETWEEN ? AND ?
       AND
         ST_Y(locationcoordinates) BETWEEN ? AND ?
+      AND
+        ST_Distance_Sphere(
+          POINT(?, ?),
+          locationcoordinates
+        ) <= ?
       ORDER BY 
         eventDate ASC
       LIMIT
@@ -292,6 +297,9 @@ function getInPersonEvents(
         maxLat,
         minLon,
         maxLon,
+        longitude,
+        latitude,
+        radiusInMeters,
       ],
       function (error, result) {
         if (error) {
