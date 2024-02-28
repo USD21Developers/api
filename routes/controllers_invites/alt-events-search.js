@@ -146,26 +146,29 @@ function getInPersonEvents(
     const sql = `
       WITH RECURSIVE recurring_dates AS (
         SELECT 
-          e.eventid,
-          e.startdate AS eventDate,
-          e.type,
-          e.title,
-          e.frequency,
-          e.duration,
-          e.durationInHours,
-          e.timezone,
-          e.hasvirtual,
-          e.country,
-          e.lang,
-          ST_Y(e.locationcoordinates) AS latitude,
-          ST_X(e.locationcoordinates) AS longitude,
-          e.createdBy
+          e1.eventid,
+          e1.startdate AS eventDate,
+          e1.type,
+          e1.title,
+          e1.frequency,
+          e1.duration,
+          e1.durationInHours,
+          e1.timezone,
+          e1.hasvirtual,
+          e1.country,
+          e1.lang,
+          ST_Y(e1.locationcoordinates) AS latitude,
+          ST_X(e1.locationcoordinates) AS longitude,
+          ST_Distance_Sphere( POINT(?, ?), e1.locationcoordinates) AS distanceInMeters,
+          e1.createdBy
         FROM 
-          events e
+          events e1
         WHERE 
-          e.isDeleted = 0
-          AND e.frequency <> 'once'
-          AND e.startdate < ? -- dateToUTC
+          e1.isDeleted = 0
+        AND
+          e1.frequency <> 'once'
+        AND
+          e1.startdate < ?
 
         UNION
 
@@ -183,90 +186,89 @@ function getInPersonEvents(
           lang,
           latitude,
           longitude,
+          distanceInMeters,
           createdBy
         FROM 
           recurring_dates
         WHERE 
-          eventDate < ? -- dateToUTC
+          eventDate < ?
       )
       SELECT 
         *
       FROM 
         recurring_dates
       WHERE 
-        eventDate BETWEEN ? -- dateFromUTC
-        AND ? -- dateToUTC
+        eventDate BETWEEN ? AND ?
       
       UNION
 
       SELECT
-        e.eventid,
-        e.startdate AS eventDate,
-        e.type,
-        e.title,
-        e.frequency,
-        e.duration,
-        e.durationInHours,
-        e.timezone,
-        e.hasvirtual,
-        e.country,
-        e.lang,
-        ST_Y(e.locationcoordinates) AS latitude,
-        ST_X(e.locationcoordinates) AS longitude,
-        e.createdBy
+        e1.eventid,
+        e1.startdate AS eventDate,
+        e1.type,
+        e1.title,
+        e1.frequency,
+        e1.duration,
+        e1.durationInHours,
+        e1.timezone,
+        e1.hasvirtual,
+        e1.country,
+        e1.lang,
+        ST_Y(e1.locationcoordinates) AS latitude,
+        ST_X(e1.locationcoordinates) AS longitude,
+        ST_Distance_Sphere( POINT(?, ?), e1.locationcoordinates) AS distanceInMeters,
+        e1.createdBy
       FROM
-        events e
+        events e1
       WHERE
-        e.isDeleted = 0
+        e1.isDeleted = 0
       AND
-        e.frequency = 'once'
+        e1.frequency = 'once'
       AND
-        e.startdate > ? -- dateFromUTC
+        e1.startdate > ?
       AND
-        e.startdate < ? -- dateToUTC
+        e1.startdate < ?
       
       UNION
 
       SELECT
-        e.eventid,
-        e.multidaybegindate AS eventDate,
-        e.type,
-        e.title,
-        e.frequency,
-        e.duration,
-        e.durationInHours,
-        e.timezone,
-        e.hasvirtual,
-        e.country,
-        e.lang,
-        ST_Y(e.locationcoordinates) AS latitude,
-        ST_X(e.locationcoordinates) AS longitude,
-        e.createdBy
+        e1.eventid,
+        e1.multidaybegindate AS eventDate,
+        e1.type,
+        e1.title,
+        e1.frequency,
+        e1.duration,
+        e1.durationInHours,
+        e1.timezone,
+        e1.hasvirtual,
+        e1.country,
+        e1.lang,
+        ST_Y(e1.locationcoordinates) AS latitude,
+        ST_X(e1.locationcoordinates) AS longitude,
+        ST_Distance_Sphere( POINT(?, ?), e1.locationcoordinates) AS distanceInMeters,
+        e1.createdBy
       FROM
-        events e
-      LEFT JOIN events e2 ON ST_Distance(e.locationcoordinates, e2.locationcoordinates) < 300 AND e.eventid <> e2.eventid
+        events e1
       WHERE
-        e.isDeleted = 0
+        e1.isDeleted = 0
       AND
-        e.multidaybegindate > ? -- dateFromUTC
+        e1.multidaybegindate > ?
       AND
-        e.multidaybegindate < ? -- dateToUTC
+        e1.multidaybegindate < ?
       AND
-        ST_X(e.locationcoordinates) BETWEEN ? AND ?
+        ST_X(e1.locationcoordinates) BETWEEN ? AND ?
       AND
-        ST_Y(e.locationcoordinates) BETWEEN ? AND ?
+        ST_Y(e1.locationcoordinates) BETWEEN ? AND ?
       AND
         ST_Distance_Sphere(
           POINT(?, ?),
-          e.locationcoordinates
+          e1.locationcoordinates
         ) <= ?
-      AND
-        e2.eventid IS NULL
       ORDER BY 
         eventDate ASC
       LIMIT
         20
-      ;    
+      ;
     `;
 
     const boundingBox = geolib.getBoundsOfDistance(
@@ -282,21 +284,20 @@ function getInPersonEvents(
     db.query(
       sql,
       [
+        longitude,
+        latitude,
         dateToUTC,
-        dateToUTC,
-        dateFromUTC,
-        dateToUTC,
-        dateFromUTC,
         dateToUTC,
         dateFromUTC,
         dateToUTC,
         longitude,
         latitude,
-        radiusInMeters,
+        dateFromUTC,
+        dateToUTC,
         longitude,
         latitude,
-        longitude,
-        latitude,
+        dateFromUTC,
+        dateToUTC,
         minLat,
         maxLat,
         minLon,
