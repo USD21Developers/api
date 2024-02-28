@@ -130,6 +130,7 @@ exports.POST = async (req, res) => {
     msg: "alternative events retrieved",
     msgType: "success",
     inPersonEvents: inPersonEvents,
+    virtualEvents: virtualEvents,
   });
 };
 
