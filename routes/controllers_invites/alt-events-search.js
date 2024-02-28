@@ -244,6 +244,7 @@ function getInPersonEvents(
         e.createdBy
       FROM
         events e
+      LEFT JOIN events e2 ON ST_Distance(e.locationcoordinates, e2.locationcoordinates) < 300 AND e.eventid <> e2.eventid
       WHERE
         e.isDeleted = 0
       AND
@@ -251,14 +252,16 @@ function getInPersonEvents(
       AND
         e.multidaybegindate < ? -- dateToUTC
       AND
-        ST_X(locationcoordinates) BETWEEN ? AND ?
+        ST_X(e.locationcoordinates) BETWEEN ? AND ?
       AND
-        ST_Y(locationcoordinates) BETWEEN ? AND ?
+        ST_Y(e.locationcoordinates) BETWEEN ? AND ?
       AND
         ST_Distance_Sphere(
           POINT(?, ?),
-          locationcoordinates
+          e.locationcoordinates
         ) <= ?
+      AND
+        e2.eventid IS NULL
       ORDER BY 
         eventDate ASC
       LIMIT
