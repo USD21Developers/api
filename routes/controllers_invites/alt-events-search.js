@@ -206,7 +206,11 @@ function removeDuplicateLocations(events, userid) {
       }
     );
 
-    resolve(reducedEvents);
+    const maxQuantity = 20;
+
+    const reducedQuantityOfEvents = reducedEvents.slice(0, maxQuantity);
+
+    resolve(reducedQuantityOfEvents);
   });
 }
 
@@ -342,8 +346,6 @@ function getInPersonEvents(
         ) <= ?
       ORDER BY 
         eventDate ASC
-      LIMIT
-        20
       ;
     `;
 
