@@ -116,7 +116,7 @@ exports.POST = async (req, res) => {
 
   const radiusInMeters = distanceInMeters(Number(radius), distanceUnit);
 
-  const inPersonEvents = await getInPersonEvents(
+  const inPersonEventsQuery = await getInPersonEvents(
     db,
     dateFromUTC,
     dateToUTC,
@@ -124,6 +124,12 @@ exports.POST = async (req, res) => {
     longitude,
     radiusInMeters
   );
+
+  const inPersonEvents = await removeDuplicateLocations(
+    inPersonEventsQuery,
+    userid
+  );
+
   const virtualEvents = []; // TODO
 
   return res.status(200).send({
@@ -133,6 +139,76 @@ exports.POST = async (req, res) => {
     virtualEvents: virtualEvents,
   });
 };
+
+/**********************/
+/*  HELPER FUNCTIONS  *
+/**********************/
+
+function removeDuplicateLocations(events, userid) {
+  return new Promise((resolve, reject) => {
+    if (!events) reject(new Error("events argument is required"));
+    if (!userid) reject(new Error("userid argument is required"));
+    if (!Array.isArray(events)) reject(new Error("events must be an array"));
+    if (typeof userid !== "number")
+      reject(new Error("userid must be a number"));
+    if (!events.length) resolve(events);
+
+    // Group events by event date
+    const eventsByDate = events.reduce((acc, event) => {
+      const dateKey = event.eventDate.toISOString().slice(0, 10); // Extract date without time
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+      acc[dateKey].push(event);
+      return acc;
+    }, {});
+
+    // Reduce events within 300 meters per date
+    const reducedEvents = Object.values(eventsByDate).flatMap(
+      (eventsOnDate) => {
+        const filteredEvents = [];
+        eventsOnDate.forEach((event) => {
+          const eventsWithinRadius = filteredEvents.filter(
+            (filteredEvent) =>
+              geolib.getDistance(
+                { latitude: event.latitude, longitude: event.longitude },
+                {
+                  latitude: filteredEvent.latitude,
+                  longitude: filteredEvent.longitude,
+                }
+              ) <= 300
+          );
+
+          if (eventsWithinRadius.length === 0) {
+            filteredEvents.push(event);
+          } else {
+            const sameUserEvents = eventsWithinRadius.filter(
+              (e) => e.createdBy === event.createdBy && e.createdBy === userid
+            );
+            if (sameUserEvents.length > 0) {
+              // Replace existing event with the current event
+              const index = filteredEvents.indexOf(sameUserEvents[0]);
+              filteredEvents[index] = event;
+            } else {
+              // If no same user event found, prioritize by createdBy
+              const highestPriorityEvent = eventsWithinRadius.reduce(
+                (prev, curr) => (prev.createdBy < curr.createdBy ? prev : curr)
+              );
+              if (event.createdBy < highestPriorityEvent.createdBy) {
+                // Replace existing event with the current event
+                const index = filteredEvents.indexOf(highestPriorityEvent);
+                filteredEvents[index] = event;
+              }
+            }
+          }
+        });
+        return filteredEvents;
+      }
+    );
+
+    resolve(reducedEvents);
+  });
+}
 
 function getInPersonEvents(
   db,
