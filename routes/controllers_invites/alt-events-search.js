@@ -130,7 +130,14 @@ exports.POST = async (req, res) => {
     userid
   );
 
-  const virtualEvents = []; // TODO
+  const virtualEvents = await getVirtualEvents(
+    db,
+    dateFromUTC,
+    dateToUTC,
+    latitude,
+    longitude,
+    radiusInMeters
+  );
 
   return res.status(200).send({
     msg: "alternative events retrieved",
@@ -143,6 +150,162 @@ exports.POST = async (req, res) => {
 /**********************/
 /*  HELPER FUNCTIONS  *
 /**********************/
+
+function getVirtualEvents(db, dateFromUTC, dateToUTC, latitude, longitude) {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      WITH RECURSIVE recurring_dates AS (
+        SELECT 
+          e1.eventid,
+          e1.startdate AS eventDate,
+          e1.type,
+          e1.title,
+          e1.frequency,
+          e1.duration,
+          e1.durationInHours,
+          e1.timezone,
+          e1.hasvirtual,
+          e1.country,
+          e1.lang,
+          ST_Y(e1.locationcoordinates) AS latitude,
+          ST_X(e1.locationcoordinates) AS longitude,
+          ST_Distance_Sphere( POINT(?, ?), e1.locationcoordinates) AS distanceInMeters,
+          e1.createdBy
+        FROM 
+          events e1
+        WHERE 
+          e1.isDeleted = 0
+        AND
+          e1.hasvirtual = 1
+        AND
+          e1.frequency <> 'once'
+        AND
+          e1.startdate < ?
+
+        UNION
+
+        SELECT 
+          eventid,
+          DATE_ADD(eventDate, INTERVAL 1 WEEK) AS eventDate,
+          type,
+          title,
+          frequency,
+          duration,
+          durationInHours,
+          timezone,
+          hasvirtual,
+          country,
+          lang,
+          latitude,
+          longitude,
+          distanceInMeters,
+          createdBy
+        FROM 
+          recurring_dates
+        WHERE 
+          eventDate < ?
+      )
+      SELECT 
+        *
+      FROM 
+        recurring_dates
+      WHERE 
+        eventDate BETWEEN ? AND ?
+      
+      UNION
+
+      SELECT
+        e1.eventid,
+        e1.startdate AS eventDate,
+        e1.type,
+        e1.title,
+        e1.frequency,
+        e1.duration,
+        e1.durationInHours,
+        e1.timezone,
+        e1.hasvirtual,
+        e1.country,
+        e1.lang,
+        ST_Y(e1.locationcoordinates) AS latitude,
+        ST_X(e1.locationcoordinates) AS longitude,
+        ST_Distance_Sphere( POINT(?, ?), e1.locationcoordinates) AS distanceInMeters,
+        e1.createdBy
+      FROM
+        events e1
+      WHERE
+        e1.isDeleted = 0
+      AND
+        e1.hasvirtual = 1
+      AND
+        e1.frequency = 'once'
+      AND
+        e1.startdate > ?
+      AND
+        e1.startdate < ?
+      
+      UNION
+
+      SELECT
+        e1.eventid,
+        e1.multidaybegindate AS eventDate,
+        e1.type,
+        e1.title,
+        e1.frequency,
+        e1.duration,
+        e1.durationInHours,
+        e1.timezone,
+        e1.hasvirtual,
+        e1.country,
+        e1.lang,
+        ST_Y(e1.locationcoordinates) AS latitude,
+        ST_X(e1.locationcoordinates) AS longitude,
+        ST_Distance_Sphere( POINT(?, ?), e1.locationcoordinates) AS distanceInMeters,
+        e1.createdBy
+      FROM
+        events e1
+      WHERE
+        e1.isDeleted = 0
+      AND
+        e1.hasvirtual = 1
+      AND
+        e1.multidaybegindate > ?
+      AND
+        e1.multidaybegindate < ?
+      ORDER BY 
+        eventDate ASC,
+        distanceInMeters ASC
+      ;
+    `;
+
+    db.query(
+      sql,
+      [
+        longitude,
+        latitude,
+        dateToUTC,
+        dateToUTC,
+        dateFromUTC,
+        dateToUTC,
+        longitude,
+        latitude,
+        dateFromUTC,
+        dateToUTC,
+        longitude,
+        latitude,
+        dateFromUTC,
+        dateToUTC,
+      ],
+      (error, result) => {
+        if (error) {
+          console.log(error);
+          reject(error);
+        }
+
+        return resolve(result);
+      }
+    );
+  });
+}
 
 function removeDuplicateLocations(events, userid) {
   return new Promise((resolve, reject) => {
@@ -384,10 +547,10 @@ function getInPersonEvents(
         latitude,
         radiusInMeters,
       ],
-      function (error, result) {
+      (error, result) => {
         if (error) {
           console.log(error);
-          reject(error); // Reject the promise if there's an error
+          reject(error);
         }
 
         return resolve(result);
