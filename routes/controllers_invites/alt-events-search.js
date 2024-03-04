@@ -284,6 +284,7 @@ function getVirtualEvents(db, dateFromUTC, dateToUTC, latitude, longitude) {
       ORDER BY 
         eventDate ASC,
         distanceInMeters ASC
+      LIMIT 20
       ;
     `;
 
@@ -379,11 +380,7 @@ function removeDuplicateLocations(events, userid) {
       }
     );
 
-    const maxQuantity = 20;
-
-    const reducedQuantityOfEvents = reducedEvents.slice(0, maxQuantity);
-
-    resolve(reducedQuantityOfEvents);
+    resolve(reducedEvents);
   });
 }
 
@@ -527,6 +524,7 @@ function getInPersonEvents(
         ) <= ?
       ORDER BY 
         eventDate ASC
+      LIMIT 20
       ;
     `;
 
