@@ -109,7 +109,7 @@ exports.POST = async (req, res) => {
 
   // MAIN LOGIC
 
-  const { latitude, longitude } =
+  /* const { latitude, longitude } =
     process.env.ENV === "development"
       ? { latitude: 33.6578204, longitude: -112.1342557 }
       : await getCoordinates(db, originLocation, country).catch((err) => {
@@ -119,7 +119,31 @@ exports.POST = async (req, res) => {
             msgType: "error",
             location: originLocation,
           });
-        });
+        }); */
+
+  let latitude;
+  let longitude;
+  const errorCannotGeocode = "unable to geocode this location";
+
+  await getCoordinates(db, originLocation, country)
+    .then((obj) => {
+      if (!obj.latitude || !obj.longitude) {
+        throw new Error(errorCannotGeocode);
+      }
+      latitude = obj.latitude;
+      longitude = obj.longitude;
+    })
+    .catch((err) => {
+      console.log(err, originLocation);
+    });
+
+  if (!latitude || !longitude) {
+    return res.status(400).send({
+      msg: errorCannotGeocode,
+      msgType: "error",
+      location: originLocation,
+    });
+  }
 
   const radiusInMeters = distanceInMeters(Number(radius), distanceUnit);
 
@@ -374,7 +398,7 @@ function getRecurringEvents(obj) {
         eventDate BETWEEN ? AND ?
       ${!mustBeVirtual ? "AND latitude BETWEEN ? AND ?" : ""}
       ${!mustBeVirtual ? "AND longitude BETWEEN ? AND ?" : ""}
-      ${!mustBeVirtual ? "distanceInMeters <= ?" : ""}
+      ${!mustBeVirtual ? "AND distanceInMeters <= ?" : ""}
       ORDER BY 
         eventDate ASC
       ;
@@ -494,7 +518,7 @@ function getOneTimeEvents(obj) {
       ${!mustBeVirtual ? "AND ST_X(locationcoordinates) BETWEEN ? AND ?" : ""}
       ${
         !mustBeVirtual
-          ? "ST_Distance_Sphere( POINT(?, ?), locationcoordinates) <= ?"
+          ? "AND ST_Distance_Sphere( POINT(?, ?), locationcoordinates) <= ?"
           : ""
       }
       ;
@@ -589,7 +613,7 @@ function getMultidayEvents(obj) {
       ${!mustBeVirtual ? "AND ST_X(locationcoordinates) BETWEEN ? AND ?" : ""}
       ${
         !mustBeVirtual
-          ? "ST_Distance_Sphere( POINT(?, ?), locationcoordinates) <= ?"
+          ? "AND ST_Distance_Sphere( POINT(?, ?), locationcoordinates) <= ?"
           : ""
       }
       ORDER BY 
@@ -702,8 +726,8 @@ function getCoordinates(db, originLocation, country) {
     const coordsObject = await geocodeLocation(db, originLocation, country);
 
     if (typeof coordsObject === "object") {
-      const { lat, lng } = coordsObject;
-      if (typeof lat === "number" && typeof lng === "number") {
+      const { latitude, longitude } = coordsObject;
+      if (typeof latitude === "number" && typeof longitude === "number") {
         resolve(coordsObject);
       } else {
         reject(new Error("unable to geocode this location"));
