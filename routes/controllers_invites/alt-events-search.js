@@ -429,39 +429,23 @@ function getRecurringEvents(obj) {
       ];
     }
 
-    db.query(
-      sql,
-      [
-        longitude,
-        latitude,
-        dateToUTC,
-        dateToUTC,
-        dateFromUTC,
-        dateToUTC,
-        minLat,
-        maxLat,
-        minLon,
-        maxLon,
-        radiusInMeters,
-      ],
-      async (error, result) => {
-        if (error) {
-          console.log(error);
-          return reject(error);
-        }
-
-        if (!result.length) {
-          return resolve(result);
-        }
-
-        const duplicateLocationsRemoved = await removeDuplicateLocations(
-          result,
-          userid
-        );
-
-        return resolve(duplicateLocationsRemoved);
+    db.query(sql, sqlArray, async (error, result) => {
+      if (error) {
+        console.log(error);
+        return reject(error);
       }
-    );
+
+      if (!result.length) {
+        return resolve(result);
+      }
+
+      const duplicateLocationsRemoved = await removeDuplicateLocations(
+        result,
+        userid
+      );
+
+      return resolve(duplicateLocationsRemoved);
+    });
   });
 }
 
