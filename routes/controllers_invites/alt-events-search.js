@@ -372,16 +372,38 @@ function getRecurringEvents(obj) {
         recurring_dates
       WHERE 
         eventDate BETWEEN ? AND ?
-      AND
-        latitude BETWEEN ? AND ?
-      AND
-        longitude BETWEEN ? AND ?
-      AND
-        distanceInMeters <= ?
+      ${!mustBeVirtual ? "AND latitude BETWEEN ? AND ?" : ""}
+      ${!mustBeVirtual ? "AND longitude BETWEEN ? AND ?" : ""}
+      ${!mustBeVirtual ? "distanceInMeters <= ?" : ""}
       ORDER BY 
         eventDate ASC
       ;
     `;
+
+    let sqlArray = [
+      longitude,
+      latitude,
+      dateToUTC,
+      dateToUTC,
+      dateFromUTC,
+      dateToUTC,
+      minLat,
+      maxLat,
+      minLon,
+      maxLon,
+      radiusInMeters,
+    ];
+
+    if (mustBeVirtual) {
+      sqlArray = [
+        longitude,
+        latitude,
+        dateToUTC,
+        dateToUTC,
+        dateFromUTC,
+        dateToUTC,
+      ];
+    }
 
     db.query(
       sql,
@@ -468,48 +490,51 @@ function getOneTimeEvents(obj) {
         startdate > ?
       AND
         startdate < ?
-      AND
-        ST_Y(locationcoordinates) BETWEEN ? AND ?
-      AND
-        ST_X(locationcoordinates) BETWEEN ? AND ?
-      AND
-        ST_Distance_Sphere( POINT(?, ?), locationcoordinates) <= ?
+      ${!mustBeVirtual ? "AND ST_Y(locationcoordinates) BETWEEN ? AND ?" : ""}
+      ${!mustBeVirtual ? "AND ST_X(locationcoordinates) BETWEEN ? AND ?" : ""}
+      ${
+        !mustBeVirtual
+          ? "ST_Distance_Sphere( POINT(?, ?), locationcoordinates) <= ?"
+          : ""
+      }
       ;
     `;
 
-    db.query(
-      sql,
-      [
-        longitude,
-        latitude,
-        dateFromUTC,
-        dateToUTC,
-        minLat,
-        maxLat,
-        minLon,
-        maxLon,
-        longitude,
-        latitude,
-        radiusInMeters,
-      ],
-      async (error, result) => {
-        if (error) {
-          console.log(error);
-          return reject(error);
-        }
+    let sqlArray = [
+      longitude,
+      latitude,
+      dateFromUTC,
+      dateToUTC,
+      minLat,
+      maxLat,
+      minLon,
+      maxLon,
+      longitude,
+      latitude,
+      radiusInMeters,
+    ];
 
-        if (!result.length) {
-          return resolve(result);
-        }
+    if (mustBeVirtual) {
+      sqlArray = [longitude, latitude, dateFromUTC, dateToUTC];
+    }
 
-        const duplicateLocationsRemoved = await removeDuplicateLocations(
-          result,
-          userid
-        );
-
-        return resolve(duplicateLocationsRemoved);
+    db.query(sql, sqlArray, async (error, result) => {
+      if (error) {
+        console.log(error);
+        return reject(error);
       }
-    );
+
+      if (!result.length) {
+        return resolve(result);
+      }
+
+      const duplicateLocationsRemoved = await removeDuplicateLocations(
+        result,
+        userid
+      );
+
+      return resolve(duplicateLocationsRemoved);
+    });
   });
 }
 
@@ -560,50 +585,53 @@ function getMultidayEvents(obj) {
         multidaybegindate > ?
       AND
         multidaybegindate < ?
-      AND
-        ST_Y(locationcoordinates) BETWEEN ? AND ?
-      AND
-        ST_X(locationcoordinates) BETWEEN ? AND ?
-      AND
-        ST_Distance_Sphere( POINT(?, ?), locationcoordinates) <= ?
+      ${!mustBeVirtual ? "AND ST_Y(locationcoordinates) BETWEEN ? AND ?" : ""}
+      ${!mustBeVirtual ? "AND ST_X(locationcoordinates) BETWEEN ? AND ?" : ""}
+      ${
+        !mustBeVirtual
+          ? "ST_Distance_Sphere( POINT(?, ?), locationcoordinates) <= ?"
+          : ""
+      }
       ORDER BY 
         eventDate ASC
       ;
     `;
 
-    db.query(
-      sql,
-      [
-        longitude,
-        latitude,
-        dateFromUTC,
-        dateToUTC,
-        minLat,
-        maxLat,
-        minLon,
-        maxLon,
-        longitude,
-        latitude,
-        radiusInMeters,
-      ],
-      async (error, result) => {
-        if (error) {
-          console.log(error);
-          return reject(error);
-        }
+    let sqlArray = [
+      longitude,
+      latitude,
+      dateFromUTC,
+      dateToUTC,
+      minLat,
+      maxLat,
+      minLon,
+      maxLon,
+      longitude,
+      latitude,
+      radiusInMeters,
+    ];
 
-        if (!result.length) {
-          return resolve(result);
-        }
+    if (mustBeVirtual) {
+      sqlArray = [longitude, latitude, dateFromUTC, dateToUTC];
+    }
 
-        const duplicateLocationsRemoved = await removeDuplicateLocations(
-          result,
-          userid
-        );
-
-        return resolve(duplicateLocationsRemoved);
+    db.query(sql, sqlArray, async (error, result) => {
+      if (error) {
+        console.log(error);
+        return reject(error);
       }
-    );
+
+      if (!result.length) {
+        return resolve(result);
+      }
+
+      const duplicateLocationsRemoved = await removeDuplicateLocations(
+        result,
+        userid
+      );
+
+      return resolve(duplicateLocationsRemoved);
+    });
   });
 }
 
