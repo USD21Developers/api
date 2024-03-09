@@ -688,7 +688,7 @@ function calculateZoomLevel(map, markers, origin, radius) {
 }
 
 function isLatLongPair(str) {
-  // e.g. "40.689247,-74.044502"
+  // e.g. "40.689247,-74.044502" // Statue of Liberty
   const regex =
     /^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/;
   return regex.test(str);
