@@ -112,39 +112,108 @@ exports.POST = async (req, res) => {
   const { latitude, longitude } =
     process.env.ENV === "development"
       ? { latitude: 33.6578204, longitude: -112.1342557 }
-      : await getCoordinates(db, originLocation, country);
+      : await getCoordinates(db, originLocation, country).catch((err) => {
+          console.log(err, originLocation);
+          return res.status(400).send({
+            msg: "unable to geocode this location",
+            msgType: "error",
+            location: originLocation,
+          });
+        });
 
   const radiusInMeters = distanceInMeters(Number(radius), distanceUnit);
 
-  const inPersonEventsQuery = await getInPersonEvents(
-    db,
-    dateFromUTC,
-    dateToUTC,
-    latitude,
-    longitude,
+  const boundingBox = geolib.getBoundsOfDistance(
+    { latitude, longitude },
     radiusInMeters
   );
 
-  const inPersonEvents = await removeDuplicateLocations(
-    inPersonEventsQuery,
-    userid
-  );
+  const inPersonRecurring = await getRecurringEvents({
+    db: db,
+    dateFromUTC: dateFromUTC,
+    dateToUTC: dateToUTC,
+    latitude: latitude,
+    longitude: longitude,
+    radiusInMeters: radiusInMeters,
+    boundingBox: boundingBox,
+    mustBeVirtual: false,
+    userid: userid,
+  });
 
-  const virtualEvents = await getVirtualEvents(
-    db,
-    dateFromUTC,
-    dateToUTC,
-    latitude,
-    longitude,
-    radiusInMeters
-  );
+  const inPersonOneTime = await getOneTimeEvents({
+    db: db,
+    dateFromUTC: dateFromUTC,
+    dateToUTC: dateToUTC,
+    latitude: latitude,
+    longitude: longitude,
+    radiusInMeters: radiusInMeters,
+    boundingBox: boundingBox,
+    mustBeVirtual: false,
+    userid: userid,
+  });
+
+  const inPersonMultiday = await getMultidayEvents({
+    db: db,
+    dateFromUTC: dateFromUTC,
+    dateToUTC: dateToUTC,
+    latitude: latitude,
+    longitude: longitude,
+    radiusInMeters: radiusInMeters,
+    boundingBox: boundingBox,
+    mustBeVirtual: false,
+    userid: userid,
+  });
+
+  const virtualRecurring = await getRecurringEvents({
+    db: db,
+    dateFromUTC: dateFromUTC,
+    dateToUTC: dateToUTC,
+    latitude: latitude,
+    longitude: longitude,
+    radiusInMeters: radiusInMeters,
+    boundingBox: boundingBox,
+    mustBeVirtual: true,
+    userid: userid,
+  });
+
+  const virtualOneTime = await getOneTimeEvents({
+    db: db,
+    dateFromUTC: dateFromUTC,
+    dateToUTC: dateToUTC,
+    latitude: latitude,
+    longitude: longitude,
+    radiusInMeters: radiusInMeters,
+    boundingBox: boundingBox,
+    mustBeVirtual: true,
+    userid: userid,
+  });
+
+  const virtualMultiday = await getMultidayEvents({
+    db: db,
+    dateFromUTC: dateFromUTC,
+    dateToUTC: dateToUTC,
+    latitude: latitude,
+    longitude: longitude,
+    radiusInMeters: radiusInMeters,
+    boundingBox: boundingBox,
+    mustBeVirtual: true,
+    userid: userid,
+  });
 
   return res.status(200).send({
     msg: "alternative events retrieved",
     msgType: "success",
     events: {
-      inPerson: inPersonEvents,
-      virtual: virtualEvents,
+      inPerson: {
+        recurring: inPersonRecurring,
+        onetime: inPersonOneTime,
+        multiday: inPersonMultiday,
+      },
+      virtual: {
+        recurring: virtualRecurring,
+        onetime: virtualOneTime,
+        multiday: virtualMultiday,
+      },
     },
   });
 };
@@ -152,171 +221,6 @@ exports.POST = async (req, res) => {
 /**********************/
 /*  HELPER FUNCTIONS  *
 /**********************/
-
-function getVirtualEvents(db, dateFromUTC, dateToUTC, latitude, longitude) {
-  return new Promise((resolve, reject) => {
-    const sql = `
-      WITH RECURSIVE recurring_dates AS (
-        SELECT 
-          e1.eventid,
-          e1.startdate AS eventDate,
-          e1.multidaybegindate,
-          e1.multidayenddate,
-          e1.type,
-          e1.title,
-          e1.frequency,
-          e1.duration,
-          e1.durationInHours,
-          e1.timezone,
-          e1.virtualconnectiondetails,
-          e1.country,
-          e1.lang,
-          ST_Y(e1.locationcoordinates) AS latitude,
-          ST_X(e1.locationcoordinates) AS longitude,
-          ST_Distance_Sphere( POINT(?, ?), e1.locationcoordinates) AS distanceInMeters,
-          e1.createdBy
-        FROM 
-          events e1
-        WHERE 
-          e1.isDeleted = 0
-        AND
-          e1.hasvirtual = 1
-        AND
-          e1.frequency <> 'once'
-        AND
-          e1.startdate < ?
-
-        UNION
-
-        SELECT 
-          eventid,
-          DATE_ADD(eventDate, INTERVAL 1 WEEK) AS eventDate,
-          multidaybegindate,
-          multidayenddate,
-          type,
-          title,
-          frequency,
-          duration,
-          durationInHours,
-          timezone,
-          virtualconnectiondetails,
-          country,
-          lang,
-          latitude,
-          longitude,
-          distanceInMeters,
-          createdBy
-        FROM 
-          recurring_dates
-        WHERE 
-          eventDate < ?
-      )
-      SELECT 
-        *
-      FROM 
-        recurring_dates
-      WHERE 
-        eventDate BETWEEN ? AND ?
-      
-      UNION
-
-      SELECT
-        e1.eventid,
-        e1.startdate AS eventDate,
-        e1.multidaybegindate,
-        e1.multidayenddate,
-        e1.type,
-        e1.title,
-        e1.frequency,
-        e1.duration,
-        e1.durationInHours,
-        e1.timezone,
-        e1.virtualconnectiondetails,
-        e1.country,
-        e1.lang,
-        ST_Y(e1.locationcoordinates) AS latitude,
-        ST_X(e1.locationcoordinates) AS longitude,
-        ST_Distance_Sphere( POINT(?, ?), e1.locationcoordinates) AS distanceInMeters,
-        e1.createdBy
-      FROM
-        events e1
-      WHERE
-        e1.isDeleted = 0
-      AND
-        e1.hasvirtual = 1
-      AND
-        e1.frequency = 'once'
-      AND
-        e1.startdate > ?
-      AND
-        e1.startdate < ?
-      
-      UNION
-
-      SELECT
-        e1.eventid,
-        e1.multidaybegindate AS eventDate,
-        e1.multidaybegindate AS multidaybegindate,
-        e1.multidayenddate,
-        e1.type,
-        e1.title,
-        e1.frequency,
-        e1.duration,
-        e1.durationInHours,
-        e1.timezone,
-        e1.virtualconnectiondetails,
-        e1.country,
-        e1.lang,
-        ST_Y(e1.locationcoordinates) AS latitude,
-        ST_X(e1.locationcoordinates) AS longitude,
-        ST_Distance_Sphere( POINT(?, ?), e1.locationcoordinates) AS distanceInMeters,
-        e1.createdBy
-      FROM
-        events e1
-      WHERE
-        e1.isDeleted = 0
-      AND
-        e1.hasvirtual = 1
-      AND
-        e1.multidaybegindate > ?
-      AND
-        e1.multidaybegindate < ?
-      ORDER BY 
-        eventDate ASC,
-        distanceInMeters ASC
-      LIMIT 20
-      ;
-    `;
-
-    db.query(
-      sql,
-      [
-        longitude,
-        latitude,
-        dateToUTC,
-        dateToUTC,
-        dateFromUTC,
-        dateToUTC,
-        longitude,
-        latitude,
-        dateFromUTC,
-        dateToUTC,
-        longitude,
-        latitude,
-        dateFromUTC,
-        dateToUTC,
-      ],
-      (error, result) => {
-        if (error) {
-          console.log(error);
-          reject(error);
-        }
-
-        return resolve(result);
-      }
-    );
-  });
-}
 
 function removeDuplicateLocations(events, userid) {
   return new Promise((resolve, reject) => {
@@ -384,48 +288,59 @@ function removeDuplicateLocations(events, userid) {
 
     const reducedQuantityOfEvents = reducedEvents.slice(0, maxQuantity);
 
-    resolve(reducedQuantityOfEvents);
+    return resolve(reducedQuantityOfEvents);
   });
 }
 
-function getInPersonEvents(
-  db,
-  dateFromUTC,
-  dateToUTC,
-  latitude,
-  longitude,
-  radiusInMeters
-) {
+function getRecurringEvents(obj) {
   return new Promise((resolve, reject) => {
+    const {
+      db,
+      dateFromUTC,
+      dateToUTC,
+      latitude,
+      longitude,
+      radiusInMeters,
+      boundingBox,
+      userid,
+      mustBeVirtual,
+    } = obj;
+
+    const minLat = boundingBox[0].latitude;
+    const minLon = boundingBox[0].longitude;
+    const maxLat = boundingBox[1].latitude;
+    const maxLon = boundingBox[1].longitude;
+
     const sql = `
       WITH RECURSIVE recurring_dates AS (
         SELECT 
-          e1.eventid,
-          e1.startdate AS eventDate,
-          e1.multidaybegindate,
-          e1.multidayenddate,
-          e1.type,
-          e1.title,
-          e1.frequency,
-          e1.duration,
-          e1.durationInHours,
-          e1.timezone,
-          e1.hasvirtual,
-          e1.country,
-          e1.lang,
-          ST_Y(e1.locationcoordinates) AS latitude,
-          ST_X(e1.locationcoordinates) AS longitude,
-          ST_Distance_Sphere( POINT(?, ?), e1.locationcoordinates) AS distanceInMeters,
-          e1.createdBy
+          eventid,
+          startdate AS eventDate,
+          multidaybegindate,
+          multidayenddate,
+          type,
+          title,
+          frequency,
+          duration,
+          durationInHours,
+          timezone,
+          hasvirtual,
+          country,
+          lang,
+          ST_Y(locationcoordinates) AS latitude,
+          ST_X(locationcoordinates) AS longitude,
+          ST_Distance_Sphere( POINT(?, ?), locationcoordinates) AS distanceInMeters,
+          createdBy
         FROM 
-          events e1
+          events
         WHERE 
-          e1.isDeleted = 0
+          isDeleted = 0
+        ${mustBeVirtual ? "AND hasvirtual = 1" : ""}
         AND
-          e1.frequency <> 'once'
+          frequency <> 'once'
         AND
-          e1.startdate < ?
-
+          startdate < ?
+        
         UNION
 
         SELECT 
@@ -450,96 +365,23 @@ function getInPersonEvents(
           recurring_dates
         WHERE 
           eventDate < ?
-      )
+      ) 
       SELECT 
         *
       FROM 
         recurring_dates
       WHERE 
         eventDate BETWEEN ? AND ?
-      
-      UNION
-
-      SELECT
-        e1.eventid,
-        e1.startdate AS eventDate,
-        e1.multidaybegindate,
-        e1.multidayenddate,
-        e1.type,
-        e1.title,
-        e1.frequency,
-        e1.duration,
-        e1.durationInHours,
-        e1.timezone,
-        e1.hasvirtual,
-        e1.country,
-        e1.lang,
-        ST_Y(e1.locationcoordinates) AS latitude,
-        ST_X(e1.locationcoordinates) AS longitude,
-        ST_Distance_Sphere( POINT(?, ?), e1.locationcoordinates) AS distanceInMeters,
-        e1.createdBy
-      FROM
-        events e1
-      WHERE
-        e1.isDeleted = 0
       AND
-        e1.frequency = 'once'
+        latitude BETWEEN ? AND ?
       AND
-        e1.startdate > ?
+        longitude BETWEEN ? AND ?
       AND
-        e1.startdate < ?
-      
-      UNION
-
-      SELECT
-        e1.eventid,
-        e1.multidaybegindate AS eventDate,
-        e1.multidaybegindate AS multidaybegindate,
-        e1.multidayenddate,
-        e1.type,
-        e1.title,
-        e1.frequency,
-        e1.duration,
-        e1.durationInHours,
-        e1.timezone,
-        e1.hasvirtual,
-        e1.country,
-        e1.lang,
-        ST_Y(e1.locationcoordinates) AS latitude,
-        ST_X(e1.locationcoordinates) AS longitude,
-        ST_Distance_Sphere( POINT(?, ?), e1.locationcoordinates) AS distanceInMeters,
-        e1.createdBy
-      FROM
-        events e1
-      WHERE
-        e1.isDeleted = 0
-      AND
-        e1.multidaybegindate > ?
-      AND
-        e1.multidaybegindate < ?
-      AND
-        ST_X(e1.locationcoordinates) BETWEEN ? AND ?
-      AND
-        ST_Y(e1.locationcoordinates) BETWEEN ? AND ?
-      AND
-        ST_Distance_Sphere(
-          POINT(?, ?),
-          e1.locationcoordinates
-        ) <= ?
+        distanceInMeters <= ?
       ORDER BY 
         eventDate ASC
       ;
     `;
-
-    const boundingBox = geolib.getBoundsOfDistance(
-      { latitude, longitude },
-      radiusInMeters
-    );
-
-    const minLat = boundingBox[0].latitude;
-    const minLon = boundingBox[0].longitude;
-    const maxLat = boundingBox[1].latitude;
-    const maxLon = boundingBox[1].longitude;
 
     db.query(
       sql,
@@ -550,10 +392,94 @@ function getInPersonEvents(
         dateToUTC,
         dateFromUTC,
         dateToUTC,
-        longitude,
-        latitude,
-        dateFromUTC,
-        dateToUTC,
+        minLat,
+        maxLat,
+        minLon,
+        maxLon,
+        radiusInMeters,
+      ],
+      async (error, result) => {
+        if (error) {
+          console.log(error);
+          return reject(error);
+        }
+
+        if (!result.length) {
+          return resolve(result);
+        }
+
+        const duplicateLocationsRemoved = await removeDuplicateLocations(
+          result,
+          userid
+        );
+
+        return resolve(duplicateLocationsRemoved);
+      }
+    );
+  });
+}
+
+function getOneTimeEvents(obj) {
+  return new Promise((resolve, reject) => {
+    const {
+      db,
+      dateFromUTC,
+      dateToUTC,
+      latitude,
+      longitude,
+      radiusInMeters,
+      boundingBox,
+      userid,
+      mustBeVirtual,
+    } = obj;
+
+    const minLat = boundingBox[0].latitude;
+    const minLon = boundingBox[0].longitude;
+    const maxLat = boundingBox[1].latitude;
+    const maxLon = boundingBox[1].longitude;
+
+    const sql = `
+      SELECT
+        eventid,
+        startdate AS eventDate,
+        multidaybegindate,
+        multidayenddate,
+        type,
+        title,
+        frequency,
+        duration,
+        durationInHours,
+        timezone,
+        hasvirtual,
+        country,
+        lang,
+        ST_Y(locationcoordinates) AS latitude,
+        ST_X(locationcoordinates) AS longitude,
+        ST_Distance_Sphere( POINT(?, ?), locationcoordinates) AS distanceInMeters,
+        createdBy
+      FROM
+        events
+      WHERE
+        isDeleted = 0
+      ${mustBeVirtual ? "AND hasvirtual = 1" : ""}
+      AND
+        frequency = 'once'
+      AND
+        startdate > ?
+      AND
+        startdate < ?
+      AND
+        ST_Y(locationcoordinates) BETWEEN ? AND ?
+      AND
+        ST_X(locationcoordinates) BETWEEN ? AND ?
+      AND
+        ST_Distance_Sphere( POINT(?, ?), locationcoordinates) <= ?
+      ;
+    `;
+
+    db.query(
+      sql,
+      [
         longitude,
         latitude,
         dateFromUTC,
@@ -566,13 +492,116 @@ function getInPersonEvents(
         latitude,
         radiusInMeters,
       ],
-      (error, result) => {
+      async (error, result) => {
         if (error) {
           console.log(error);
-          reject(error);
+          return reject(error);
         }
 
-        return resolve(result);
+        if (!result.length) {
+          return resolve(result);
+        }
+
+        const duplicateLocationsRemoved = await removeDuplicateLocations(
+          result,
+          userid
+        );
+
+        return resolve(duplicateLocationsRemoved);
+      }
+    );
+  });
+}
+
+function getMultidayEvents(obj) {
+  return new Promise((resolve, reject) => {
+    const {
+      db,
+      dateFromUTC,
+      dateToUTC,
+      latitude,
+      longitude,
+      radiusInMeters,
+      boundingBox,
+      userid,
+      mustBeVirtual,
+    } = obj;
+
+    const minLat = boundingBox[0].latitude;
+    const minLon = boundingBox[0].longitude;
+    const maxLat = boundingBox[1].latitude;
+    const maxLon = boundingBox[1].longitude;
+
+    sql = `
+      SELECT
+        eventid,
+        multidaybegindate AS eventDate,
+        multidaybegindate AS multidaybegindate,
+        multidayenddate,
+        type,
+        title,
+        frequency,
+        duration,
+        durationInHours,
+        timezone,
+        hasvirtual,
+        country,
+        lang,
+        ST_Y(locationcoordinates) AS latitude,
+        ST_X(locationcoordinates) AS longitude,
+        ST_Distance_Sphere( POINT(?, ?), locationcoordinates) AS distanceInMeters,
+        createdBy
+      FROM
+        events
+      WHERE
+        isDeleted = 0
+      ${mustBeVirtual ? "AND hasvirtual = 1" : ""}
+      AND
+        multidaybegindate > ?
+      AND
+        multidaybegindate < ?
+      AND
+        ST_Y(locationcoordinates) BETWEEN ? AND ?
+      AND
+        ST_X(locationcoordinates) BETWEEN ? AND ?
+      AND
+        ST_Distance_Sphere( POINT(?, ?), locationcoordinates) <= ?
+      ORDER BY 
+        eventDate ASC
+      ;
+    `;
+
+    db.query(
+      sql,
+      [
+        longitude,
+        latitude,
+        dateFromUTC,
+        dateToUTC,
+        minLat,
+        maxLat,
+        minLon,
+        maxLon,
+        longitude,
+        latitude,
+        radiusInMeters,
+      ],
+      async (error, result) => {
+        if (error) {
+          console.log(error);
+          return reject(error);
+        }
+
+        if (!result.length) {
+          return resolve(result);
+        }
+
+        const duplicateLocationsRemoved = await removeDuplicateLocations(
+          result,
+          userid
+        );
+
+        return resolve(duplicateLocationsRemoved);
       }
     );
   });
@@ -644,6 +673,15 @@ function getCoordinates(db, originLocation, country) {
     const { geocodeLocation } = require("./utils");
     const coordsObject = await geocodeLocation(db, originLocation, country);
 
-    resolve(coordsObject);
+    if (typeof coordsObject === "object") {
+      const { lat, lng } = coordsObject;
+      if (typeof lat === "number" && typeof lng === "number") {
+        resolve(coordsObject);
+      } else {
+        reject(new Error("unable to geocode this location"));
+      }
+    } else {
+      reject(new Error("unable to geocode this location"));
+    }
   });
 }
