@@ -33,13 +33,12 @@ function getChurches() {
       .then((res) => res.json())
       .then(async (data) => {
         if (data.msgType && data.msgType === "error") {
-          reject(data.msg);
-          return;
+          return reject(data.msg);
         }
 
         const churchesToStore = JSON.stringify(data.churches);
         localStorage.setItem("churches", churchesToStore);
-        resolve(data.churches);
+        return resolve(data.churches);
       })
       .catch((err) => reject(new Error(err)));
   });
@@ -54,7 +53,7 @@ function getCountries(lang) {
       .then((data) => {
         const countryData = data.countryNames;
         localStorage.setItem("countries", JSON.stringify(countryData));
-        resolve(countryData);
+        return resolve(countryData);
       });
   });
 }

@@ -389,7 +389,7 @@ exports.POST = async (req, res) => {
           return invite;
         });
 
-        resolve(invites);
+        return resolve(invites);
       });
     });
   }

@@ -23,16 +23,16 @@ function getEvent(db, eventid) {
     db.query(sql, [eventid], (error, result) => {
       if (error) {
         console.log(error);
-        reject(error);
+        return reject(error);
       }
 
       if (!result.length) {
         const errorMsg = "event not found";
         console.log(errorMsg);
-        reject(new Error(errorMsg));
+        return reject(new Error(errorMsg));
       }
 
-      resolve(result[0]);
+      return resolve(result[0]);
     });
   });
 }
@@ -61,13 +61,13 @@ function getInvite(db, invitationid, userid) {
     db.query(sql, [invitationid, userid], (error, result) => {
       if (error) {
         console.log(error);
-        reject(error);
+        return reject(error);
       }
 
       if (!result.length) {
         const errorMsg = "invite not found";
         console.log(errorMsg);
-        reject(new Error(errorMsg));
+        return reject(new Error(errorMsg));
       }
 
       return resolve(result[0]);
@@ -93,13 +93,13 @@ function getUser(db, userid) {
     db.query(sql, [userid], (error, result) => {
       if (error) {
         console.log(error);
-        reject(error);
+        return reject(error);
       }
 
       if (!result.length) {
         const errorMsg = "user not found";
         console.log(errorMsg);
-        reject(new Error(errorMsg));
+        return reject(new Error(errorMsg));
       }
 
       return resolve(result[0]);

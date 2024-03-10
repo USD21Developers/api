@@ -32,10 +32,10 @@ exports.POST = async (req, res) => {
   // Function to update database with followup info
   const setFollowups = (unsyncedFollowups, value) => {
     return new Promise((resolve, reject) => {
-      if (!Array.isArray(unsyncedFollowups)) resolve();
-      if (!unsyncedFollowups.length) resolve();
-      if (typeof value !== "number") reject();
-      if (value !== 0 && value !== 1) reject();
+      if (!Array.isArray(unsyncedFollowups)) return resolve();
+      if (!unsyncedFollowups.length) return resolve();
+      if (typeof value !== "number") return reject();
+      if (value !== 0 && value !== 1) return reject();
 
       const invitationids = unsyncedFollowups.map((item) => {
         const { invitationid } = item;
@@ -60,9 +60,9 @@ exports.POST = async (req, res) => {
         (error, result) => {
           if (error) {
             console.log(error);
-            reject(error);
+            return reject(error);
           }
-          resolve(result);
+          return resolve(result);
         }
       );
     });

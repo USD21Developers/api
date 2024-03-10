@@ -48,10 +48,10 @@ exports.POST = async (req, res) => {
       db.query(sql, [json, req.user.userid], (error, result) => {
         if (error) {
           console.log(error);
-          reject(error);
+          return reject(error);
         }
 
-        resolve(result[0]);
+        return resolve(result[0]);
       });
     });
   };
@@ -71,10 +71,10 @@ exports.POST = async (req, res) => {
       db.query(sql, [req.user.userid], (error, result) => {
         if (error) {
           console.log(error);
-          reject(error);
+          return reject(error);
         }
 
-        resolve(result[0]);
+        return resolve(result[0]);
       });
     });
   };

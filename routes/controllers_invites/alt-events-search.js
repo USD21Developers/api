@@ -248,12 +248,13 @@ exports.POST = async (req, res) => {
 
 function removeDuplicateLocations(events, userid) {
   return new Promise((resolve, reject) => {
-    if (!events) reject(new Error("events argument is required"));
-    if (!userid) reject(new Error("userid argument is required"));
-    if (!Array.isArray(events)) reject(new Error("events must be an array"));
+    if (!events) return reject(new Error("events argument is required"));
+    if (!userid) return reject(new Error("userid argument is required"));
+    if (!Array.isArray(events))
+      return reject(new Error("events must be an array"));
     if (typeof userid !== "number")
-      reject(new Error("userid must be a number"));
-    if (!events.length) resolve(events);
+      return reject(new Error("userid must be a number"));
+    if (!events.length) return resolve(events);
 
     // Group events by event date
     const eventsByDate = events.reduce((acc, event) => {
@@ -665,28 +666,6 @@ function distanceInMeters(quantity, distanceUnit) {
   return meters;
 }
 
-function calculateZoomLevel(map, markers, origin, radius) {
-  var bounds = new google.maps.LatLngBounds();
-  bounds.extend(origin); // Extend bounds to include origin
-
-  markers.forEach(function (marker) {
-    bounds.extend(marker.getPosition());
-  });
-
-  var center = bounds.getCenter();
-  var distance = google.maps.geometry.spherical.computeDistanceBetween(
-    center,
-    bounds.getNorthEast()
-  );
-
-  var zoomLevel = Math.floor(
-    16 -
-      Math.log2(((40075016.686 / (2 * radius)) * Math.sqrt(2) * distance) / 360)
-  );
-
-  return zoomLevel;
-}
-
 function isLatLongPair(str) {
   // e.g. "40.689247,-74.044502" // Statue of Liberty
   const regex =
@@ -703,7 +682,7 @@ function getCoordinates(db, originLocation, country) {
         latitude: coords[0],
         longitude: coords[1],
       };
-      resolve(coordsObject);
+      return resolve(coordsObject);
     }
 
     const { geocodeLocation } = require("./utils");
@@ -712,12 +691,12 @@ function getCoordinates(db, originLocation, country) {
     if (typeof coordsObject === "object") {
       const { latitude, longitude } = coordsObject;
       if (typeof latitude === "number" && typeof longitude === "number") {
-        resolve(coordsObject);
+        return resolve(coordsObject);
       } else {
-        reject(new Error("unable to geocode this location"));
+        return reject(new Error("unable to geocode this location"));
       }
     } else {
-      reject(new Error("unable to geocode this location"));
+      return reject(new Error("unable to geocode this location"));
     }
   });
 }

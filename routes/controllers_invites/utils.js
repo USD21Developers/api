@@ -57,10 +57,10 @@ exports.sendSms = (recipient, content) => {
       })
       .then((message) => {
         console.log(require("util").inspect(message, true, 7, true));
-        resolve(message);
+        return resolve(message);
       })
       .catch((error) => {
-        reject(error);
+        return reject(error);
       });
   });
 };
@@ -87,9 +87,9 @@ sendEmailViaSMTP = (recipient, emailSenderText, subject, body) => {
     transport.sendMail(mailOptions, (err, info) => {
       if (err) {
         console.log(require("util").inspect(err, true, 7, true));
-        reject(err);
+        return reject(err);
       }
-      resolve(info);
+      return resolve(info);
     });
   });
 };
@@ -108,11 +108,11 @@ x = (recipient, emailSenderText, subject, body) => {
     sgMail
       .send(msg)
       .then((result) => {
-        resolve(result);
+        return resolve(result);
       })
       .catch((error) => {
         console.log(require("util").inspect(error, true, 7, true));
-        reject(error);
+        return reject(error);
       });
   });
 };
@@ -295,9 +295,9 @@ exports.getEventsByUser = (db, userid, useridOfRequester) => {
     `;
 
     db.query(sql, [userid, useridOfRequester], (error, result) => {
-      if (error) reject(error);
+      if (error) return reject(error);
 
-      resolve(result);
+      return resolve(result);
     });
   });
 };
@@ -388,7 +388,7 @@ exports.getEventsByFollowedUsers = (db, userid, useridOfRequester) => {
     db.query(sql, [userid, useridOfRequester], (error, result) => {
       if (error) reject(error);
 
-      resolve(result);
+      return resolve(result);
     });
   });
 };
@@ -596,22 +596,27 @@ exports.getFollowedUsers = (db, userid) => {
     `;
 
     db.query(sql, [userid], (error, result) => {
-      if (error) reject(error);
+      if (error) return reject(error);
 
-      resolve(result);
+      return resolve(result);
     });
   });
 };
 
 exports.geocodeLocation = (db, location, country) => {
   return new Promise((resolve, reject) => {
-    if (!db) reject(new Error("db is a required argument to geocodeLocation"));
+    if (!db)
+      return reject(new Error("db is a required argument to geocodeLocation"));
     if (!location)
-      reject(new Error("location is a required argument to geocodeLocation"));
+      return reject(
+        new Error("location is a required argument to geocodeLocation")
+      );
     if (typeof process.env.GOOGLE_MAPS_API_KEY !== "string")
-      reject(new Error("Missing environment variable for Google Maps API key"));
+      return reject(
+        new Error("Missing environment variable for Google Maps API key")
+      );
     if (!process.env.GOOGLE_MAPS_API_KEY.length)
-      reject(
+      return reject(
         new Error(
           "Environment variable for Google Maps API key must not be blank"
         )
@@ -641,20 +646,20 @@ exports.geocodeLocation = (db, location, country) => {
       .then((res) => res.json())
       .then((data) => {
         if (!data.results) {
-          reject(new Error("geocode unsuccessful"));
+          return reject(new Error("geocode unsuccessful"));
         } else if (!data.results.length) {
-          reject(new Error("address not found"));
+          return reject(new Error("address not found"));
         }
         const coordinates = data.results[0].geometry.location;
         const coordsObject = {
           latitude: coordinates.lat,
           longitude: coordinates.lng,
         };
-        resolve(coordsObject);
+        return resolve(coordsObject);
       })
       .catch((err) => {
         console.log(err);
-        reject(err);
+        return reject(err);
       });
   });
 };
@@ -662,21 +667,25 @@ exports.geocodeLocation = (db, location, country) => {
 exports.getAddressCoordinates = (db, addressObj) => {
   return new Promise((resolve, reject) => {
     if (!db)
-      reject(new Error("db is a required argument to getAddressCoordinates"));
+      return reject(
+        new Error("db is a required argument to getAddressCoordinates")
+      );
     if (!addressObj)
-      reject(
+      return reject(
         new Error("addressObj is a required argument to getAddressCoordinates")
       );
     if (typeof addressObj !== "object")
-      reject(
+      return reject(
         new Error(
           "addressObj argument to getAddressCoordinates must be an object"
         )
       );
     if (typeof process.env.GOOGLE_MAPS_API_KEY !== "string")
-      reject(new Error("Missing environment variable for Google Maps API key"));
+      return reject(
+        new Error("Missing environment variable for Google Maps API key")
+      );
     if (!process.env.GOOGLE_MAPS_API_KEY.length)
-      reject(
+      return reject(
         new Error(
           "Environment variable for Google Maps API key must not be blank"
         )
@@ -698,16 +707,16 @@ exports.getAddressCoordinates = (db, addressObj) => {
       .then((res) => res.json())
       .then((data) => {
         if (!data.results) {
-          resolve("");
+          return resolve("");
         } else if (!data.results.length) {
-          resolve("");
+          return resolve("");
         }
         const coordinates = data.results[0].geometry.location;
-        resolve(coordinates);
+        return resolve(coordinates);
       })
       .catch((err) => {
         console.log(err);
-        reject(err);
+        return reject(err);
       });
   });
 };
@@ -716,9 +725,9 @@ exports.getChurches = () => {
   return new Promise(async (resolve, reject) => {
     try {
       const churches = await require("../controllers_services/churches").GET();
-      resolve(churches);
+      return resolve(churches);
     } catch (err) {
-      reject(new Error("unable to get churches", err));
+      return reject(new Error("unable to get churches", err));
     }
   });
 };
@@ -726,21 +735,31 @@ exports.getChurches = () => {
 exports.getDistance = (db, originObj, destinationObj) => {
   return new Promise((resolve, reject) => {
     if (!db)
-      reject(new Error("db is a required argument to getAddressCoordinates"));
+      return reject(
+        new Error("db is a required argument to getAddressCoordinates")
+      );
     if (!originObj)
-      reject(new Error("originObj is a required argument to getDistance"));
+      return reject(
+        new Error("originObj is a required argument to getDistance")
+      );
     if (!destinationObj)
-      reject(new Error("destinationObj is a required argument to getDistance"));
+      return reject(
+        new Error("destinationObj is a required argument to getDistance")
+      );
     if (typeof originObj !== "object")
-      reject(new Error("originObj argument to getDistance must be an object"));
+      return reject(
+        new Error("originObj argument to getDistance must be an object")
+      );
     if (typeof destinationObj !== "object")
-      reject(
+      return reject(
         new Error("destinationObj argument to getDistance must be an object")
       );
     if (typeof process.env.GOOGLE_MAPS_API_KEY !== "string")
-      reject(new Error("Missing environment variable for Google Maps API key"));
+      return reject(
+        new Error("Missing environment variable for Google Maps API key")
+      );
     if (!process.env.GOOGLE_MAPS_API_KEY.length)
-      reject(
+      return reject(
         new Error(
           "Environment variable for Google Maps API key must not be blank"
         )
@@ -801,9 +820,9 @@ exports.getDistance = (db, originObj, destinationObj) => {
       .then((res) => res.json())
       .then((data) => {
         if (!data.rows) {
-          resolve("");
+          return resolve("");
         } else if (!data.rows.length) {
-          resolve("");
+          return resolve("");
         }
 
         const distanceObj = data.rows[0].distance;
@@ -814,11 +833,11 @@ exports.getDistance = (db, originObj, destinationObj) => {
         if (typeof distance.value !== "number")
           return reject(new Error("invalid distance value from distance API"));
 
-        resolve(distance);
+        return resolve(distance);
       })
       .catch((err) => {
         console.log(err);
-        reject(err);
+        return reject(err);
       });
   });
 };
@@ -846,10 +865,10 @@ exports.storeProfileImage = async (userid, base64Image, db) => {
       s3.upload(params, (err, data) => {
         if (err) {
           console.log(err);
-          reject400(err);
+          return reject400(err);
         }
 
-        resolve400(data.Location);
+        return resolve400(data.Location);
       });
     });
 
@@ -868,10 +887,10 @@ exports.storeProfileImage = async (userid, base64Image, db) => {
       s3.upload(params, (err, data) => {
         if (err) {
           console.log(err);
-          reject140(err);
+          return reject140(err);
         }
 
-        resolve140(data.Location);
+        return resolve140(data.Location);
       });
     });
 
@@ -879,7 +898,7 @@ exports.storeProfileImage = async (userid, base64Image, db) => {
       if (!Array.isArray(urls)) {
         const err = `unable to store profile photo for user ${userid}`;
         console.log(err);
-        reject(err);
+        return reject(err);
       }
 
       const sql = `
@@ -894,7 +913,7 @@ exports.storeProfileImage = async (userid, base64Image, db) => {
       db.query(sql, [profile400Url, userid], (err, result) => {
         if (err) {
           console.log(err);
-          reject(err);
+          return reject(err);
         }
 
         const sql = `
@@ -906,7 +925,7 @@ exports.storeProfileImage = async (userid, base64Image, db) => {
         db.query(sql, [userid], (err, result) => {
           if (err) {
             console.log(err);
-            reject(err);
+            return reject(err);
           }
 
           const sql = `
@@ -922,10 +941,10 @@ exports.storeProfileImage = async (userid, base64Image, db) => {
           db.query(sql, [userid], (err, result) => {
             if (err) {
               console.log(err);
-              reject(err);
+              return reject(err);
             }
 
-            resolve();
+            return resolve();
           });
         });
       });
@@ -951,10 +970,10 @@ exports.deleteProfileImage = async (userid, db) => {
       s3.deleteObject(params, (err, data) => {
         if (err) {
           console.log(err);
-          reject400(err);
+          return reject400(err);
         }
 
-        resolve400();
+        return resolve400();
       });
     });
 
@@ -968,10 +987,10 @@ exports.deleteProfileImage = async (userid, db) => {
       s3.deleteObject(params, (err, data) => {
         if (err) {
           console.log(err);
-          reject140(err);
+          return reject140(err);
         }
 
-        resolve140(data.Location);
+        return resolve140(data.Location);
       });
     });
 
@@ -986,7 +1005,7 @@ exports.deleteProfileImage = async (userid, db) => {
       db.query(sql, [userid], (err, result) => {
         if (err) {
           console.log(err);
-          reject(err);
+          return reject(err);
         }
 
         const sql = `
@@ -998,10 +1017,10 @@ exports.deleteProfileImage = async (userid, db) => {
         db.query(sql, [userid], (err, result) => {
           if (err) {
             console.log(err);
-            reject(err);
+            return reject(err);
           }
 
-          resolve();
+          return resolve();
         });
       });
     });

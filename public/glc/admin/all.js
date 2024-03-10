@@ -61,7 +61,12 @@ function getApiHost() {
   return host;
 }
 
-function showToast(message = "", headText = "GLC Admin", delay = "4000", bgClass = "bg-success") {
+function showToast(
+  message = "",
+  headText = "GLC Admin",
+  delay = "4000",
+  bgClass = "bg-success"
+) {
   return new Promise((resolve, reject) => {
     const toastEl = document.querySelector("#liveToast");
     const messageTextEl = toastEl.querySelector(".toast-body");
@@ -69,7 +74,15 @@ function showToast(message = "", headText = "GLC Admin", delay = "4000", bgClass
     const headTextEl = headEl.querySelector("strong");
     const toast = new bootstrap.Toast(toastEl);
 
-    ["bg-primary", "bg-secondary", "bg-success", "bg-danger", "bg-warning", "bg-info", "bg-dark"].forEach(item => {
+    [
+      "bg-primary",
+      "bg-secondary",
+      "bg-success",
+      "bg-danger",
+      "bg-warning",
+      "bg-info",
+      "bg-dark",
+    ].forEach((item) => {
       headEl.classList.remove(item);
     });
     headEl.classList.add(bgClass);
@@ -82,10 +95,10 @@ function showToast(message = "", headText = "GLC Admin", delay = "4000", bgClass
     if (delay > 0) {
       setTimeout(() => {
         toast.hide();
-        resolve();
+        return resolve();
       }, delay);
     } else {
-      resolve();
+      return resolve();
     }
   });
 }

@@ -110,7 +110,7 @@ exports.FETCH = async () => {
       const oneWeek = 604800;
       cache.set("churches", result, oneWeek);
 
-      resolve(result);
+      return resolve(result);
     });
   });
 };

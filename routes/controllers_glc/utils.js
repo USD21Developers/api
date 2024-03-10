@@ -34,12 +34,12 @@ exports.isPrivilegedEmailAccount = (email = "") => {
   const validEmail = email.trim().toLowerCase();
 
   // Match
-  privilegedDomains.forEach(item => {
+  privilegedDomains.forEach((item) => {
     if (validEmail.endsWith(`@${item}`)) isPrivilegedEmail = true;
   });
 
   return isPrivilegedEmail;
-}
+};
 
 exports.sendSms = (recipient, message) => {
   const twilio = require("twilio");
@@ -59,7 +59,7 @@ exports.sendSms = (recipient, message) => {
         resolve(twilioResponse);
       })
       .catch((error) => {
-        reject(error);
+        return reject(error);
       });
   });
 };
@@ -86,9 +86,9 @@ sendEmailViaSMTP = (recipient, emailSenderText, subject, body) => {
     transport.sendMail(mailOptions, (err, info) => {
       if (err) {
         console.log(require("util").inspect(err, true, 7, true));
-        reject(err);
+        return reject(err);
       }
-      resolve(info);
+      return resolve(info);
     });
   });
 };
@@ -107,11 +107,11 @@ sendEmailViaAPI = (recipient, emailSenderText, subject, body) => {
     sgMail
       .send(msg)
       .then((result) => {
-        resolve(result);
+        return resolve(result);
       })
       .catch((error) => {
         console.log(require("util").inspect(error, true, 7, true));
-        reject(error);
+        return reject(error);
       });
   });
 };
@@ -143,7 +143,8 @@ exports.sendEmail = async (recipient, emailSenderText, subject, body) => {
 */
 exports.validatePhone = (number, countryCode) => {
   const PNF = require("google-libphonenumber").PhoneNumberFormat;
-  const phoneUtil = require("google-libphonenumber").PhoneNumberUtil.getInstance();
+  const phoneUtil =
+    require("google-libphonenumber").PhoneNumberUtil.getInstance();
   const phoneNumber = phoneUtil.parse(number, countryCode);
   const isValidForRegion = phoneUtil.isValidNumberForRegion(
     phoneNumber,
