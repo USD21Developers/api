@@ -123,10 +123,14 @@ exports.POST = async (req, res) => {
 
   let latitude;
   let longitude;
+  let geocodeErrorOccurred = false;
 
-  const obj = await getCoordinates(db, originLocation, country);
+  const obj = await getCoordinates(db, originLocation, country).catch((err) => {
+    console.log(err);
+    geocodeErrorOccurred = true;
+  });
 
-  if (!obj.latitude || !obj.longitude) {
+  if (geocodeErrorOccurred || !obj.latitude || !obj.longitude) {
     return res.status(400).send({
       msg: "unable to geocode this location",
       msgType: "error",
@@ -678,25 +682,16 @@ function getCoordinates(db, originLocation, country) {
 
     const { geocodeLocation } = require("./utils");
     let coordsObject;
+    const errMsg = "unable to geocode this location";
     try {
       coordsObject = await geocodeLocation(db, originLocation, country);
+      if (!coordsObject) throw errMsg;
+      if (!coordsObject.latitude || !coordsObject.longitude) throw errMsg;
+      if (typeof coordsObject.latitude !== "number") throw errMsg;
+      if (typeof coordsObject.longitude !== "number") throw errMsg;
+      resolve(coordsObject);
     } catch (err) {
-      return reject(new Error("unable to geocode this location"));
-    }
-
-    if (coordsObject && coordsObject.message) {
-      return resolve(new Error("unable to geocode this location"));
-    }
-
-    if (typeof coordsObject === "object") {
-      const { latitude, longitude } = coordsObject;
-      if (typeof latitude === "number" && typeof longitude === "number") {
-        return resolve(coordsObject);
-      } else {
-        return resolve(new Error("unable to geocode this location"));
-      }
-    } else {
-      return resolve(new Error("unable to geocode this location"));
+      return reject(err);
     }
   });
 }

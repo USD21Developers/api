@@ -612,14 +612,10 @@ exports.geocodeLocation = (db, location, country) => {
         new Error("location is a required argument to geocodeLocation")
       );
     if (typeof process.env.GOOGLE_MAPS_API_KEY !== "string")
-      return reject(
-        new Error("Missing environment variable for Google Maps API key")
-      );
+      return reject("Missing environment variable for Google Maps API key");
     if (!process.env.GOOGLE_MAPS_API_KEY.length)
       return reject(
-        new Error(
-          "Environment variable for Google Maps API key must not be blank"
-        )
+        "Environment variable for Google Maps API key must not be blank"
       );
 
     const lines = location.split(/\r?\n/);
@@ -645,10 +641,8 @@ exports.geocodeLocation = (db, location, country) => {
     fetch(endpoint)
       .then((res) => res.json())
       .then((data) => {
-        if (!data.results) {
-          return resolve(new Error("geocode unsuccessful"));
-        } else if (!data.results.length) {
-          return resolve(new Error("address not found"));
+        if (!data.results || !data.results.length) {
+          throw "geocode unsuccessful";
         }
         const coordinates = data.results[0].geometry.location;
         const coordsObject = {
@@ -656,6 +650,9 @@ exports.geocodeLocation = (db, location, country) => {
           longitude: coordinates.lng,
         };
         return resolve(coordsObject);
+      })
+      .catch((err) => {
+        return reject(err);
       });
   });
 };
