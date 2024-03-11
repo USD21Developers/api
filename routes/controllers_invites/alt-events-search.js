@@ -123,27 +123,18 @@ exports.POST = async (req, res) => {
 
   let latitude;
   let longitude;
-  const errorCannotGeocode = "unable to geocode this location";
 
-  await getCoordinates(db, originLocation, country)
-    .then((obj) => {
-      if (!obj.latitude || !obj.longitude) {
-        throw new Error(errorCannotGeocode);
-      }
-      latitude = obj.latitude;
-      longitude = obj.longitude;
-    })
-    .catch((err) => {
-      console.log(err, originLocation);
-    });
+  const obj = await getCoordinates(db, originLocation, country);
 
-  if (!latitude || !longitude) {
+  if (!obj.latitude || !obj.longitude) {
     return res.status(400).send({
-      msg: errorCannotGeocode,
+      msg: "unable to geocode this location",
       msgType: "error",
-      location: originLocation,
     });
   }
+
+  latitude = obj.latitude;
+  longitude = obj.longitude;
 
   const radiusInMeters = distanceInMeters(Number(radius), distanceUnit);
 
@@ -686,17 +677,26 @@ function getCoordinates(db, originLocation, country) {
     }
 
     const { geocodeLocation } = require("./utils");
-    const coordsObject = await geocodeLocation(db, originLocation, country);
+    let coordsObject;
+    try {
+      coordsObject = await geocodeLocation(db, originLocation, country);
+    } catch (err) {
+      return reject(new Error("unable to geocode this location"));
+    }
+
+    if (coordsObject && coordsObject.message) {
+      return resolve(new Error("unable to geocode this location"));
+    }
 
     if (typeof coordsObject === "object") {
       const { latitude, longitude } = coordsObject;
       if (typeof latitude === "number" && typeof longitude === "number") {
         return resolve(coordsObject);
       } else {
-        return reject(new Error("unable to geocode this location"));
+        return resolve(new Error("unable to geocode this location"));
       }
     } else {
-      return reject(new Error("unable to geocode this location"));
+      return resolve(new Error("unable to geocode this location"));
     }
   });
 }

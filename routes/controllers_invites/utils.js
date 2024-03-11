@@ -646,9 +646,9 @@ exports.geocodeLocation = (db, location, country) => {
       .then((res) => res.json())
       .then((data) => {
         if (!data.results) {
-          return reject(new Error("geocode unsuccessful"));
+          return resolve(new Error("geocode unsuccessful"));
         } else if (!data.results.length) {
-          return reject(new Error("address not found"));
+          return resolve(new Error("address not found"));
         }
         const coordinates = data.results[0].geometry.location;
         const coordsObject = {
@@ -656,10 +656,6 @@ exports.geocodeLocation = (db, location, country) => {
           longitude: coordinates.lng,
         };
         return resolve(coordsObject);
-      })
-      .catch((err) => {
-        console.log(err);
-        return reject(err);
       });
   });
 };
