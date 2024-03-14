@@ -396,6 +396,7 @@ function getRecurringEvents(obj) {
       ${!mustBeVirtual ? "AND longitude BETWEEN ? AND ?" : ""}
       ${!mustBeVirtual ? "AND distanceInMeters <= ?" : ""}
       ORDER BY 
+        distanceInMeters ASC,
         eventDate ASC
       ;
     `;
@@ -501,6 +502,9 @@ function getOneTimeEvents(obj) {
           ? "AND ST_Distance_Sphere( POINT(?, ?), locationcoordinates) <= ?"
           : ""
       }
+      ORDER BY
+        distanceInMeters ASC,
+        eventDate ASC
       ;
     `;
 
@@ -597,6 +601,7 @@ function getMultidayEvents(obj) {
           : ""
       }
       ORDER BY 
+        distanceInMeters ASC,
         eventDate ASC
       ;
     `;
