@@ -109,6 +109,9 @@ router.get("/followers/:userid", authenticateToken, followers.GET);
 const followStatus = require("./controllers_invites/follow-status");
 router.post("/follow-status", authenticateToken, followStatus.POST);
 
+const user = require("./controllers_invites/user");
+router.post("/user", authenticateToken, user.POST);
+
 const userProfile = require("./controllers_invites/user-profile");
 router.get("/userprofile/:userid", authenticateToken, userProfile.GET);
 
