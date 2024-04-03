@@ -115,6 +115,9 @@ router.post("/user", authenticateToken, user.POST);
 const userProfile = require("./controllers_invites/user-profile");
 router.get("/userprofile/:userid", authenticateToken, userProfile.GET);
 
+const profilePhoto = require("./controllers_invites/profile-photo");
+router.post("/profile-photo", authenticateToken, profilePhoto.POST);
+
 // INVITES
 
 const invite = require("./controllers_invites/invite");
