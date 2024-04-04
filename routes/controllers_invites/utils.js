@@ -1,3 +1,5 @@
+const crypto = require("crypto");
+
 // Use the following middleware function on all protected routes
 exports.authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
@@ -837,13 +839,14 @@ exports.getDistance = (db, originObj, destinationObj) => {
 
 exports.storeProfileImage = async (userid, base64Image, db) => {
   return new Promise(async (resolve, reject) => {
+    const uuid = crypto.randomUUID();
     const AWS = require("aws-sdk");
     const s3 = new AWS.S3({
       accessKeyId: process.env.INVITES_AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.INVITES_AWS_SECRET_ACCESS_KEY,
     });
 
-    const fileName400 = `profiles/${userid}/400.jpg`;
+    const fileName400 = `profiles/${userid}__${uuid}__400.jpg`;
     const fileContent400 = new Buffer.from(
       base64Image.replace(/^data:image\/\w+;base64,/, ""),
       "base64"
@@ -866,7 +869,7 @@ exports.storeProfileImage = async (userid, base64Image, db) => {
     });
 
     const Jimp = require("jimp");
-    const fileName140 = `profiles/${userid}/140.jpg`;
+    const fileName140 = `profiles/${userid}__${uuid}__140.jpg`;
     const fileContent140 = await Jimp.read(fileContent400).then((image) => {
       return image.resize(140, 140).getBufferAsync(Jimp.MIME_PNG);
     });
@@ -953,56 +956,78 @@ exports.deleteProfileImage = async (userid, db) => {
       secretAccessKey: process.env.INVITES_AWS_SECRET_ACCESS_KEY,
     });
 
-    const fileName400 = `profiles/${userid}/400.jpg`;
-    const delete400 = new Promise((resolve400, reject400) => {
-      const params = {
-        Bucket: process.env.INVITES_AWS_BUCKET_NAME,
-        Key: fileName400,
-      };
+    const sql = `
+      SELECT
+        profilephoto
+      FROM
+        users
+      WHERE
+        userid = ?
+      LIMIT 1
+      ;
+    `;
 
-      s3.deleteObject(params, (err, data) => {
-        if (err) {
-          console.log(err);
-          return reject400(err);
-        }
+    db.query(sql, [userid], (error, result) => {
+      if (error) {
+        const errorMessage = `cannot query for profile photo of user id ${userid}`;
+        console.log(errorMessage);
+        return reject(new Error(errorMessage));
+      }
 
-        return resolve400();
+      if (!result.length) {
+        const errorMessage = `cannot delete old profile photo of user id ${userid} (user not found)`;
+        console.log(errorMessage);
+        return reject(new Error(errorMessage));
+      }
+
+      const url = result[0];
+      const regex = /profiles\/(.*?)\.jpg/;
+      const match = url.match(regex);
+
+      if (!match) {
+        const errorMessage = `cannot delete old profile photo of user id ${userid} (URL does not match required pattern)`;
+        console.log(errorMessage);
+        return reject(new Error(errorMessage));
+      }
+
+      const fileName400 = match[1];
+      const delete400 = new Promise((resolve400, reject400) => {
+        const params = {
+          Bucket: process.env.INVITES_AWS_BUCKET_NAME,
+          Key: fileName400,
+        };
+
+        s3.deleteObject(params, (err, data) => {
+          if (err) {
+            console.log(err);
+            return reject400(err);
+          }
+
+          return resolve400();
+        });
       });
-    });
 
-    const fileName140 = `profiles/${userid}/140.jpg`;
-    const delete140 = new Promise((resolve140, reject140) => {
-      const params = {
-        Bucket: process.env.INVITES_AWS_BUCKET_NAME,
-        Key: fileName140,
-      };
+      const fileName140 = match[1].replace("400.jpg", "140.jpg");
+      const delete140 = new Promise((resolve140, reject140) => {
+        const params = {
+          Bucket: process.env.INVITES_AWS_BUCKET_NAME,
+          Key: fileName140,
+        };
 
-      s3.deleteObject(params, (err, data) => {
-        if (err) {
-          console.log(err);
-          return reject140(err);
-        }
+        s3.deleteObject(params, (err, data) => {
+          if (err) {
+            console.log(err);
+            return reject140(err);
+          }
 
-        return resolve140(data.Location);
+          return resolve140(data.Location);
+        });
       });
-    });
 
-    Promise.all([delete400, delete140]).then(() => {
-      const sql = `
-        UPDATE users
-        SET profilephoto = 'NULL'
-        WHERE userid = ?
-        ;
-      `;
-
-      db.query(sql, [userid], (err, result) => {
-        if (err) {
-          console.log(err);
-          return reject(err);
-        }
-
+      Promise.all([delete400, delete140]).then(() => {
         const sql = `
-          DELETE FROM photoreview
+          UPDATE users
+          SET profilephoto = 'NULL'
           WHERE userid = ?
           ;
         `;
@@ -1013,7 +1038,20 @@ exports.deleteProfileImage = async (userid, db) => {
             return reject(err);
           }
 
-          return resolve();
+          const sql = `
+            DELETE FROM photoreview
+            WHERE userid = ?
+            ;
+          `;
+
+          db.query(sql, [userid], (err, result) => {
+            if (err) {
+              console.log(err);
+              return reject(err);
+            }
+
+            return resolve();
+          });
         });
       });
     });
