@@ -846,6 +846,8 @@ exports.storeProfileImage = async (userid, base64Image, db) => {
       secretAccessKey: process.env.INVITES_AWS_SECRET_ACCESS_KEY,
     });
 
+    await require("./utils").deleteProfileImage(userid, db);
+
     const fileName400 = `profiles/${userid}__${uuid}__400.jpg`;
     const fileContent400 = new Buffer.from(
       base64Image.replace(/^data:image\/\w+;base64,/, ""),
@@ -980,7 +982,7 @@ exports.deleteProfileImage = async (userid, db) => {
         return reject(new Error(errorMessage));
       }
 
-      const url = result[0];
+      const url = result[0].profilephoto;
       const regex = /profiles\/(.*?)\.jpg/;
       const match = url.match(regex);
 
@@ -990,7 +992,7 @@ exports.deleteProfileImage = async (userid, db) => {
         return reject(new Error(errorMessage));
       }
 
-      const fileName400 = match[1];
+      const fileName400 = match[0];
       const delete400 = new Promise((resolve400, reject400) => {
         const params = {
           Bucket: process.env.INVITES_AWS_BUCKET_NAME,
