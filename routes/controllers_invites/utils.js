@@ -1009,7 +1009,7 @@ exports.deleteProfileImage = async (userid, db) => {
         });
       });
 
-      const fileName140 = match[1].replace("400.jpg", "140.jpg");
+      const fileName140 = match[0].replace("400.jpg", "140.jpg");
       const delete140 = new Promise((resolve140, reject140) => {
         const params = {
           Bucket: process.env.INVITES_AWS_BUCKET_NAME,
