@@ -25,28 +25,35 @@ exports.POST = async (req, res) => {
 
   if (!req.body.subscriptionObject) {
     return res.status(400).send({
-      msg: "subscription object is required",
+      msg: "web push subscription object is required",
       msgType: "error",
     });
   }
 
   if (!req.body.subscriptionObject.endpoint) {
     return res.status(400).send({
-      msg: "endpoint key is required in subscription object",
+      msg: "endpoint is a required key in web push subscription object",
       msgType: "error",
     });
   }
 
-  if (!req.body.subscriptionObject.auth) {
+  if (!req.body.subscriptionObject.keys) {
     return res.status(400).send({
-      msg: "auth key is required in subscription object",
+      msg: "keys is a required key in web push subscription object",
       msgType: "error",
     });
   }
 
-  if (!req.body.subscriptionObject.p256dh) {
+  if (!req.body.subscriptionObject.keys.auth) {
     return res.status(400).send({
-      msg: "p256dh key is required in subscription object",
+      msg: "keys.auth is a required key in web push subscription object",
+      msgType: "error",
+    });
+  }
+
+  if (!req.body.subscriptionObject.keys.p256dh) {
+    return res.status(400).send({
+      msg: "keys.p256dh is a required key in web push subscription object",
       msgType: "error",
     });
   }
