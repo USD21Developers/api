@@ -79,6 +79,10 @@ router.post("/sync-notifications", authenticateToken, syncNotifications.POST);
 const syncSettings = require("./controllers_invites/sync-settings");
 router.post("/sync-settings", authenticateToken, syncSettings.POST);
 
+// WEB PUSH SUBSCRIPTIONS
+const subscribeWebPush = require("./controllers_invites/subscribe-web-push");
+router.post("/subscribe-web-push", authenticateToken, subscribeWebPush.POST);
+
 // USERS
 
 const usersAll = require("./controllers_invites/users-all");
