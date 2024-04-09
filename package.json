@@ -55,6 +55,7 @@
     "twilio": "^4.22.0",
     "uuid": "^8.3.1",
     "valid-url": "^1.0.9",
+    "web-push": "^3.6.7",
     "world_countries_lists": "2.6.0",
     "zxcvbn": "^4.4.2"
   },
