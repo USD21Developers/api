@@ -131,6 +131,79 @@ exports.sendEmail = async (recipient, emailSenderText, subject, body) => {
   return result;
 };
 
+exports.sendWebPush = async (db, userid, title, body, data) => {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT
+        ps.subscription AS subscription
+      FROM
+        pushsubscriptions ps
+      INNER JOIN users u ON u.userid = ps.userid
+      WHERE
+        ps.userid = ?
+      AND
+        ps.userstatus = 'registered'
+      AND
+        JSON_EXTRACT(u.settings, "$.enablePushNotifications") === 'true'
+      LIMIT 1
+      ;
+    `;
+
+    db.query(sql, [userid], (error, result) => {
+      if (error) {
+        const errorMessage = "unable to query for push subscription";
+        console.log(errorMessage);
+        return reject(new Error(errorMessage, error));
+      }
+
+      if (!result.length) {
+        return resolve();
+      }
+
+      const pushSubscription = result[0].subscription;
+      const webpush = require("web-push");
+      const payload = JSON.stringify({
+        title: title,
+        body: body,
+      });
+
+      if (data) {
+        payload.data = data;
+      }
+
+      const urlSafePublicKey =
+        webpush.getVapidHeaders(vapidPublicKey).publicKey;
+      const urlSafePrivateKey = webpush.getVapidHeaders(
+        null,
+        vapidPrivateKey
+      ).privateKey;
+      const timeout = 3000; // 3000 milliseconds is 30 seconds
+      const ttl = 86400; // 86000 seconds is 24 hours
+      const urgency = "high"; // "high" delivers the message immediately
+
+      const options = {
+        vapidDetails: {
+          subject: process.env.VAPID_IDENTIFIER,
+          publicKey: urlSafePublicKey,
+          privateKey: urlSafePrivateKey,
+        },
+        timeout: timeout,
+        TTL: ttl,
+        urgency: urgency,
+      };
+
+      webpush
+        .sendNotification(pushSubscription, payload, options)
+        .then((pushResult) => {
+          return resolve(pushResult);
+        })
+        .catch((pushError) => {
+          return reject(pushError);
+        });
+    });
+  });
+};
+
 /*
   METHOD:
   validatePhone
