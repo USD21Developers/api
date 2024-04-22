@@ -17,6 +17,8 @@ exports.POST = (req, res) => {
   const loadedAlready = req.body.loadedAlready || false;
   const isUser = req.body.isUser || false;
 
+  res.setHeader("Referrer-Policy", "no-referrer");
+
   // Validate eventid
   if (!eventid) {
     return res.status(400).send({
