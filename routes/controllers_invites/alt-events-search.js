@@ -21,6 +21,8 @@ exports.POST = async (req, res) => {
   const dateFromUTC = req.body.dateFromUTC;
   const dateToUTC = req.body.dateToUTC;
 
+  res.setHeader("Referrer-Policy", "no-referrer");
+
   // VALIDATE
   if (!eventid) {
     return res.status(400).send({
