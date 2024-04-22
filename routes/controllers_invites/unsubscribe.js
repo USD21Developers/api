@@ -101,6 +101,8 @@ exports.POST = (req, res) => {
     ? require("../../database-invites-test")
     : require("../../database-invites");
 
+  res.setHeader("Referrer-Policy", "no-referrer");
+
   // Parameters
   const { invitationids, jwt, unsubscribeFrom } = req.body;
 
