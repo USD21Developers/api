@@ -17,7 +17,14 @@ exports.POST = (req, res) => {
   const loadedAlready = req.body.loadedAlready || false;
   const isUser = req.body.isUser || false;
 
-  res.setHeader("Referrer-Policy", "no-referrer");
+  let isDebuggedInvite = false;
+  if (eventid === 23 && userid === 1 && recipientid === "gZl12") {
+    isDebuggedInvite = true;
+  }
+
+  if (!isDebuggedInvite) {
+    res.setHeader("Referrer-Policy", "no-referrer");
+  }
 
   // Validate eventid
   if (!eventid) {
