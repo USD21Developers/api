@@ -1,3 +1,5 @@
+const crypto = require("crypto");
+
 exports.POST = async (req, res) => {
   // Enforce authorization
   const usertype = req.user.usertype;
@@ -60,34 +62,82 @@ exports.POST = async (req, res) => {
 
   subscriptionObject = req.body.subscriptionObject;
 
+  const subscriptionHash = crypto
+    .createHash("sha256")
+    .update(JSON.stringify(subscriptionObject))
+    .digest("hex");
+
+  const expirationTime = subscriptionObject.hasOwnProperty("expirationTime")
+    ? subscriptionObject.expirationTime
+    : null;
+
   const sql = `
-    INSERT INTO pushsubscriptions (
-      userid,
-      subscription,
-      createdAt
-    ) VALUES (
-      ?,
-      ?,
-      UTC_TIMESTAMP()
-    );
+    SELECT
+      *
+    FROM
+      pushsubscriptions
+    WHERE
+      userid = ?
+    AND
+      sha256hex = ?
+    LIMIT
+      1
+    ;
   `;
 
-  db.query(
-    sql,
-    [userid, JSON.stringify(subscriptionObject)],
-    (error, result) => {
-      if (error) {
-        console.log(error);
-        return res.status(500).send({
-          msg: "unable to save web push subscription",
-          msgType: "error",
-        });
-      }
+  db.query(sql, [req.user.userid, subscriptionHash], (error, result) => {
+    if (error) {
+      console.log(error);
+      return res.status(500).send({
+        msg: "unable to query for duplicate push subscription",
+        msgType: "error",
+      });
+    }
 
-      return res.status(200).send({
-        msg: "subscribed to web push",
+    if (result.length) {
+      return res.status(403).send({
+        msg: "subscription already exists",
         msgType: "success",
       });
     }
-  );
+
+    const sql = `
+      INSERT INTO pushsubscriptions (
+        userid,
+        subscription,
+        sha256hex,
+        expirationTime,
+        createdAt
+      ) VALUES (
+        ?,
+        ?,
+        ?,
+        UTC_TIMESTAMP()
+      );
+    `;
+
+    db.query(
+      sql,
+      [
+        req.user.userid,
+        JSON.stringify(subscriptionObject),
+        subscriptionHash,
+        expirationTime,
+      ],
+      (error, result) => {
+        if (error) {
+          console.log(error);
+          return res.status(500).send({
+            msg: "unable to save web push subscription",
+            msgType: "error",
+          });
+        }
+
+        return res.status(200).send({
+          msg: "subscribed to web push",
+          msgType: "success",
+        });
+      }
+    );
+  });
 };

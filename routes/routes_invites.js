@@ -83,6 +83,9 @@ router.post("/sync-settings", authenticateToken, syncSettings.POST);
 const subscribeWebPush = require("./controllers_invites/subscribe-web-push");
 router.post("/subscribe-web-push", authenticateToken, subscribeWebPush.POST);
 
+const testWebPush = require("./controllers_invites/test-web-push");
+router.post("/test-web-push", authenticateToken, testWebPush.POST);
+
 // USERS
 
 const usersAll = require("./controllers_invites/users-all");

@@ -133,6 +133,7 @@ exports.sendEmail = async (recipient, emailSenderText, subject, body) => {
 
 exports.sendWebPush = async (db, userid, title, body, data) => {
   return new Promise((resolve, reject) => {
+    // subscription object has an expiration.  Key should be "expirationTime" and it CAN be null.
     const sql = `
       SELECT
         ps.subscription AS subscription
@@ -142,9 +143,9 @@ exports.sendWebPush = async (db, userid, title, body, data) => {
       WHERE
         ps.userid = ?
       AND
-        ps.userstatus = 'registered'
+        u.userstatus = 'registered'
       AND
-        JSON_EXTRACT(u.settings, "$.enablePushNotifications") === 'true'
+        JSON_EXTRACT(u.settings, "$.enablePushNotifications") = 'true'
       LIMIT 1
       ;
     `;
