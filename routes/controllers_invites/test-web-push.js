@@ -52,6 +52,12 @@ exports.POST = async (req, res) => {
 
     sendWebPush(db, req.user.userid, "Test", "This is a test push message", {
       jason: "is cool",
-    });
+    })
+      .then((result) => {
+        console.log(result);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   });
 };
