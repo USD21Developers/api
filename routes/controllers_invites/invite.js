@@ -16,13 +16,15 @@ exports.POST = (req, res) => {
   const emailPhrases = req.body.emailPhrases || null;
   const loadedAlready = req.body.loadedAlready || false;
   const isUser = req.body.isUser || false;
+  let isDebugging = false;
 
-  let isDebuggedInvite = false;
-  if (eventid === 23 && userid === 1 && recipientid === "gZl12") {
-    isDebuggedInvite = true;
+  if (isStaging) {
+    if (eventid == 23 && userid == 1 && recipientid == "gZl12") {
+      isDebugging = true;
+    }
   }
 
-  if (!isDebuggedInvite) {
+  if (!isDebugging) {
     res.setHeader("Referrer-Policy", "no-referrer");
   }
 
