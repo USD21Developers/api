@@ -16,15 +16,8 @@ exports.POST = (req, res) => {
   const emailPhrases = req.body.emailPhrases || null;
   const loadedAlready = req.body.loadedAlready || false;
   const isUser = req.body.isUser || false;
-  let isDebugging = false;
 
-  if (isStaging) {
-    isDebugging = true;
-  }
-
-  if (!isDebugging) {
-    res.setHeader("Referrer-Policy", "no-referrer");
-  }
+  // res.setHeader("Referrer-Policy", "no-referrer");
 
   // Validate eventid
   if (!eventid) {
