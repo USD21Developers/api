@@ -90,8 +90,8 @@ router.post(
   pushUpdateSubscription.POST
 );
 
-const testWebPush = require("./controllers_invites/test-web-push");
-router.post("/test-web-push", authenticateToken, testWebPush.POST);
+const pushTest = require("./controllers_invites/push-test");
+router.post("/push-test", authenticateToken, pushTest.POST);
 
 // USERS
 
