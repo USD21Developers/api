@@ -80,14 +80,14 @@ const syncSettings = require("./controllers_invites/sync-settings");
 router.post("/sync-settings", authenticateToken, syncSettings.POST);
 
 // WEB PUSH SUBSCRIPTIONS
-const subscribeWebPush = require("./controllers_invites/subscribe-web-push");
-router.post("/subscribe-web-push", authenticateToken, subscribeWebPush.POST);
+const pushSubscribe = require("./controllers_invites/push-subscribe");
+router.post("/push-subscribe", authenticateToken, pushSubscribe.POST);
 
-const updateWebPushSubscription = require("./controllers_invites/update-web-push-subscription");
+const pushUpdateSubscription = require("./controllers_invites/push-update-subscription");
 router.post(
-  "/update-web-push-subscription",
+  "/push-update-subscription",
   authenticateToken,
-  updateWebPushSubscription.POST
+  pushUpdateSubscription.POST
 );
 
 const testWebPush = require("./controllers_invites/test-web-push");
