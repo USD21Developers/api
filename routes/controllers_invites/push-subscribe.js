@@ -62,9 +62,11 @@ exports.POST = async (req, res) => {
 
   subscriptionObject = req.body.subscriptionObject;
 
+  const subscriptionObjectString = JSON.stringify(req.body.subscriptionObject);
+  const encodedString = Buffer.from(subscriptionObjectString, "utf-8");
   const subscriptionHash = crypto
     .createHash("sha256")
-    .update(JSON.stringify(subscriptionObject))
+    .update(encodedString)
     .digest("hex");
 
   const expirationTime = subscriptionObject.hasOwnProperty("expirationTime")
@@ -109,6 +111,7 @@ exports.POST = async (req, res) => {
         expirationTime,
         createdAt
       ) VALUES (
+        ?,
         ?,
         ?,
         ?,

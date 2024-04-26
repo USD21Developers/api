@@ -35,14 +35,24 @@ exports.POST = async (req, res) => {
     });
   }
 
-  // Calculate hashes
+  // Hash the old subscription
+  const oldSubscriptionUTF8String = Buffer.from(
+    JSON.stringify(oldSubscription),
+    "utf-8"
+  );
   const oldSubscriptionHash = crypto
     .createHash("sha256")
-    .update(JSON.stringify(oldSubscription))
+    .update(oldSubscriptionUTF8String)
     .digest("hex");
+
+  // Hash the new subscription
+  const newSubscriptionUTF8String = Buffer.from(
+    JSON.stringify(newSubscription),
+    "utf-8"
+  );
   const newSubscriptionHash = crypto
     .createHash("sha256")
-    .update(JSON.stringify(newSubscription))
+    .update(newSubscriptionUTF8String)
     .digest("hex");
 
   // Update the old subscription (if it exists)
