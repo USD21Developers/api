@@ -19,9 +19,7 @@ exports.POST = (req, res) => {
   let isDebugging = false;
 
   if (isStaging) {
-    if (eventid == 23 && userid == 1 && recipientid == "gZl12") {
-      isDebugging = true;
-    }
+    isDebugging = true;
   }
 
   if (!isDebugging) {
