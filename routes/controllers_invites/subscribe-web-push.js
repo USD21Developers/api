@@ -95,7 +95,7 @@ exports.POST = async (req, res) => {
     }
 
     if (result.length) {
-      return res.status(403).send({
+      return res.status(204).send({
         msg: "subscription already exists",
         msgType: "success",
       });
