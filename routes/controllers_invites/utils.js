@@ -145,7 +145,7 @@ exports.sendWebPush = async (db, userid, title, body, data) => {
       AND
         u.userstatus = 'registered'
       AND
-        JSON_EXTRACT(u.settings, "$.enablePushNotifications") = 'true'
+        JSON_EXTRACT(u.settings, "$.enablePushNotifications") = true
       LIMIT 1
       ;
     `;
@@ -166,6 +166,7 @@ exports.sendWebPush = async (db, userid, title, body, data) => {
       const payload = JSON.stringify({
         title: title,
         body: body,
+        data: data,
       });
 
       if (data) {
