@@ -1,4 +1,4 @@
-const { sendWebPush } = require("./utils");
+const sendWebPush = require("./utils").sendWebPush;
 
 exports.POST = async (req, res) => {
   // Enforce authorization
@@ -31,6 +31,8 @@ exports.POST = async (req, res) => {
       1
     ;
   `;
+
+  console.log("Push test");
 
   db.query(sql, [req.user.userid], (error, result) => {
     if (error) {
