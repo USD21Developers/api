@@ -32,8 +32,6 @@ exports.POST = async (req, res) => {
     ;
   `;
 
-  console.log("Push test");
-
   db.query(sql, [req.user.userid], (error, result) => {
     if (error) {
       console.log(error);
@@ -56,7 +54,7 @@ exports.POST = async (req, res) => {
       jason: "is cool",
     })
       .then((result) => {
-        console.log(result);
+        // console.log(result);
       })
       .catch((error) => {
         console.log(error);
