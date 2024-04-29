@@ -20,6 +20,8 @@ exports.POST = async (req, res) => {
     ? require("../../database-invites-test")
     : require("../../database-invites");
 
+  console.log("push test clicked");
+
   const sql = `
     SELECT
       subscription
