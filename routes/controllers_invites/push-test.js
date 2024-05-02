@@ -17,9 +17,10 @@ exports.POST = async (req, res) => {
   // Set database
   const isLocal =
     req.headers.referer.includes("localhost") ||
-    req.headers.refereer.includes("127.0.0.1")
+    req.headers.referer.includes("127.0.0.1")
       ? true
       : false;
+  console.log(`Is local? ${isLocal}`);
   const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
   const db = isStaging
     ? require("../../database-invites-test")
