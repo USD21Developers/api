@@ -20,13 +20,10 @@ exports.POST = async (req, res) => {
     req.headers.referer.includes("127.0.0.1")
       ? true
       : false;
-  console.log(`Is local? ${isLocal}`);
   const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
   const db = isStaging
     ? require("../../database-invites-test")
     : require("../../database-invites");
-
-  console.log("push test clicked");
 
   const sql = `
     SELECT
@@ -88,6 +85,7 @@ exports.POST = async (req, res) => {
 
     db.query(sql, [req.user.userid, invitationid], (error, result) => {
       if (error) {
+        console.log(error);
         return res.status(500).send({
           msg: "unable to query for invitation",
           msgType: "error",
