@@ -164,9 +164,9 @@ exports.sendWebPush = async (db, userid, title, body, data) => {
       const pushSubscription = JSON.parse(result[0].subscription);
       const webpush = require("web-push");
       const payload = JSON.stringify({
+        data: data,
         title: title,
         body: body,
-        data: data,
       });
 
       const timeout = 3000; // 3000 milliseconds is 30 seconds
@@ -174,14 +174,14 @@ exports.sendWebPush = async (db, userid, title, body, data) => {
       const urgency = "high"; // "high" delivers the message immediately
 
       const options = {
+        timeout: timeout,
+        TTL: ttl,
+        urgency: urgency,
         vapidDetails: {
           subject: process.env.VAPID_IDENTIFIER,
           publicKey: process.env.VAPID_PUBLIC_KEY,
           privateKey: process.env.VAPID_PRIVATE_KEY,
         },
-        timeout: timeout,
-        TTL: ttl,
-        urgency: urgency,
       };
 
       webpush

@@ -15,6 +15,11 @@ exports.POST = async (req, res) => {
   }
 
   // Set database
+  const isLocal =
+    req.headers.referer.includes("localhost") ||
+    req.headers.refereer.includes("127.0.0.1")
+      ? true
+      : false;
   const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
   const db = isStaging
     ? require("../../database-invites-test")
@@ -52,7 +57,16 @@ exports.POST = async (req, res) => {
       });
     }
 
-    const invitationid = isStaging ? 167 : 3;
+    let invitationid;
+    let followUpURL = `http://invites.mobi/r/#/${invitationid}`;
+
+    if (isLocal) {
+      invitationid = 3;
+      followUpURL = `http://localhost:5555/r/#/${invitationid}`;
+    } else if (isStaging) {
+      invitationid = 167;
+      followUpURL = `https://staging.invites.mobi/r/#/${invitationid}`;
+    }
 
     const sql = `
       SELECT
@@ -87,17 +101,8 @@ exports.POST = async (req, res) => {
       }
 
       const recipientName = result[0].recipientname;
-      const eventTitle = result[0].title;
-      const eventType = result[0].type;
-      let eventName = eventTitle;
-      if (eventType === "church") eventName = "church";
-      if (eventType === "bible talk") eventName = "Bible Talk";
-
-      const pushTitle = `${recipientName} clicked on your invite to ${eventName}`;
-      const pushBody = `Click here to follow up with ${recipientName}`;
-      const followUpURL = isStaging
-        ? `https://staging.invites.mobi/r/#/${invitationid}`
-        : `http://localhost:5555/r/#/${invitationid}`;
+      const pushTitle = `${recipientName} just viewed your invite`;
+      const pushBody = `Click here to follow up!`;
 
       sendWebPush(db, req.user.userid, pushTitle, pushBody, {
         followUpURL: followUpURL,
