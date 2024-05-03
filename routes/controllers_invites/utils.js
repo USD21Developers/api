@@ -169,8 +169,6 @@ exports.sendWebPush = async (db, userid, title, body, data) => {
         body: body,
       });
 
-      console.log(payload);
-
       const timeout = 3000; // 3000 milliseconds is 30 seconds
       const ttl = 86400; // 86000 seconds is 24 hours
       const urgency = "high"; // "high" delivers the message immediately
@@ -189,11 +187,9 @@ exports.sendWebPush = async (db, userid, title, body, data) => {
       webpush
         .sendNotification(pushSubscription, payload, options)
         .then((pushResult) => {
-          console.log(pushResult);
           return resolve(pushResult);
         })
         .catch((pushError) => {
-          console.log(pushError);
           return reject(pushError);
         });
     });
