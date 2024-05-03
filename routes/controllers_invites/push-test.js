@@ -107,6 +107,7 @@ exports.POST = async (req, res) => {
         followUpURL: followUpURL,
       })
         .then((result) => {
+          console.log(result);
           return res.status(200).send({
             msg: "test push message sent",
             msgType: "success",
