@@ -93,6 +93,19 @@ exports.POST = async (req, res) => {
         });
       }
 
+      if (result.affectedRows >= 1) {
+        return res.status(200).send({
+          msg: "push subscription updated",
+          msgType: "success",
+          affectedRows: result.affectedRows,
+        });
+      }
+
+      /*
+        In case the old subscription no longer exists (and therefore couldn't be updated), 
+        just insert the new subscription as a new record 
+      */
+
       if (result.affectedRows === 0) {
         const sql = `
           INSERT INTO pushsubscriptions(
