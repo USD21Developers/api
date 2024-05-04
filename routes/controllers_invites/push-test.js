@@ -25,101 +25,67 @@ exports.POST = async (req, res) => {
     ? require("../../database-invites-test")
     : require("../../database-invites");
 
-  const sql = `
-    SELECT
-      subscription
-    FROM
-      pushsubscriptions
-    WHERE
-      userid = ?
-    LIMIT
-      1
-    ;
-  `;
+  // Params
+  const payload = req.body.payload || null;
+  const pushSubscription = req.body.pushSubscription || null;
 
-  db.query(sql, [req.user.userid], (error, result) => {
-    if (error) {
-      console.log(error);
+  // Validate
+
+  if (!payload) {
+    return res.status(400).send({
+      msg: "push payload is required",
+      msgType: "error",
+    });
+  }
+
+  if (!pushSubscription) {
+    return res.status(400).send({
+      msg: "push subscription is required",
+      msgType: "error",
+    });
+  }
+
+  if (typeof payload !== "object") {
+    return res.status(400).send({
+      msg: "push payload must be an object",
+      msgType: "error",
+    });
+  }
+
+  if (!payload.hasOwnProperty("title")) {
+    return res.status(400).send({
+      msg: "push payload must contain title",
+      msgType: "error",
+    });
+  }
+
+  if (!payload.hasOwnProperty("body")) {
+    return res.status(400).send({
+      msg: "push payload must contain body",
+      msgType: "error",
+    });
+  }
+
+  if (typeof pushSubscription !== "object") {
+    return res.status(400).send({
+      msg: "push subscription must be an object",
+      msgType: "error",
+    });
+  }
+
+  sendWebPush(db, req.user.userid, payload.title, payload.body)
+    .then((result) => {
+      return res.status(200).send({
+        msg: "test push message sent",
+        msgType: "success",
+        result: result,
+      });
+    })
+    .catch((error) => {
       return res.status(500).send({
-        msg: "unable to query for push subscriptions",
+        msg: "could not send test push message",
         msgType: "error",
         error: error,
       });
-    }
-
-    if (!result.length) {
-      return res.status(404).send({
-        msg: "no records found for user id",
-        msgType: "error",
-        userid: req.user.userid,
-      });
-    }
-
-    let invitationid;
-    let followUpURL = `http://invites.mobi/r/#/${invitationid}`;
-
-    if (isLocal) {
-      invitationid = 3;
-      followUpURL = `http://localhost:5555/r/#/${invitationid}`;
-    } else if (isStaging) {
-      invitationid = 167;
-      followUpURL = `https://staging.invites.mobi/r/#/${invitationid}`;
-    }
-
-    const sql = `
-      SELECT
-        i.recipientname,
-        e.title,
-        e.type
-      FROM
-        invitations i
-      INNER JOIN events e ON i.eventid = e.eventid
-      WHERE
-        i.userid = ?
-      AND
-        i.invitationid = ?
-      LIMIT
-        1
-      ;
-    `;
-
-    db.query(sql, [req.user.userid, invitationid], (error, result) => {
-      if (error) {
-        console.log(error);
-        return res.status(500).send({
-          msg: "unable to query for invitation",
-          msgType: "error",
-        });
-      }
-
-      if (!result.length) {
-        return res.status(404).send({
-          msg: "no record found for this invite",
-          msgType: "error",
-        });
-      }
-
-      const recipientName = result[0].recipientname;
-      const pushTitle = `${recipientName} just viewed your invite`;
-      const pushBody = `Click here to follow up!`;
-
-      sendWebPush(db, req.user.userid, pushTitle, pushBody, {
-        followUpURL: followUpURL,
-      })
-        .then((result) => {
-          return res.status(200).send({
-            msg: "test push message sent",
-            msgType: "success",
-            result: result,
-          });
-        })
-        .catch((error) => {
-          return res.status(500).send({
-            msg: "could not send test push message",
-            msgType: "error",
-            error: error,
-          });
-        });
     });
-  });
 };

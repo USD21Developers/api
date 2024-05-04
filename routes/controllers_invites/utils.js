@@ -131,7 +131,7 @@ exports.sendEmail = async (recipient, emailSenderText, subject, body) => {
   return result;
 };
 
-exports.sendWebPush = async (db, userid, title, body, data) => {
+exports.sendWebPush = async (db, userid, title, body, data = {}) => {
   return new Promise((resolve, reject) => {
     // subscription object has an expiration.  Key should be "expirationTime" and it CAN be null.
     const sql = `
