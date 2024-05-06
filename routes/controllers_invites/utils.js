@@ -146,7 +146,6 @@ exports.sendWebPush = async (db, userid, title, body, data = {}) => {
         u.userstatus = 'registered'
       AND
         JSON_EXTRACT(u.settings, "$.enablePushNotifications") = true
-      LIMIT 1
       ;
     `;
 
@@ -161,7 +160,6 @@ exports.sendWebPush = async (db, userid, title, body, data = {}) => {
         return resolve();
       }
 
-      const pushSubscription = JSON.parse(result[0].subscription);
       const webpush = require("web-push");
       const payload = JSON.stringify({
         data: data,
@@ -184,14 +182,21 @@ exports.sendWebPush = async (db, userid, title, body, data = {}) => {
         },
       };
 
-      webpush
-        .sendNotification(pushSubscription, payload, options)
-        .then((pushResult) => {
-          return resolve(pushResult);
-        })
-        .catch((pushError) => {
-          return reject(pushError);
-        });
+      const promises = result.map((item) => {
+        const { subscription } = JSON.parse(item.subscription);
+        webpush
+          .sendNotification(subscription, payload, options)
+          .then((pushResult) => {
+            return pushResult;
+          })
+          .catch((pushError) => {
+            return pushError;
+          });
+      });
+
+      Promise.allSettled(promises).then((results) => {
+        return res.status(200).send(results);
+      });
     });
   });
 };
