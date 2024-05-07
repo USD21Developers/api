@@ -1,19 +1,6 @@
 const crypto = require("crypto");
 
 exports.POST = async (req, res) => {
-  // Enforce authorization
-  const usertype = req.user.usertype;
-  const allowedUsertypes = ["sysadmin", "user"];
-  let isAuthorized = false;
-  if (allowedUsertypes.includes(usertype)) isAuthorized = true;
-  if (!isAuthorized) {
-    console.log(`User (userid ${req.user.userid}) is not authorized.`);
-    return res.status(401).send({
-      msg: "user is not authorized for this action",
-      msgType: "error",
-    });
-  }
-
   // Set database
   const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
   const db = isStaging
@@ -71,7 +58,7 @@ exports.POST = async (req, res) => {
       sha256hex = ?,
       expirationTime = ?
     WHERE
-      id = (SELECT id FROM pushsubscriptions WHERE userid = ? AND sha256hex = ? LIMIT 1)
+      id = (SELECT id FROM pushsubscriptions WHERE sha256hex = ? LIMIT 1)
     ;
   `;
 
@@ -81,7 +68,6 @@ exports.POST = async (req, res) => {
       JSON.stringify(newSubscription),
       newSubscriptionHash,
       newSubscriptionExpirationTime,
-      req.user.userid,
       oldSubscriptionHash,
     ],
     (error, result) => {
@@ -93,61 +79,11 @@ exports.POST = async (req, res) => {
         });
       }
 
-      if (result.affectedRows >= 1) {
-        return res.status(200).send({
-          msg: "push subscription updated",
-          msgType: "success",
-          affectedRows: result.affectedRows,
-        });
-      }
-
-      /*
-        In case the old subscription no longer exists (and therefore couldn't be updated), 
-        just insert the new subscription as a new record 
-      */
-
-      if (result.affectedRows === 0) {
-        const sql = `
-          INSERT INTO pushsubscriptions(
-            userid,
-            subscription,
-            sha256hex,
-            expirationTime,
-            createdAt
-          ) VALUES (
-            ?,
-            ?,
-            ?,
-            ?,
-            UTC_TIMESTAMP()
-          )
-        `;
-
-        db.query(
-          sql,
-          [
-            req.user.userid,
-            JSON.stringify(newSubscription),
-            newSubscriptionHash,
-            newSubscriptionExpirationTime,
-          ],
-          (error, result) => {
-            if (error) {
-              console.log(error);
-              return res.status(500).send({
-                msg: "unable to store updated subscription",
-                msgType: "error",
-              });
-            }
-
-            return res.status(200).send({
-              msg: "push subscription updated",
-              msgType: "success",
-              affectedRows: result.affectedRows,
-            });
-          }
-        );
-      }
+      return res.status(200).send({
+        msg: "push subscription updated",
+        msgType: "success",
+        affectedRows: result.affectedRows,
+      });
     }
   );
 };

@@ -84,11 +84,7 @@ const pushSubscribe = require("./controllers_invites/push-subscribe");
 router.post("/push-subscribe", authenticateToken, pushSubscribe.POST);
 
 const pushUpdateSubscription = require("./controllers_invites/push-update-subscription");
-router.post(
-  "/push-update-subscription",
-  authenticateToken,
-  pushUpdateSubscription.POST
-);
+router.post("/push-update-subscription", pushUpdateSubscription.POST);
 
 const pushTest = require("./controllers_invites/push-test");
 router.post("/push-test", authenticateToken, pushTest.POST);
