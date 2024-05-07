@@ -167,8 +167,8 @@ exports.sendWebPush = async (db, userid, title, body, data = {}) => {
         body: body,
       });
 
-      const timeout = 3000; // 3000 milliseconds is 30 seconds
-      const ttl = 86400; // 86000 seconds is 24 hours
+      const timeout = 30 * 1000; // 30 seconds
+      const ttl = 86000; // 24 hours
       const urgency = "high"; // "high" delivers the message immediately
 
       const options = {
@@ -183,20 +183,17 @@ exports.sendWebPush = async (db, userid, title, body, data = {}) => {
       };
 
       const promises = result.map((item) => {
-        const { subscription } = JSON.parse(item.subscription);
-        webpush
-          .sendNotification(subscription, payload, options)
-          .then((pushResult) => {
-            return pushResult;
-          })
-          .catch((pushError) => {
-            return pushError;
-          });
+        const subscription = JSON.parse(item.subscription);
+        return webpush.sendNotification(subscription, payload, options);
       });
 
-      Promise.allSettled(promises).then((results) => {
-        return res.status(200).send(results);
-      });
+      Promise.all(promises)
+        .then((results) => {
+          return resolve(results);
+        })
+        .catch((error) => {
+          return resolve(error.stack);
+        });
     });
   });
 };

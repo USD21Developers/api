@@ -74,16 +74,16 @@ exports.POST = async (req, res) => {
   }
 
   sendWebPush(db, req.user.userid, payload.title, payload.body)
-    .then((result) => {
+    .then((results) => {
       return res.status(200).send({
-        msg: "test push message sent",
+        msg: "test push messages sent",
         msgType: "success",
-        result: result,
+        result: results,
       });
     })
     .catch((error) => {
       return res.status(500).send({
-        msg: "could not send test push message",
+        msg: "could not send test push messages",
         msgType: "error",
         error: error,
       });
