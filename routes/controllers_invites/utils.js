@@ -131,7 +131,14 @@ exports.sendEmail = async (recipient, emailSenderText, subject, body) => {
   return result;
 };
 
-exports.sendWebPush = async (db, userid, title, body, data = {}) => {
+exports.sendWebPush = async (
+  db,
+  userid,
+  title,
+  body,
+  data = {},
+  invitationid
+) => {
   return new Promise((resolve, reject) => {
     // subscription object has an expiration.  Key should be "expirationTime" and it CAN be null.
     const sql = `
@@ -189,10 +196,32 @@ exports.sendWebPush = async (db, userid, title, body, data = {}) => {
 
       Promise.all(promises)
         .then((results) => {
-          return resolve(results);
+          resolve(results);
         })
         .catch((error) => {
-          return resolve(error.stack);
+          resolve(error.stack);
+        })
+        .finally(() => {
+          const sql = `
+            UPDATE
+              invitations
+            SET
+              lasttimenotified = UTC_TIMESTAMP()
+            WHERE
+              invitationid = ?
+            ;
+          `;
+
+          if (!invitationid) return;
+          db.query(sql, [invitationid], (error, result) => {
+            if (error) {
+              console.log(
+                new Error(
+                  "unable to update invite with last time user was notified via push"
+                )
+              );
+            }
+          });
         });
     });
   });

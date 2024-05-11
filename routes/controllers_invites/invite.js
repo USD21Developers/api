@@ -463,33 +463,11 @@ exports.POST = (req, res) => {
 </html>  
       `.trim();
 
-      // Send the sender a notification via push message
-      const pushInviteViewed = pushPhrases["push-invite-viewed"].replaceAll(
-        "{RECIPIENT-NAME}",
-        recipientObj.recipientname
-      );
-      const pushFollowUp = pushPhrases["push-follow-up"].replaceAll(
-        "{RECIPIENT-NAME}",
-        recipientObj.recipientname
-      );
-      let urlPrefix;
-      if (isLocal) {
-        urlPrefix = "localhost:5555";
-      } else if (isStaging) {
-        urlPrefix = "https://staging.invites.mobi";
-      } else {
-        urlPrefix = "https://invites.mobi";
-      }
-      const pushFollowUpURL = `${urlPrefix}/r/#/${userObj.userid}`;
-      const sendWebPush = require("./utils").sendWebPush;
-      sendWebPush(db, userObj.userid, pushInviteViewed, pushFollowUp, {
-        clickURL: pushFollowUpURL,
-      }).catch((err) => console.log(err));
-
       const sql = `
         SELECT
           i.invitationid,
           i.unsubscribedFromEmail,
+          i.unsubscribedFromPush,
           i.lasttimenotified,
           u.settings
         FROM
@@ -522,9 +500,11 @@ exports.POST = (req, res) => {
         const invitationid = result[0].invitationid;
         const lastTimeNotified = result[0].lasttimenotified || null;
         const unsubscribedFromEmail = result[0].unsubscribedFromEmail || null;
+        const unsubscribedFromPush = result[0].unsubscribedFromPush || null;
         const settings = result[0].settings || null;
 
         let proceedWithNotification = true;
+        let proceedWithPush = true;
 
         if (lastTimeNotified) {
           const now = moment().utc();
@@ -533,6 +513,7 @@ exports.POST = (req, res) => {
 
           if (now.isBefore(okToNotifiy)) {
             proceedWithNotification = false;
+            proceedWithPush = false;
           }
         }
 
@@ -546,6 +527,50 @@ exports.POST = (req, res) => {
           settings.enableEmailNotifications === 0
         ) {
           proceedWithNotification = false;
+        }
+
+        // Send the sender a notification via push message
+        if (unsubscribedFromPush && unsubscribedFromPush === 1) {
+          proceedWithPush = false;
+        }
+        if (
+          settings &&
+          settings.hasOwnProperty("enablePushNotifications") &&
+          settings.enablePushNotifications === 0
+        ) {
+          proceedWithPush = false;
+        }
+        if (proceedWithPush) {
+          const pushInviteViewed = pushPhrases["push-invite-viewed"].replaceAll(
+            "{RECIPIENT-NAME}",
+            recipientObj.recipientname
+          );
+          const pushFollowUp = pushPhrases["push-follow-up"].replaceAll(
+            "{RECIPIENT-NAME}",
+            recipientObj.recipientname
+          );
+          let urlPrefix;
+          if (isLocal) {
+            urlPrefix = "localhost:5555";
+          } else if (isStaging) {
+            urlPrefix = "https://staging.invites.mobi";
+          } else {
+            urlPrefix = "https://invites.mobi";
+          }
+          const pushFollowUpURL = `${urlPrefix}/r/#/${userObj.userid}`;
+          const sendWebPush = require("./utils").sendWebPush;
+          sendWebPush(
+            db,
+            userObj.userid,
+            pushInviteViewed,
+            pushFollowUp,
+            {
+              clickURL: pushFollowUpURL,
+            },
+            invitationid
+          )
+            .catch((err) => console.log(err))
+            .finally(() => {});
         }
 
         if (!proceedWithNotification) {
@@ -579,7 +604,7 @@ exports.POST = (req, res) => {
               console.log(error);
               return reject(
                 new Error(
-                  "unable to invite with last time user was notified via e-mail"
+                  "unable to update invite with last time user was notified via e-mail"
                 )
               );
             }
