@@ -484,7 +484,7 @@ exports.POST = (req, res) => {
       const sendWebPush = require("./utils").sendWebPush;
       sendWebPush(db, userObj.userid, pushInviteViewed, pushFollowUp, {
         clickURL: pushFollowUpURL,
-      });
+      }).catch((err) => console.log(err));
 
       const sql = `
         SELECT
