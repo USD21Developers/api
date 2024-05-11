@@ -2,6 +2,7 @@ const moment = require("moment");
 
 exports.POST = (req, res) => {
   // Set database
+  const isLocal = req.headers.referer.indexOf("localhost") >= 0 ? true : false;
   const isStaging =
     req.headers?.referer?.indexOf("staging") >= 0 ? true : false;
   const db = isStaging
@@ -14,6 +15,7 @@ exports.POST = (req, res) => {
   const timezone = req.body.timezone || null;
   const emailHtml = req.body.emailHtml || null;
   const emailPhrases = req.body.emailPhrases || null;
+  const pushPhrases = req.body.pushPhrases || null;
   const loadedAlready = req.body.loadedAlready || false;
   const isUser = req.body.isUser || false;
 
@@ -259,6 +261,7 @@ exports.POST = (req, res) => {
     timezone,
     emailHtml,
     emailPhrases,
+    pushPhrases,
     isUser
   ) => {
     return new Promise(async (resolve, reject) => {
@@ -460,7 +463,28 @@ exports.POST = (req, res) => {
 </html>  
       `.trim();
 
-      // TODO:  Send the sender a notification via push message
+      // Send the sender a notification via push message
+      const pushInviteViewed = pushPhrases["push-invite-viewed"].replaceAll(
+        "{RECIPIENT-NAME}",
+        recipientObj.recipientname
+      );
+      const pushFollowUp = pushPhrases["push-follow-up"].replaceAll(
+        "{RECIPIENT-NAME}",
+        recipientObj.recipientname
+      );
+      let urlPrefix;
+      if (isLocal) {
+        urlPrefix = "localhost:5555";
+      } else if (isStaging) {
+        urlPrefix = "https://staging.invites.mobi";
+      } else {
+        urlPrefix = "https://invites.mobi";
+      }
+      const pushFollowUpURL = `${urlPrefix}/r/#/${userObj.userid}`;
+      const sendWebPush = require("./utils").sendWebPush;
+      sendWebPush(db, userObj.userid, pushInviteViewed, pushFollowUp, {
+        clickURL: pushFollowUpURL,
+      });
 
       const sql = `
         SELECT
@@ -615,6 +639,7 @@ exports.POST = (req, res) => {
         timezone,
         emailHtml,
         emailPhrases,
+        pushPhrases,
         isUser
       )
         .catch((err) => {
