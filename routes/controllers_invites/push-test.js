@@ -73,9 +73,7 @@ exports.POST = async (req, res) => {
     });
   }
 
-  sendWebPush(db, req.user.userid, payload.title, payload.body, {
-    clickURL: "/settings/#pushclicked",
-  })
+  sendWebPush(db, req.user.userid, payload.title, payload.body)
     .then((results) => {
       return res.status(200).send({
         msg: "test push messages sent",

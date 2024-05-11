@@ -199,9 +199,23 @@ exports.sendWebPush = async (
           resolve(results);
         })
         .catch((error) => {
+          if (error.statusCode && error.statusCode === 410) {
+            // If endpoint is not Apple's, resolve and do not reject, because non-Apple push service providers do not expire their subscriptions. Also, non-Apple push service providers can sometimes return code 410 errors erroneously.
+            if (error.endpoint) {
+              if (error.endpoint.includes("apple")) {
+                reject(error);
+              } else {
+                resolve();
+              }
+            }
+          } else {
+            resolve();
+          }
           resolve(error.stack);
         })
         .finally(() => {
+          if (!invitationid) return;
+
           const sql = `
             UPDATE
               invitations
@@ -212,7 +226,6 @@ exports.sendWebPush = async (
             ;
           `;
 
-          if (!invitationid) return;
           db.query(sql, [invitationid], (error, result) => {
             if (error) {
               console.log(
