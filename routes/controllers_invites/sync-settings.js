@@ -118,12 +118,11 @@ exports.POST = async (req, res) => {
     const settings = JSON.parse(results[0].settings);
     const pushSubscriptions = results[1];
 
-    settings.pushSubscriptions = pushSubscriptions;
-
     return res.status(200).send({
       msg: "settings synced",
       msgType: "success",
       settings: settings,
+      pushSubscriptions: pushSubscriptions,
     });
   });
 };
