@@ -56,7 +56,7 @@ exports.POST = async (req, res) => {
     });
   };
 
-  const retrieve = (db) => {
+  const getSettings = (db) => {
     return new Promise((resolve, reject) => {
       const sql = `
         SELECT
@@ -65,6 +65,7 @@ exports.POST = async (req, res) => {
           users
         WHERE
           userid = ?
+        LIMIT 1
         ;
       `;
 
@@ -79,15 +80,50 @@ exports.POST = async (req, res) => {
     });
   };
 
+  const getPushSubscriptions = (db) => {
+    return new Promise((resolve, reject) => {
+      const sql = `
+        SELECT
+          sha256hex,
+          DATE_FORMAT(createdAt, '%Y-%m-%dT%H:%i:%sZ') AS createdAt,
+          DATE_FORMAT(expirationTime, '%Y-%m-%dT%H:%i:%sZ') AS expirationTime
+        FROM
+          pushsubscriptions
+        WHERE
+          userid = ?
+        ORDER BY
+          createdAt DESC
+        ;
+      `;
+
+      db.query(sql, [req.user.userid], (error, result) => {
+        if (error) {
+          console.log(error);
+          return reject(error);
+        }
+
+        return resolve(result);
+      });
+    });
+  };
+
   if (unsyncedSettings) {
     await update(db, unsyncedSettings);
   }
 
-  const response = await retrieve(db);
+  const settingsPromise = getSettings(db);
+  const pushSubscriptionsPromise = getPushSubscriptions(db);
 
-  return res.status(200).send({
-    msg: "settings synced",
-    msgType: "success",
-    settings: JSON.parse(response.settings),
+  Promise.all([settingsPromise, pushSubscriptionsPromise]).then((results) => {
+    const settings = JSON.parse(results[0].settings);
+    const pushSubscriptions = results[1];
+
+    settings.pushSubscriptions = pushSubscriptions;
+
+    return res.status(200).send({
+      msg: "settings synced",
+      msgType: "success",
+      settings: settings,
+    });
   });
 };
