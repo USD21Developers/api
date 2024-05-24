@@ -137,11 +137,12 @@ exports.sendWebPush = async (
   title,
   body,
   data = {},
-  invitationid
+  invitationid,
+  ignoreUserSettings = false
 ) => {
   return new Promise((resolve, reject) => {
     // subscription object has an expiration.  Key should be "expirationTime" and it CAN be null.
-    const sql = `
+    let sql = `
       SELECT
         ps.subscription AS subscription
       FROM
@@ -155,6 +156,21 @@ exports.sendWebPush = async (
         JSON_EXTRACT(u.settings, "$.enablePushNotifications") = true
       ;
     `;
+
+    if (ignoreUserSettings) {
+      sql = `
+        SELECT
+          ps.subscription AS subscription
+        FROM
+          pushsubscriptions ps
+        INNER JOIN users u ON u.userid = ps.userid
+        WHERE
+          ps.userid = ?
+        AND
+          u.userstatus = 'registered'
+        ;
+      `;
+    }
 
     db.query(sql, [userid], (error, result) => {
       if (error) {
