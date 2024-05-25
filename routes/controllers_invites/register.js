@@ -158,12 +158,7 @@ exports.POST = (req, res) => {
       }
 
       // Designate usertype as "sysadmin" if user's e-mail is a match
-      const listOfSysadmins = [
-        "kip@usd21.org",
-        "ron@usd21.org",
-        "jeremy@usd21.org",
-        "jason.mcneill@usd21.org",
-      ];
+      const listOfSysadmins = ["jeremy@usd21.org", "jason.mcneill@usd21.org"];
       if (listOfSysadmins.includes(email)) {
         usertype = "sysadmin";
       }
@@ -185,7 +180,7 @@ exports.POST = (req, res) => {
       // Derive symmetric encryption key from password
       const kekSalt = crypto.randomBytes(32);
       const kekSaltBase64 = new Buffer.from(kekSalt).toString("base64");
-      const kekIterations = 200000;
+      const kekIterations = 50000;
       const kekKeylen = 32;
       const kekDigest = "sha256";
 
