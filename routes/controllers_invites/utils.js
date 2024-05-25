@@ -969,6 +969,7 @@ exports.storeProfileImage = async (userid, base64Image, db) => {
     const s3 = new AWS.S3({
       accessKeyId: process.env.INVITES_AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.INVITES_AWS_SECRET_ACCESS_KEY,
+      logger: null,
     });
 
     await require("./utils").deleteProfileImage(userid, db);
@@ -1081,6 +1082,7 @@ exports.deleteProfileImage = async (userid, db) => {
     const s3 = new AWS.S3({
       accessKeyId: process.env.INVITES_AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.INVITES_AWS_SECRET_ACCESS_KEY,
+      logger: null,
     });
 
     const sql = `
@@ -1090,6 +1092,8 @@ exports.deleteProfileImage = async (userid, db) => {
         users
       WHERE
         userid = ?
+      AND
+        profilephoto IS NOT null
       LIMIT 1
       ;
     `;
@@ -1102,9 +1106,9 @@ exports.deleteProfileImage = async (userid, db) => {
       }
 
       if (!result.length) {
-        const errorMessage = `cannot delete old profile photo of user id ${userid} (user not found)`;
-        console.log(errorMessage);
-        return reject(new Error(errorMessage));
+        const msg = `cannot delete old profile photo of user id ${userid} (user not found)`;
+        // console.log(msg);
+        return resolve(new Error(msg));
       }
 
       const url = result[0].profilephoto;

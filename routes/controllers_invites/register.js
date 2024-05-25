@@ -293,7 +293,7 @@ exports.POST = (req, res) => {
 
               db.query(sql, [registrationToken, userid], (err, result) => {
                 if (err) {
-                  console.log(err);
+                  // console.log(err);
                   return res.status(500).send({
                     msg: "unable to insert registration token",
                     msgType: "error",
