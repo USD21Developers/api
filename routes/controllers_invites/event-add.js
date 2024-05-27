@@ -208,7 +208,7 @@ exports.POST = (req, res) => {
     // recurring weekday must match next occurence weekday
     if (frequency !== "once") {
       const nextOccuranceWeekday = moment
-        .tz(moment(`${startdate} ${starttime}`).format(), timezone)
+        .tz(`${startdate} ${starttime}`, timezone)
         .format("dddd");
       let hasWeekdayConflict = false;
       switch (frequency) {
