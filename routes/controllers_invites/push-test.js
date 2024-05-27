@@ -73,7 +73,15 @@ exports.POST = async (req, res) => {
     });
   }
 
-  sendWebPush(db, req.user.userid, payload.title, payload.body, true)
+  sendWebPush(
+    db,
+    req.user.userid,
+    payload.title,
+    payload.body,
+    null,
+    null,
+    true
+  )
     .then((results) => {
       return res.status(200).send({
         msg: "test push messages sent",
