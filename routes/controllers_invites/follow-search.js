@@ -139,7 +139,7 @@ exports.POST = async (req, res) => {
 
     const searchResults = result;
     const getFollowedUsers = require("./utils").getFollowedUsers;
-    const followedUsers = await getFollowedUsers(req.user.userid);
+    const followedUsers = await getFollowedUsers(db, req.user.userid);
 
     // Filter out users that I'm already following
     const matches = searchResults.filter((searchResult) => {
