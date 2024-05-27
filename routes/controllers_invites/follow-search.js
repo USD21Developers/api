@@ -67,23 +67,21 @@ exports.POST = async (req, res) => {
   }
 
   let sql = `
-      SELECT
-        u.userid,
-        u.firstname,
-        u.lastname,
-        u.gender,
-        u.profilephoto,
-        f.id AS followid
-      FROM
-        users u
-      LEFT OUTER JOIN follow f ON (u.userid = f.followed)
-      WHERE
-        u.userstatus = 'registered'
-      AND
-        u.userid <> ?
-      AND
-        u.churchid = ?
-      `;
+    SELECT
+      userid,
+      firstname,
+      lastname,
+      gender,
+      profilephoto
+    FROM
+      users
+    WHERE
+      userstatus = 'registered'
+    AND
+      userid <> ?
+    AND
+      churchid = ?
+    `;
 
   let sqlPlaceholders;
 
@@ -130,7 +128,7 @@ exports.POST = async (req, res) => {
       `;
   }
 
-  db.query(sql, sqlPlaceholders, (err, result) => {
+  db.query(sql, sqlPlaceholders, async (err, result) => {
     if (err) {
       console.log(err);
       return res.status(500).send({
@@ -139,10 +137,23 @@ exports.POST = async (req, res) => {
       });
     }
 
+    const searchResults = result;
+    const getFollowedUsers = require("./utils").getFollowedUsers;
+    const followedUsers = await getFollowedUsers(req.user.userid);
+
+    // Filter out users that I'm already following
+    const matches = searchResults.filter((searchResult) => {
+      const isFollowed = followedUsers.find(
+        (followed) => followed.userid === searchResult.userid
+      );
+      const includeMatch = !isFollowed;
+      return includeMatch;
+    });
+
     return res.status(200).send({
-      msg: "users within same congregation queried",
+      msg: "users within specified congregation queried",
       msgType: "success",
-      matches: result,
+      matches: matches,
     });
   });
 };
