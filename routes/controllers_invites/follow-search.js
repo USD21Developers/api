@@ -105,6 +105,13 @@ exports.POST = async (req, res) => {
 
             u.lastname LIKE ?
           )
+        GROUP BY
+          u.userid,
+          u.firstname,
+          u.lastname,
+          u.gender,
+          u.profilephoto,
+          f.id
         ORDER BY
           lastname,
           firstname
@@ -120,7 +127,7 @@ exports.POST = async (req, res) => {
           u.firstname,
           u.lastname,
           u.gender,
-          u.profilephoto
+          u.profilephoto,
           f.id
         ORDER BY
           lastname,
@@ -137,7 +144,7 @@ exports.POST = async (req, res) => {
           u.firstname,
           u.lastname,
           u.gender,
-          u.profilephoto
+          u.profilephoto,
           f.id
         ORDER BY
           lastname,
