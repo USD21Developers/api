@@ -72,7 +72,8 @@ exports.POST = async (req, res) => {
       firstname,
       lastname,
       gender,
-      profilephoto
+      profilephoto,
+      (SELECT COUNT(*) FROM events WHERE createdBy = ? AND sharewithfollowers = 'yes') AS eventQuantity
     FROM
       users
     WHERE
