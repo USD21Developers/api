@@ -78,7 +78,7 @@ exports.POST = async (req, res) => {
     FROM
       users u
     LEFT OUTER JOIN events e ON (e.createdBy = u.userid AND e.sharewithfollowers = 'yes')
-    LEFT OUTER JOIN follow f ON f.followed = u.userid
+    LEFT OUTER JOIN follow f ON f.follower = u.userid
     WHERE
       u.userstatus = 'registered'
     AND
