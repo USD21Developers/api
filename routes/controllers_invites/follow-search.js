@@ -73,7 +73,7 @@ exports.POST = async (req, res) => {
       u.lastname,
       u.gender,
       u.profilephoto,
-      f.followid
+      f.id AS followid
     FROM
       users u
     LEFT OUTER JOIN follow f ON f.follower = u.userid
