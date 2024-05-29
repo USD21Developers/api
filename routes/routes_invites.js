@@ -139,6 +139,9 @@ router.post("/invite-send-beacon", saveInvite.POST);
 const altEventsInvite = require("./controllers_invites/alt-events-invite");
 router.post("/alt-events-invite", altEventsInvite.POST);
 
+const rsvp = require("./controllers_invites/rsvp");
+router.post("/rsvp", rsvp.POST);
+
 // RECIPIENTS
 
 const recipient = require("./controllers_invites/recipient");
