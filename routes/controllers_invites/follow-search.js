@@ -76,7 +76,7 @@ exports.POST = async (req, res) => {
       f.followid
     FROM
       users u
-    INNER JOIN follow f ON f.follower = u.userid
+    LEFT OUTER JOIN follow f ON f.follower = u.userid
     WHERE
       u.userstatus = 'registered'
     AND
