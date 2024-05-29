@@ -121,6 +121,7 @@ exports.POST = async (req, res) => {
           u.lastname,
           u.gender,
           u.profilephoto
+          f.followid
         ORDER BY
           lastname,
           firstname
@@ -137,6 +138,7 @@ exports.POST = async (req, res) => {
           u.lastname,
           u.gender,
           u.profilephoto
+          f.followid
         ORDER BY
           lastname,
           firstname
