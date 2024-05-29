@@ -113,6 +113,12 @@ exports.POST = async (req, res) => {
     sql += `
         AND
           u.firstname LIKE ?
+        GROUP BY
+          u.userid,
+          u.firstname,
+          u.lastname,
+          u.gender,
+          u.profilephoto
         ORDER BY
           lastname,
           firstname
@@ -123,6 +129,12 @@ exports.POST = async (req, res) => {
     sql += `
         AND
           u.lastname LIKE ?
+        GROUP BY
+          u.userid,
+          u.firstname,
+          u.lastname,
+          u.gender,
+          u.profilephoto
         ORDER BY
           lastname,
           firstname
