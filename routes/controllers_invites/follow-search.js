@@ -70,7 +70,7 @@ exports.POST = async (req, res) => {
     SELECT
       u.userid,
       u.firstname,
-      u.astname,
+      u.lastname,
       u.gender,
       u.profilephoto,
       COUNT(e.eventid) AS eventQuantity
@@ -122,7 +122,7 @@ exports.POST = async (req, res) => {
     sqlPlaceholders = [req.user.userid, churchid, `${lastName.trim()}%`];
     sql += `
         AND
-          lastname LIKE ?
+          u.lastname LIKE ?
         ORDER BY
           lastname,
           firstname
