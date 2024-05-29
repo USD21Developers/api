@@ -68,20 +68,21 @@ exports.POST = async (req, res) => {
 
   let sql = `
     SELECT
-      userid,
-      firstname,
-      lastname,
-      gender,
-      profilephoto,
-      (SELECT COUNT(*) FROM events WHERE createdBy = ? AND sharewithfollowers = 'yes') AS eventQuantity
+      u.userid,
+      u.firstname,
+      u.astname,
+      u.gender,
+      u.profilephoto,
+      COUNT(e.eventid) AS eventQuantity
     FROM
-      users
+      users u
+    LEFT OUTER JOIN events e ON (e.createdBy = u.userid AND e.sharewithfollowers = 'yes')
     WHERE
-      userstatus = 'registered'
+      u.userstatus = 'registered'
     AND
-      userid <> ?
+      u.userid <> ?
     AND
-      churchid = ?
+      u.churchid = ?
     `;
 
   let sqlPlaceholders;
@@ -96,11 +97,11 @@ exports.POST = async (req, res) => {
     sql += `
         AND
           (
-            firstname LIKE ?
+            u.firstname LIKE ?
 
             AND
 
-            lastname LIKE ?
+            u.lastname LIKE ?
           )
         ORDER BY
           lastname,
@@ -111,7 +112,7 @@ exports.POST = async (req, res) => {
     sqlPlaceholders = [req.user.userid, churchid, `${firstName.trim()}%`];
     sql += `
         AND
-          firstname LIKE ?
+          u.firstname LIKE ?
         ORDER BY
           lastname,
           firstname
