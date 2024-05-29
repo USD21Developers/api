@@ -68,19 +68,21 @@ exports.POST = async (req, res) => {
 
   let sql = `
     SELECT
-      userid,
-      firstname,
-      lastname,
-      gender,
-      profilephoto
+      u.userid,
+      u.firstname,
+      u.lastname,
+      u.gender,
+      u.profilephoto,
+      f.followid
     FROM
-      users
+      users u
+    INNER JOIN follow f ON f.follower = u.userid
     WHERE
-      userstatus = 'registered'
+      u.userstatus = 'registered'
     AND
-      userid <> ?
+      u.userid <> ?
     AND
-      churchid = ?
+      u.churchid = ?
     `;
 
   let sqlPlaceholders;
