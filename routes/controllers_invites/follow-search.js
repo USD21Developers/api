@@ -73,7 +73,7 @@ exports.POST = async (req, res) => {
       u.lastname,
       u.gender,
       u.profilephoto,
-      COUNT(e.eventid) AS eventQuantity
+      COUNT(e.eventid) AS eventsSharing
     FROM
       users u
     LEFT OUTER JOIN events e ON (e.createdBy = u.userid AND e.sharewithfollowers = 'yes')
