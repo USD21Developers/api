@@ -68,21 +68,19 @@ exports.POST = async (req, res) => {
 
   let sql = `
     SELECT
-      u.userid,
-      u.firstname,
-      u.lastname,
-      u.gender,
-      u.profilephoto,
-      f.id AS followid
+      userid,
+      firstname,
+      lastname,
+      gender,
+      profilephoto
     FROM
-      users u
-    LEFT OUTER JOIN follow f ON f.follower = u.userid
+      users
     WHERE
-      u.userstatus = 'registered'
+      userstatus = 'registered'
     AND
-      u.userid <> ?
+      userid <> ?
     AND
-      u.churchid = ?
+      churchid = ?
     `;
 
   let sqlPlaceholders;
