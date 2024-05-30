@@ -41,7 +41,7 @@ exports.GET = (req, res) => {
   // Ensure that userid is a positive integer
   userid = Math.abs(parseInt(userid));
 
-  const sql = `
+  let sql = `
     SELECT
       eventid,
       churchid,
@@ -88,11 +88,7 @@ exports.GET = (req, res) => {
     WHERE
       createdBy = ?
     AND
-      (
-        createdBy = ?
-        OR
-        sharewithfollowers = "yes"
-      )
+      sharewithfollowers = 'yes'
     AND
       (
         frequency != 'once'
@@ -110,7 +106,14 @@ exports.GET = (req, res) => {
     ;
   `;
 
-  db.query(sql, [userid, req.user.userid], (error, results) => {
+  let placeholders = [userid];
+
+  if (userid === req.user.userid) {
+    sql = sql.replaceAll("sharewithfollowers = 'yes'", "createdBy = ?");
+    placeholders = [req.user.userid, req.user.userid];
+  }
+
+  db.query(sql, placeholders, (error, results) => {
     if (error) {
       console.log(error);
       return res
