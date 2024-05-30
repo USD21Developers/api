@@ -357,7 +357,7 @@ exports.getEventsByUser = (db, userid, useridOfRequester) => {
         timezone,
 
         CASE 
-          WHEN frequency != 'once' AND startdate < CURDATE() THEN CONCAT(DATE_FORMAT(DATE_ADD(startdate, INTERVAL (DATEDIFF(CURDATE(), startdate) DIV 7 + 1) * 7 DAY), '%Y-%m-%dT%H:%i:%s'), 'Z')
+          WHEN frequency != 'once' AND startdate < CURRENT_TIMESTAMP() THEN CONCAT(DATE_FORMAT(DATE_ADD(startdate, INTERVAL (DATEDIFF(CURRENT_TIMESTAMP(), startdate) DIV 7 + 1) * 7 DAY), '%Y-%m-%dT%H:%i:%s'), 'Z')
           ELSE CONCAT(DATE_FORMAT(startdate, '%Y-%m-%dT%H:%i:%s'), 'Z')
         END AS startdate,
 
@@ -411,10 +411,10 @@ exports.getEventsByUser = (db, userid, useridOfRequester) => {
             (
               frequency = 'once'
               AND
-              startdate >= CURDATE()
+              startdate >= CURRENT_TIMESTAMP()
             )
             OR
-            multidayenddate >= CURDATE()
+            multidayenddate >= CURRENT_TIMESTAMP()
           )
       ORDER BY
         title
