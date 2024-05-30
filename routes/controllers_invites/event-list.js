@@ -53,7 +53,7 @@ exports.GET = (req, res) => {
       timezone,
       
       CASE 
-          WHEN frequency != 'once' AND startdate < CURDATE() THEN CONCAT(DATE_FORMAT(DATE_ADD(startdate, INTERVAL (DATEDIFF(CURDATE(), startdate) DIV 7 + 1) * 7 DAY), '%Y-%m-%dT%H:%i:%s'), 'Z')
+          WHEN frequency != 'once' AND startdate < CURRENT_TIMESTAMP() THEN CONCAT(DATE_FORMAT(DATE_ADD(startdate, INTERVAL (DATEDIFF(CURRENT_TIMESTAMP(), startdate) DIV 7 + 1) * 7 DAY), '%Y-%m-%dT%H:%i:%s'), 'Z')
           ELSE CONCAT(DATE_FORMAT(startdate, '%Y-%m-%dT%H:%i:%s'), 'Z')
       END AS startdate,
       
@@ -95,11 +95,11 @@ exports.GET = (req, res) => {
       frequency != 'once'
       OR (
         frequency = 'once'
-        AND startdate >= CURDATE()
+        AND startdate >= CURRENT_TIMESTAMP()
       )
       OR (
         frequency = 'once'
-        AND multidayenddate >= CURDATE()
+        AND multidayenddate >= CURRENT_TIMESTAMP()
       )
     )
     ORDER BY

@@ -71,11 +71,11 @@ exports.GET = async (req, res) => {
             frequency != 'once'
             OR (
               frequency = 'once'
-              AND startdate >= CURDATE()
+              AND startdate >= CURRENT_TIMESTAMP()
             )
             OR (
               frequency = 'once'
-              AND multidayenddate >= CURDATE()
+              AND multidayenddate >= CURRENT_TIMESTAMP()
             )
           )
         ) AS numEventsSharing,
