@@ -88,6 +88,8 @@ exports.GET = (req, res) => {
     WHERE
       createdBy = ?
     AND
+      isDeleted = 0
+    AND
       sharewithfollowers = 'yes'
     AND
       (
