@@ -73,16 +73,7 @@ exports.GET = async (req, res) => {
   `;
   db.query(
     sql,
-    [
-      userid,
-      userid,
-      req.user.userid,
-      userid,
-      userid,
-      userid,
-      userid,
-      req.user.userid,
-    ],
+    [userid, userid, req.user.userid, userid, userid, userid, userid, userid],
     (err, result) => {
       if (err) {
         console.log(err);
