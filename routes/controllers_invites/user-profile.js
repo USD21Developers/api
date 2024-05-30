@@ -80,8 +80,8 @@ exports.GET = async (req, res) => {
       userid,
       userid,
       userid,
-      req.user.userid,
       userid,
+      req.user.userid,
     ],
     (err, result) => {
       if (err) {
