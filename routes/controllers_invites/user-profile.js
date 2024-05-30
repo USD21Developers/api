@@ -77,6 +77,7 @@ exports.GET = async (req, res) => {
                 frequency = 'once'
                 AND multidayenddate >= CURDATE()
               )
+          )
         ) AS numEventsSharing,
         (SELECT COUNT(*) FROM invitations WHERE userid = ? LIMIT 1) AS numInvitesSent
     FROM
