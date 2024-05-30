@@ -45,7 +45,7 @@ exports.GET = async (req, res) => {
   }
 
   // Query for userid
-  const sql = `
+  let sql = `
     SELECT
         userid,
         churchid,
@@ -62,7 +62,6 @@ exports.GET = async (req, res) => {
         (SELECT COUNT(*) FROM follow WHERE follower = ?) AS numFollowing,
         (SELECT COUNT(*) FROM follow WHERE followed = ?) AS numFollowedBy,
         (SELECT 1 FROM follow WHERE follower = ? AND followed = ? LIMIT 1) AS followed,
-        (SELECT COUNT(*) FROM events WHERE createdBy = ? AND isDeleted = 0 AND (createdBy = ? OR sharewithfollowers = "yes") LIMIT 1) AS numEvents,
         (SELECT COUNT(*) FROM events WHERE createdBy = ? AND isDeleted = 0 AND sharewithfollowers = 'yes' LIMIT 1) AS numEventsSharing,
         (SELECT COUNT(*) FROM invitations WHERE userid = ? LIMIT 1) AS numInvitesSent
     FROM
@@ -72,51 +71,62 @@ exports.GET = async (req, res) => {
     LIMIT 1
     ;
   `;
-  db.query(
-    sql,
-    [
-      userid,
-      userid,
+
+  let placeholders = [
+    userid,
+    userid,
+    req.user.userid,
+    userid,
+    userid,
+    userid,
+    userid,
+  ];
+
+  if (userid === req.user.userid) {
+    sql = sql.replaceAll("sharewithfollowers = 'yes'", "createdBy = ?");
+    placeholders = [
       req.user.userid,
-      userid,
-      userid,
-      userid,
-      userid,
-      userid,
-      userid,
-    ],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-        return res.status(500).send({
-          msg: "unable to query for userid",
-          msgType: "error",
-        });
-      }
+      req.user.userid,
+      req.user.userid,
+      req.user.userid,
+      req.user.userid,
+      req.user.userid,
+      req.user.userid,
+      req.user.userid,
+    ];
+  }
 
-      if (!result.length) {
-        return res.status(404).send({
-          msg: "userid not found",
-          msgType: "error",
-        });
-      }
-
-      if (result[0].userstatus !== "registered") {
-        return res.status(400).send({
-          msg: "user status must be registered",
-          msgType: "error",
-        });
-      }
-
-      let profile = result[0];
-
-      profile.followed = profile.followed === 1 ? true : false;
-
-      res.status(200).send({
-        msg: "user profile retrieved",
-        msgType: "success",
-        profile: profile,
+  db.query(sql, placeholders, (err, result) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).send({
+        msg: "unable to query for userid",
+        msgType: "error",
       });
     }
-  );
+
+    if (!result.length) {
+      return res.status(404).send({
+        msg: "userid not found",
+        msgType: "error",
+      });
+    }
+
+    if (result[0].userstatus !== "registered") {
+      return res.status(400).send({
+        msg: "user status must be registered",
+        msgType: "error",
+      });
+    }
+
+    let profile = result[0];
+
+    profile.followed = profile.followed === 1 ? true : false;
+
+    res.status(200).send({
+      msg: "user profile retrieved",
+      msgType: "success",
+      profile: profile,
+    });
+  });
 };
