@@ -63,7 +63,7 @@ exports.GET = async (req, res) => {
         (SELECT COUNT(*) FROM follow WHERE followed = ?) AS numFollowedBy,
         (SELECT 1 FROM follow WHERE follower = ? AND followed = ? LIMIT 1) AS followed,
         (SELECT COUNT(*) FROM events WHERE createdBy = ? AND (createdBy = ? OR sharewithfollowers = "yes") LIMIT 1) AS numEvents,
-        (SELECT COUNT(*) FROM invitations WHERE userid = ? LIMIT 1) AS numInvitesSent
+        (SELECT COUNT(*) FROM invitations WHERE createdBy = ? LIMIT 1) AS numInvitesSent
     FROM
         users
     WHERE
