@@ -91,18 +91,17 @@ exports.GET = (req, res) => {
       isDeleted = 0
     AND
       sharewithfollowers = 'yes'
-    AND
-      (
-        frequency != 'once'
-        OR
-        (
-          frequency = 'once'
-          AND
-          startdate >= CURDATE()
-        )
-        OR
-        multidayenddate >= CURDATE()
+    AND (
+      frequency != 'once'
+      OR (
+        frequency = 'once'
+        AND startdate >= CURDATE()
       )
+      OR (
+        frequency = 'once'
+        AND multidayenddate >= CURDATE()
+      )
+    )
     ORDER BY
       type, title
     ;

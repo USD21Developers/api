@@ -69,14 +69,14 @@ exports.GET = async (req, res) => {
           AND sharewithfollowers = 'yes'
           AND (
             frequency != 'once'
-          OR (
-                frequency = 'once'
-                AND startdate >= CURDATE()
-              )
-          OR (
-                frequency = 'once'
-                AND multidayenddate >= CURDATE()
-              )
+            OR (
+              frequency = 'once'
+              AND startdate >= CURDATE()
+            )
+            OR (
+              frequency = 'once'
+              AND multidayenddate >= CURDATE()
+            )
           )
         ) AS numEventsSharing,
         (SELECT COUNT(*) FROM invitations WHERE userid = ? LIMIT 1) AS numInvitesSent
