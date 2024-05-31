@@ -53,6 +53,7 @@ exports.POST = (req, res) => {
 
   db.query(sql, [req.user.userid, [ids]], (error, result) => {
     if (error) {
+      console.log(error);
       return res.status(500).send({
         msg: "unable to delete invitations",
         msgType: "error",
