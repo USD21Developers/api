@@ -330,6 +330,8 @@ exports.POST = async (req, res) => {
           invitations
         WHERE
           userid = ?
+        AND
+          isDeleted = 0
         ORDER BY invitationid
         ;
       `;
