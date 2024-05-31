@@ -43,7 +43,7 @@ exports.POST = (req, res) => {
     UPDATE
       invitations
     SET
-      deleted = 1
+      isDeleted = 1
     WHERE
       userid = ?
     AND
