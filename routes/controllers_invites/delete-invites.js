@@ -63,7 +63,8 @@ exports.POST = (req, res) => {
     return res.status(200).send({
       msg: "invites deleted",
       msgType: "success",
-      result: result,
+      affectedRows: result.affectedRows,
+      changedRows: result.changedRows,
     });
   });
 };
