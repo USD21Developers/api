@@ -649,7 +649,7 @@ exports.getEventsForAllInvites = (db, userid) => {
         contactphonecountrydata,
         country,
         e.lang,
-        isDeleted
+        e.isDeleted
       FROM
         events e
       INNER JOIN invitations i ON e.eventid = i.eventid
