@@ -197,10 +197,108 @@ exports.POST = async (req, res) => {
         // TODO:  handle potential promise rejections from "updatePasswordResult" above
       }
 
-      return res.status(200).send({
-        msg: "profile updated",
-        msgType: "success",
-        result: result,
+      const sql = `
+        SELECT
+          churchid,
+          country,
+          lang,
+          userid,
+          usertype,
+          firstname,
+          lastname,
+          email,
+          username,
+          gender,
+          profilephoto,
+          passwordmustchange,
+          isAuthorized,
+          canAuthorize,
+          canAuthToAuth
+        FROM
+          users
+        WHERE
+          userid = ?
+        LIMIT
+          1
+        ;
+      `;
+
+      db.query(sql, [req.user.userid], (error, result) => {
+        if (error) {
+          console.log(error);
+          return res.status(500).send({
+            msg: "unable to select data for new refresh token",
+            msgType: "error",
+          });
+        }
+
+        if (!result.length) {
+          return res.status(404).send({
+            msg: "user no longer exists",
+            msgType: "error",
+          });
+        }
+
+        const {
+          churchid,
+          country,
+          lang,
+          userid,
+          usertype,
+          firstname,
+          lastname,
+          email,
+          username,
+          gender,
+          profilephoto,
+          passwordmustchange,
+          isAuthorized,
+          canAuthorize,
+          canAuthToAuth,
+        } = result[0];
+
+        const jsonwebtoken = require("jsonwebtoken");
+        const refreshToken = jsonwebtoken.sign(
+          {
+            churchid: churchid,
+            country: country,
+            lang: lang,
+            userid: userid,
+            usertype: usertype,
+            firstname: firstname,
+            lastname: lastname,
+            email: email,
+            username: username,
+            gender: gender,
+            profilephoto: profilephoto,
+          },
+          process.env.REFRESH_TOKEN_SECRET,
+          { expiresIn: "30d" }
+        );
+
+        const accessToken = jsonwebtoken.sign(
+          {
+            churchid: churchid,
+            userid: userid,
+            usertype: usertype,
+            lang: lang,
+            profilephoto: profilephoto,
+            country: country,
+            passwordmustchange: passwordmustchange,
+            isAuthorized: isAuthorized,
+            canAuthorize: canAuthorize,
+            canAuthToAuth: canAuthToAuth,
+          },
+          process.env.ACCESS_TOKEN_SECRET,
+          { expiresIn: "10m" }
+        );
+
+        return res.status(200).send({
+          msg: "profile updated",
+          msgType: "success",
+          refreshToken: refreshToken,
+          accessToken: accessToken,
+        });
       });
     }
   );
