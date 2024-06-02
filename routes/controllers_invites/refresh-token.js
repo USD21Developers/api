@@ -35,6 +35,8 @@ exports.POST = (req, res) => {
           churchid,
           firstname,
           lastname,
+          email,
+          username,
           usertype,
           gender,
           lang,
@@ -67,6 +69,8 @@ exports.POST = (req, res) => {
         const churchid = result[0].churchid;
         const firstname = result[0].firstname;
         const lastname = result[0].lastname;
+        const email = result[0].email;
+        const username = result[0].username;
         const usertype = result[0].usertype;
         const gender = result[0].gender;
         const lang = result[0].lang;
@@ -87,6 +91,8 @@ exports.POST = (req, res) => {
             usertype: usertype,
             firstname: firstname,
             lastname: lastname,
+            email: email,
+            username: username,
             gender: gender,
             profilephoto: profilephoto,
           },
