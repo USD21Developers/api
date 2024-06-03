@@ -162,7 +162,7 @@ exports.POST = (req, res) => {
           );
         } else {
           let sql = `
-            INSERT INTO invitations(
+            INSERT IGNORE INTO invitations(
               eventid,
               followup,
               userid,
