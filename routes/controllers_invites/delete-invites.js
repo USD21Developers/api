@@ -47,7 +47,7 @@ exports.POST = (req, res) => {
     WHERE
       userid = ?
     AND
-      invitationid IN (?)
+      invitationid IN ?
     ;
   `;
 
