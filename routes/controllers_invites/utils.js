@@ -962,7 +962,12 @@ exports.getDistance = (db, originObj, destinationObj) => {
   });
 };
 
-exports.storeProfileImage = async (userid, base64Image, db) => {
+exports.storeProfileImage = async (
+  userid,
+  profileImage400,
+  profileImage140,
+  db
+) => {
   return new Promise(async (resolve, reject) => {
     const uuid = crypto.randomUUID();
     const AWS = require("aws-sdk");
@@ -976,7 +981,7 @@ exports.storeProfileImage = async (userid, base64Image, db) => {
 
     const fileName400 = `profiles/${userid}__${uuid}__400.jpg`;
     const fileContent400 = new Buffer.from(
-      base64Image.replace(/^data:image\/\w+;base64,/, ""),
+      profileImage400.replace(/^data:image\/\w+;base64,/, ""),
       "base64"
     );
     const upload400 = new Promise((resolve400, reject400) => {
@@ -996,11 +1001,11 @@ exports.storeProfileImage = async (userid, base64Image, db) => {
       });
     });
 
-    const Jimp = require("jimp");
     const fileName140 = `profiles/${userid}__${uuid}__140.jpg`;
-    const fileContent140 = await Jimp.read(fileContent400).then((image) => {
-      return image.resize(140, 140).getBufferAsync(Jimp.MIME_PNG);
-    });
+    const fileContent140 = new Buffer.from(
+      profileImage140.replace(/^data:image\/\w+;base64,/, ""),
+      "base64"
+    );
     const upload140 = new Promise((resolve140, reject140) => {
       const params = {
         Bucket: process.env.INVITES_AWS_BUCKET_NAME,

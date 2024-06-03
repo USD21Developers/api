@@ -37,7 +37,6 @@
     "got": "^11.8.2",
     "html-entities": "^2.3.3",
     "http-errors": "^1.8.0",
-    "jimp": "^0.22.7",
     "jsdom": "^22.1.0",
     "jsonwebtoken": "^9.0.0",
     "map-nearest-location": "^1.1.4",

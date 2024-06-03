@@ -12,7 +12,8 @@ exports.POST = (req, res) => {
   const firstname = req.body.firstname || "";
   const lastname = req.body.lastname || "";
   const gender = req.body.gender || "";
-  const profileImage = req.body.profileImage || "";
+  const profileImage140 = req.body.profileImage140 || "";
+  const profileImage400 = req.body.profileImage400 || "";
   const lang = req.body.lang || "en";
   const country = req.body.country.substring(0, 2).toLowerCase() || "";
   const churchid = req.body.churchid || "";
@@ -87,10 +88,15 @@ exports.POST = (req, res) => {
     return res.status(400).send({ msg: "gender missing", msgType: "error" });
   }
 
-  if (!profileImage.length)
+  if (!profileImage400.length)
     return res
       .status(400)
-      .send({ msg: "profile photo missing", msgType: "error" });
+      .send({ msg: "profile photo 400x400 missing", msgType: "error" });
+
+  if (!profileImage140.length)
+    return res
+      .status(400)
+      .send({ msg: "profile photo 140x140 missing", msgType: "error" });
 
   if (!lang.length)
     return res.status(400).send({ msg: "language missing", msgType: "error" });
@@ -272,7 +278,12 @@ exports.POST = (req, res) => {
 
               const userid = result.insertId;
 
-              require("./utils").storeProfileImage(userid, profileImage, db);
+              require("./utils").storeProfileImage(
+                userid,
+                profileImage400,
+                profileImage140,
+                db
+              );
 
               const registrationToken = crypto.randomBytes(32).toString("hex");
               const sql = `
