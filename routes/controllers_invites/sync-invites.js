@@ -344,6 +344,7 @@ exports.POST = async (req, res) => {
         const invites = result.map((item) => {
           const {
             invitationid,
+            isDeleted,
             eventid,
             followup,
             recipientid,
@@ -369,6 +370,7 @@ exports.POST = async (req, res) => {
 
           const invite = {
             invitationid: invitationid,
+            isDeleted: isDeleted,
             eventid: eventid,
             followup: followup,
             recipient: {
