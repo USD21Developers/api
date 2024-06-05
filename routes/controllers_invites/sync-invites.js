@@ -312,6 +312,7 @@ exports.POST = async (req, res) => {
       const sql = `
         SELECT
           invitationid,
+          isDeleted,
           eventid,
           followup,
           recipientid,
@@ -330,8 +331,6 @@ exports.POST = async (req, res) => {
           invitations
         WHERE
           userid = ?
-        AND
-          isDeleted = 0
         ORDER BY invitationid
         ;
       `;
