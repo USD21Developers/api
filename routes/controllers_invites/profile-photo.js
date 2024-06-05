@@ -46,6 +46,8 @@ exports.POST = async (req, res) => {
       churchid,
       country,
       lang,
+      username,
+      email,
       userid,
       usertype,
       firstname,
