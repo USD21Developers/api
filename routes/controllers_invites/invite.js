@@ -173,6 +173,7 @@ exports.POST = (req, res) => {
       const sql = `
         SELECT
           invitationid,
+          isDeleted,
           recipientname,
           sharedfromtimezone,
           lang,
