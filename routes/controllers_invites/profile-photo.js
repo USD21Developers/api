@@ -19,16 +19,27 @@ exports.POST = async (req, res) => {
     : require("../../database-invites");
 
   // Parameters
-  const profileImage = req.body.profileImage || "";
+  const profileImage140 = req.body.profileImage140 || "";
+  const profileImage400 = req.body.profileImage400 || "";
 
   // Validate
 
-  if (!profileImage.length)
+  if (!profileImage140.length)
     return res
       .status(400)
-      .send({ msg: "profile photo missing", msgType: "error" });
+      .send({ msg: "140x140 profile photo missing", msgType: "error" });
 
-  await require("./utils").storeProfileImage(req.user.userid, profileImage, db);
+  if (!profileImage400.length)
+    return res
+      .status(400)
+      .send({ msg: "400x400 profile photo missing", msgType: "error" });
+
+  await require("./utils").storeProfileImage(
+    req.user.userid,
+    profileImage400,
+    profileImage140,
+    db
+  );
 
   const sql = `
     SELECT
@@ -74,6 +85,8 @@ exports.POST = async (req, res) => {
       churchid,
       country,
       lang,
+      email,
+      username,
       userid,
       usertype,
       firstname,
@@ -93,6 +106,8 @@ exports.POST = async (req, res) => {
         churchid: churchid,
         country: country,
         lang: lang,
+        email: email,
+        username: username,
         userid: userid,
         usertype: usertype,
         firstname: firstname,
