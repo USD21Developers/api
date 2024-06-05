@@ -145,8 +145,11 @@ router.post("/alt-events-invite", altEventsInvite.POST);
 const rsvp = require("./controllers_invites/rsvp");
 router.post("/rsvp", rsvp.POST);
 
-const deleteInvites = require("./controllers_invites/delete-invites.js");
+const deleteInvites = require("./controllers_invites/delete-invites");
 router.post("/delete-invites", authenticateToken, deleteInvites.POST);
+
+const undeleteInvite = require("./controllers_invites/undelete-invite");
+router.post("/undelete-invite", authenticateToken, undeleteInvite.POST);
 
 // RECIPIENTS
 
