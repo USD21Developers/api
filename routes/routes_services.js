@@ -19,4 +19,7 @@ router.get("/church/:churchid", church.GET);
 const countryOfCoordinates = require("./controllers_services/country-of-coordinates");
 router.post("/country-of-coordinates", countryOfCoordinates.POST);
 
+const sendgridEvent = require("./controllers_services/sendgridEvent");
+router.post("/sendgrid-event", sendgridEvent.POST);
+
 module.exports = router;
