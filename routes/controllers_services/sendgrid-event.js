@@ -7,10 +7,12 @@ exports.POST = (req, res) => {
   };
 
   var events = req.body;
-  events.forEach(function (event) {
-    // Here, you now have each event and can process them how you like
-    processEvent(event);
-  });
+  if (events && Array.isArray(events)) {
+    events.forEach(function (event) {
+      // Here, you now have each event and can process them how you like
+      processEvent(event);
+    });
+  }
 
   return res.status(200).send();
 };
