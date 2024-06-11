@@ -6,7 +6,8 @@
   "scripts": {
     "start": "nodemon -r dotenv/config app.js",
     "ssh:prod": "ssh root@api.usd21.org -p 1773 -i ~/.ssh/usd21/id_rsa",
-    "deploy:prod": "ssh root@api.usd21.org -p 1773 -i ~/.ssh/usd21/id_rsa \"cd /var/www/html; ./pull.sh\""
+    "deploy:prod": "ssh root@api.usd21.org -p 1773 -i ~/.ssh/usd21/id_rsa \"cd /var/www/html; ./pull.sh\"",
+    "ngrok": "ngrok http http://localhost:4000"
   },
   "repository": {
     "type": "git",
