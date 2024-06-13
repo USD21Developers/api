@@ -558,7 +558,7 @@ exports.POST = (req, res) => {
           } else {
             urlPrefix = "https://invites.mobi";
           }
-          const pushFollowUpURL = `${urlPrefix}/r/#/${userObj.userid}`;
+          const pushFollowUpURL = `${urlPrefix}/r/#/${recipientObj.invitationid}`;
           const sendWebPush = require("./utils").sendWebPush;
           sendWebPush(
             db,
