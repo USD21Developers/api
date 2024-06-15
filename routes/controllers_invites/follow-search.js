@@ -74,7 +74,7 @@ exports.POST = async (req, res) => {
       u.gender,
       u.profilephoto,
       COUNT(e.eventid) AS eventsSharing,
-      f.id AS followid
+      MIN(f.id) AS followid
     FROM
       users u
     LEFT OUTER JOIN events e ON (e.createdBy = u.userid AND e.sharewithfollowers = 'yes')
@@ -110,8 +110,7 @@ exports.POST = async (req, res) => {
           u.firstname,
           u.lastname,
           u.gender,
-          u.profilephoto,
-          f.id
+          u.profilephoto
         ORDER BY
           lastname,
           firstname
@@ -127,8 +126,7 @@ exports.POST = async (req, res) => {
           u.firstname,
           u.lastname,
           u.gender,
-          u.profilephoto,
-          f.id
+          u.profilephoto
         ORDER BY
           lastname,
           firstname
@@ -144,8 +142,7 @@ exports.POST = async (req, res) => {
           u.firstname,
           u.lastname,
           u.gender,
-          u.profilephoto,
-          f.id
+          u.profilephoto
         ORDER BY
           lastname,
           firstname
