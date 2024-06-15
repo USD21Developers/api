@@ -1,6 +1,7 @@
 exports.POST = (req, res) => {
   // Set database
-  const db = require("../../database-services");
+  const db = require("../../database-invites-test");
+  const utils = require("../controllers_invites/utils");
 
   const processEvent = (event) => {
     const typeOfEvent = event.event;
