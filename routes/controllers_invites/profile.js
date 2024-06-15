@@ -34,7 +34,7 @@ exports.POST = async (req, res) => {
       // Derive symmetric encryption key from password
       const kekSalt = crypto.randomBytes(32);
       const kekSaltBase64 = new Buffer.from(kekSalt).toString("base64");
-      const kekIterations = 200000;
+      const kekIterations = process.env.INVITES_KEK_ITERATIONS;
       const kekKeylen = 32;
       const kekDigest = "sha256";
 
