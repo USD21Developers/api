@@ -104,7 +104,7 @@ exports.POST = async (req, res) => {
     }
 
     const sql = `
-      INSERT INTO pushsubscriptions (
+      INSERT IGNORE INTO pushsubscriptions (
         userid,
         subscription,
         sha256hex,
