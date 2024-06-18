@@ -469,7 +469,8 @@ exports.POST = (req, res) => {
           i.invitationid,
           i.unsubscribedFromEmail,
           i.unsubscribedFromPush,
-          i.lasttimenotified,
+          i.lastTimeNotifiedViaEmail,
+          i.lastTimeNotifiedViaPush,
           u.settings
         FROM
           invitations i
@@ -499,7 +500,10 @@ exports.POST = (req, res) => {
         }
 
         const invitationid = result[0].invitationid;
-        const lastTimeNotified = result[0].lasttimenotified || null;
+        const lastTimeNotifiedViaEmail =
+          result[0].lastTimeNotifiedViaEmail || null;
+        const lastTimeNotifiedViaPush =
+          result[0].lastTimeNotifiedViaPush || null;
         const unsubscribedFromEmail = result[0].unsubscribedFromEmail || null;
         const unsubscribedFromPush = result[0].unsubscribedFromPush || null;
         let settings = result[0].settings || null;
@@ -508,22 +512,31 @@ exports.POST = (req, res) => {
           settings = JSON.parse(settings);
         }
 
-        let proceedWithNotification = true;
-        let proceedWithPush = true;
+        let proceedWithEmailNotification = true;
+        let proceedWithPushNotification = true;
 
-        if (lastTimeNotified) {
+        if (lastTimeNotifiedViaEmail) {
           const now = moment().utc();
-          const notified = moment(lastTimeNotified);
+          const notified = moment(lastTimeNotifiedViaEmail);
           const okToNotifiy = notified.add(24, "hours");
 
           if (now.isBefore(okToNotifiy)) {
-            proceedWithNotification = false;
-            proceedWithPush = false;
+            proceedWithEmailNotification = false;
+          }
+        }
+
+        if (lastTimeNotifiedViaPush) {
+          const now = moment().utc();
+          const notified = moment(lastTimeNotifiedViaPush);
+          const okToNotifiy = notified.add(24, "hours");
+
+          if (now.isBefore(okToNotifiy)) {
+            proceedWithPushNotification = false;
           }
         }
 
         if (unsubscribedFromEmail && unsubscribedFromEmail === 1) {
-          proceedWithNotification = false;
+          proceedWithEmailNotification = false;
         }
 
         if (
@@ -531,21 +544,21 @@ exports.POST = (req, res) => {
           settings.hasOwnProperty("enableEmailNotifications") &&
           settings.enableEmailNotifications !== true
         ) {
-          proceedWithNotification = false;
+          proceedWithEmailNotification = false;
         }
 
         // Send the sender a notification via push message
         if (unsubscribedFromPush && unsubscribedFromPush === 1) {
-          proceedWithPush = false;
+          proceedWithPushNotification = false;
         }
         if (
           settings &&
           settings.hasOwnProperty("enablePushNotifications") &&
           settings.enablePushNotifications !== true
         ) {
-          proceedWithPush = false;
+          proceedWithPushNotification = false;
         }
-        if (proceedWithPush) {
+        if (proceedWithPushNotification) {
           const pushInviteViewed = pushPhrases["push-invite-viewed"].replaceAll(
             "{RECIPIENT-NAME}",
             recipientObj.recipientname
@@ -578,7 +591,7 @@ exports.POST = (req, res) => {
             .finally(() => {});
         }
 
-        if (!proceedWithNotification) {
+        if (!proceedWithEmailNotification) {
           return resolve();
         }
 
@@ -598,7 +611,7 @@ exports.POST = (req, res) => {
               UPDATE
                 invitations
               SET
-                lasttimenotified = UTC_TIMESTAMP()
+                lastTimeNotifiedViaEmail = UTC_TIMESTAMP()
               WHERE
                 invitationid = ?
               ;

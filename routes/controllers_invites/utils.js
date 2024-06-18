@@ -236,7 +236,7 @@ exports.sendWebPush = async (
             UPDATE
               invitations
             SET
-              lasttimenotified = UTC_TIMESTAMP()
+              lastTimeNotifiedViaPush = UTC_TIMESTAMP()
             WHERE
               invitationid = ?
             ;
