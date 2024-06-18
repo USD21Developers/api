@@ -502,7 +502,11 @@ exports.POST = (req, res) => {
         const lastTimeNotified = result[0].lasttimenotified || null;
         const unsubscribedFromEmail = result[0].unsubscribedFromEmail || null;
         const unsubscribedFromPush = result[0].unsubscribedFromPush || null;
-        const settings = result[0].settings || null;
+        let settings = result[0].settings || null;
+
+        if (settings) {
+          settings = JSON.parse(settings);
+        }
 
         let proceedWithNotification = true;
         let proceedWithPush = true;
@@ -525,7 +529,7 @@ exports.POST = (req, res) => {
         if (
           settings &&
           settings.hasOwnProperty("enableEmailNotifications") &&
-          settings.enableEmailNotifications === 0
+          settings.enableEmailNotifications !== true
         ) {
           proceedWithNotification = false;
         }
@@ -537,7 +541,7 @@ exports.POST = (req, res) => {
         if (
           settings &&
           settings.hasOwnProperty("enablePushNotifications") &&
-          settings.enablePushNotifications === 0
+          settings.enablePushNotifications !== true
         ) {
           proceedWithPush = false;
         }
