@@ -191,3 +191,8 @@ router.post("/languages-of-events", languagesOfEvents.POST);
 
 const altEventSearch = require("./controllers_invites/alt-events-search");
 router.post("/alt-events-search", altEventSearch.POST);
+
+// MAPS
+
+const mapDefaultsForChurch = require("./controllers_invites/map-defaults-for-church");
+router.post("/map-defaults-for-church", mapDefaultsForChurch.POST);
