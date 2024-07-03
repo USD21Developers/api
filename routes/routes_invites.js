@@ -195,4 +195,8 @@ router.post("/alt-events-search", altEventSearch.POST);
 // MAPS
 
 const mapDefaultsForChurch = require("./controllers_invites/map-defaults-for-church");
-router.post("/map-defaults-for-church", mapDefaultsForChurch.POST);
+router.post(
+  "/map-defaults-for-church",
+  authenticateToken,
+  mapDefaultsForChurch.POST
+);
