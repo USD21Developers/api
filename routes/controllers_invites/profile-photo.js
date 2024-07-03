@@ -116,6 +116,11 @@ exports.POST = async (req, res) => {
         lastname: lastname,
         gender: gender,
         profilephoto: profilephoto,
+        mapsApiKeys: {
+          prod: process.env.GOOGLE_MAPS_API_KEY_PROD,
+          staging: process.env.GOOGLE_MAPS_API_KEY_STAGING,
+          dev: process.env.GOOGLE_MAPS_API_KEY_DEV,
+        },
       },
       process.env.REFRESH_TOKEN_SECRET,
       { expiresIn: "30d" }
