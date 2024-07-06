@@ -54,6 +54,8 @@ exports.POST = async (req, res) => {
         AND
           isDeleted = 0
         AND
+          sharedFromCoordinates IS NOT NULL
+        AND
           invitedAt >= ?
         AND
           invitedAt <= ?
@@ -89,6 +91,8 @@ exports.POST = async (req, res) => {
           userid <> ?
         AND
           isDeleted = 0
+        AND
+          sharedFromCoordinates IS NOT NULL
         AND
           invitedAt >= ?
         AND
