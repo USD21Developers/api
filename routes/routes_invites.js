@@ -175,13 +175,6 @@ router.post("/unsubscribe-before", unsubscribeBefore.POST);
 const unsubscribe = require("./controllers_invites/unsubscribe");
 router.post("/unsubscribe", unsubscribe.POST);
 
-// MAPS
-
-const mapStatic = require("./controllers_invites/map-static");
-router.post("/map-static", mapStatic.POST);
-
-module.exports = router;
-
 // LANGUAGES OF EVENTS
 
 const languagesOfEvents = require("./controllers_invites/languages-of-events");
@@ -194,9 +187,17 @@ router.post("/alt-events-search", altEventSearch.POST);
 
 // MAPS
 
+const mapStatic = require("./controllers_invites/map-static");
+router.post("/map-static", mapStatic.POST);
+
 const mapDefaultsForChurch = require("./controllers_invites/map-defaults-for-church");
 router.post(
   "/map-defaults-for-church",
   authenticateToken,
   mapDefaultsForChurch.POST
 );
+
+const mapEvangelism = require("./controllers_invites/map-evangelism");
+router.post("/map-evangelism", authenticateToken, mapEvangelism.POST);
+
+module.exports = router;
