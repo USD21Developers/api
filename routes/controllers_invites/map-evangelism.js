@@ -137,8 +137,8 @@ exports.POST = async (req, res) => {
     othersInvites: othersInvites,
     userInvites: userInvites,
     userEvents: userEvents,
-    dateTimeFrom: fromDateTime,
-    dateTimeTo: toDateTime,
+    dateTimeUTCFrom: fromDateTime,
+    dateTimeUTCTo: toDateTime,
   };
 
   return res.status(200).send({
