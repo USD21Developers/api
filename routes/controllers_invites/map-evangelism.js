@@ -45,22 +45,28 @@ exports.POST = async (req, res) => {
         SELECT
           invitationid,
           eventid,
-          ST_Y(sharedFromCoordinates) AS lat,
-          ST_X(sharedFromCoordinates) AS lng,
+          ST_Y(i.sharedFromCoordinates) AS lat,
+          ST_X(i.sharedFromCoordinates) AS lng,
           recipientname,
           invitedAt
         FROM
-          invitations
+          invitations i
+        INNER JOIN
+          events e ON i.eventid = e.eventid
+        INNER JOIN
+          users u ON i.userid = u.userid
         WHERE
-          userid = ?
+          i.userid = ?
         AND
-          isDeleted = 0
+          i.isDeleted = 0
         AND
-          sharedFromCoordinates IS NOT NULL
+          i.sharedFromCoordinates IS NOT NULL
         AND
-          invitedAt >= ?
+          i.invitedAt >= ?
         AND
-          invitedAt <= ?
+          i.invitedAt <= ?
+        AND
+          e.churchid = u.churchid
         ORDER BY
           invitedAt ASC
         ;
@@ -84,21 +90,27 @@ exports.POST = async (req, res) => {
     return new Promise((resolve, reject) => {
       const sql = `
         SELECT
-          ST_Y(sharedFromCoordinates) AS lat,
-          ST_X(sharedFromCoordinates) AS lng,
-          invitedAt
+          ST_Y(i.sharedFromCoordinates) AS lat,
+          ST_X(i.sharedFromCoordinates) AS lng,
+          i.invitedAt
         FROM
-          invitations
+          invitations i
+        INNER JOIN
+          events e ON i.eventid = e.eventid
+        INNER JOIN
+          users u ON i.userid = u.userid
         WHERE
-          userid <> ?
+          i.userid <> ?
         AND
-          isDeleted = 0
+          i.isDeleted = 0
         AND
-          sharedFromCoordinates IS NOT NULL
+          i.sharedFromCoordinates IS NOT NULL
         AND
-          invitedAt >= ?
+          i.invitedAt >= ?
         AND
-          invitedAt <= ?
+          i.invitedAt <= ?
+        AND
+          e.churchid = u.churchid
         ORDER BY
           invitedAt ASC
         ;
