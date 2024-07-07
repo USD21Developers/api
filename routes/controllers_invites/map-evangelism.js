@@ -118,6 +118,7 @@ exports.POST = async (req, res) => {
   };
 
   const getUserEvents = (db, userInvites) => {
+    console.log(userInvites);
     return new Promise(async (resolve, reject) => {
       const userEventIds = userInvites.map((invite) => invite.eventid);
       const userEventIdsSet = new Set(userEventIds);
