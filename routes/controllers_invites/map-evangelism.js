@@ -47,6 +47,7 @@ exports.POST = async (req, res) => {
           eventid,
           ST_Y(sharedFromCoordinates) AS lat,
           ST_X(sharedFromCoordinates) AS lng,
+          recipientname,
           invitedAt
         FROM
           invitations
