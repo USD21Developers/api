@@ -43,20 +43,20 @@ exports.POST = async (req, res) => {
     return new Promise((resolve, reject) => {
       const sql = `
         SELECT
-          invitationid,
-          eventid,
+          i.invitationid,
+          i.eventid,
           ST_Y(i.sharedFromCoordinates) AS lat,
           ST_X(i.sharedFromCoordinates) AS lng,
-          recipientname,
-          invitedAt
+          i.recipientname,
+          i.invitedAt
         FROM
           invitations i
         INNER JOIN
           events e ON i.eventid = e.eventid
-        INNER JOIN
-          users u ON i.userid = u.userid
         WHERE
           i.userid = ?
+        AND
+          e.churchid = (SELECT churchid FROM users WHERE userid = ? LIMIT 1)
         AND
           i.isDeleted = 0
         AND
@@ -65,8 +65,6 @@ exports.POST = async (req, res) => {
           i.invitedAt >= ?
         AND
           i.invitedAt <= ?
-        AND
-          e.churchid = u.churchid
         ORDER BY
           invitedAt ASC
         ;
@@ -74,7 +72,7 @@ exports.POST = async (req, res) => {
 
       db.query(
         sql,
-        [req.user.userid, fromDateTime, toDateTime],
+        [req.user.userid, req.user.userid, fromDateTime, toDateTime],
         (error, result) => {
           if (error) {
             return reject(new Error(error));
@@ -97,10 +95,10 @@ exports.POST = async (req, res) => {
           invitations i
         INNER JOIN
           events e ON i.eventid = e.eventid
-        INNER JOIN
-          users u ON i.userid = u.userid
         WHERE
           i.userid <> ?
+        AND
+          e.churchid = (SELECT churchid FROM users WHERE userid = ? LIMIT 1)
         AND
           i.isDeleted = 0
         AND
@@ -109,8 +107,6 @@ exports.POST = async (req, res) => {
           i.invitedAt >= ?
         AND
           i.invitedAt <= ?
-        AND
-          e.churchid = u.churchid
         ORDER BY
           invitedAt ASC
         ;
@@ -118,7 +114,7 @@ exports.POST = async (req, res) => {
 
       db.query(
         sql,
-        [req.user.userid, fromDateTime, toDateTime],
+        [req.user.userid, req.user.userid, fromDateTime, toDateTime],
         (error, result) => {
           if (error) {
             return reject(new Error(error));
