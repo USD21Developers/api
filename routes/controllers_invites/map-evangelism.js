@@ -118,13 +118,15 @@ exports.POST = async (req, res) => {
   };
 
   const getUserEvents = (db, userInvites) => {
-    console.log(userInvites);
     return new Promise(async (resolve, reject) => {
-      const userEventIds = userInvites.map((invite) => invite.eventid);
-      const userEventIdsSet = new Set(userEventIds);
-      const userEventIdsArray = Array.from(userEventIdsSet);
+      if (!userInvites) return resolve([]);
+      if (!Array.isArray(userInvites)) return resolve([]);
+      if (!userInvites.length) return resolve([]);
 
-      const userEvents = await utils.getSpecificEvents(db, userEventIdsArray);
+      const userInviteIds = userInvites.map((invite) => invite.invitationid);
+      const userInviteIdsSet = new Set(userInviteIds);
+      const userInviteIdsArray = Array.from(userInviteIdsSet);
+      const userEvents = await utils.getSpecificEvents(db, userInviteIdsArray);
 
       return resolve(userEvents);
     });
