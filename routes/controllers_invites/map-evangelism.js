@@ -1,4 +1,5 @@
 const moment = require("moment");
+const utils = require("./utils");
 
 exports.POST = async (req, res) => {
   // Enforce authorization
@@ -120,10 +121,9 @@ exports.POST = async (req, res) => {
     return new Promise(async (resolve, reject) => {
       const userEventIds = userInvites.map((invite) => invite.eventid);
       const userEventIdsSet = new Set(userEventIds);
-      const userEventIdsUnsorted = Array.from(userEventIdsSet);
-      const userEventIdsSorted = userEventIdsUnsorted.sort((a, b) => b - a);
-      const utils = require("./utils");
-      const userEvents = await utils.getSpecificEvents(db, userEventIdsSorted);
+      const userEventIdsArray = Array.from(userEventIdsSet);
+
+      const userEvents = await utils.getSpecificEvents(db, userEventIdsArray);
 
       return resolve(userEvents);
     });
@@ -137,8 +137,8 @@ exports.POST = async (req, res) => {
     othersInvites: othersInvites,
     userInvites: userInvites,
     userEvents: userEvents,
-    fromDateTimeUTC: fromDateTime,
-    toDateTimeUTC: toDateTime,
+    dateTimeFrom: fromDateTime,
+    dateTimeTo: toDateTime,
   };
 
   return res.status(200).send({
