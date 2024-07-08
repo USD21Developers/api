@@ -45,8 +45,8 @@ exports.POST = async (req, res) => {
         SELECT
           i.invitationid,
           i.eventid,
-          ST_Y(i.sharedFromCoordinates) AS lat,
-          ST_X(i.sharedFromCoordinates) AS lng,
+          ST_Y(i.sharedFromCoordinates) AS lng,
+          ST_X(i.sharedFromCoordinates) AS lat,
           i.recipientname,
           i.invitedAt
         FROM
@@ -88,8 +88,8 @@ exports.POST = async (req, res) => {
     return new Promise((resolve, reject) => {
       const sql = `
         SELECT
-          ST_Y(i.sharedFromCoordinates) AS lat,
-          ST_X(i.sharedFromCoordinates) AS lng,
+          ST_Y(i.sharedFromCoordinates) AS lng,
+          ST_X(i.sharedFromCoordinates) AS lat,
           i.invitedAt
         FROM
           invitations i
