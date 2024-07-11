@@ -24,7 +24,6 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
@@ -32,6 +31,10 @@ const corsOptions = {
       callback(new Error("Not allowed by CORS"));
     }
   },
+  methods: "GET,POST", // Allow these HTTP methods
+  allowedHeaders: ["Content-Type", "Authorization"], // Allow these headers
+  credentials: true, // Enable cookies to be sent across domains
+  optionsSuccessStatus: 204, // For legacy browser support
 };
 
 app.set("views", path.join(__dirname, "views"));
