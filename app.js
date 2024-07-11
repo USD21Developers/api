@@ -24,17 +24,15 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));
     }
   },
-  methods: "GET,POST", // Allow these HTTP methods
-  allowedHeaders: ["Content-Type", "Authorization"], // Allow these headers
-  credentials: true, // Enable cookies to be sent across domains
-  optionsSuccessStatus: 204, // For legacy browser support
+  methods: "GET,POST",
+  allowedHeaders: ["Content-Type", "Authorization"],
+  optionsSuccessStatus: 204,
 };
 
 app.set("views", path.join(__dirname, "views"));
