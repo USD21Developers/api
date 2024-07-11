@@ -13,10 +13,31 @@ const routes_glc = require("./routes/routes_glc");
 const routes_services = require("./routes/routes_services");
 const requestIp = require("request-ip");
 
+const allowedOrigins = [
+  "https://invites.mobi",
+  "https://staging.invites.mobi",
+  "https://invites.usd21.org",
+  "https://staging.invites.usd21.org",
+  "https://localhost",
+  "https://127.0.0.1",
+];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+};
+
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
-app.options("*", cors());
+app.options("*", cors(corsOptions));
 
 app.use(cors());
 app.use(express.json({ limit: "50mb" }));
