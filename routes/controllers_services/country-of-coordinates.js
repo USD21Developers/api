@@ -38,6 +38,7 @@ exports.POST = async (req, res) => {
       return res.status(400).send({
         msg: "error with geocoding service",
         msgType: "error",
+        response: response,
       });
     }
   } catch (error) {
@@ -48,6 +49,7 @@ exports.POST = async (req, res) => {
     return res.status(500).send({
       msg: "unable to check country of coordinates",
       msgType: "error",
+      response: response,
     });
   }
 };
