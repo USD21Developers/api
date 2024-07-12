@@ -27,7 +27,7 @@ exports.POST = (req, res) => {
   const isUser = req.body.isUser || false;
 
   if (emailHtml && emailHtml.length) {
-    emailHtml = btoa(emailHtml);
+    emailHtml = atob(emailHtml);
   }
 
   // res.setHeader("Referrer-Policy", "no-referrer");
