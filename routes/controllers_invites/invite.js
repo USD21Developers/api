@@ -3,8 +3,15 @@ const moment = require("moment");
 exports.POST = (req, res) => {
   // Set database
   const isLocal = req.headers.referer.indexOf("localhost") >= 0 ? true : false;
-  const isStaging =
-    req.headers?.referer?.indexOf("staging") >= 0 ? true : false;
+  const isStaging = false;
+  if (req.headers && req.headers.referer) {
+    if (req.headers.referer.indexOf("staging") >= 0) {
+      isStaging = true;
+    }
+  }
+
+  console.log("isStaging: " + isStaging);
+
   const db = isStaging
     ? require("../../database-invites-test")
     : require("../../database-invites");
