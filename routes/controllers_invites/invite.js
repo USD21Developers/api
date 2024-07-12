@@ -685,6 +685,8 @@ exports.POST = (req, res) => {
 
     // Notify sender
     if (event && user && recipient) {
+      console.log("EVENT:");
+      console.log(event);
       return notifySender(
         event,
         user,
