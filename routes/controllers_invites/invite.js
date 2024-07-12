@@ -20,11 +20,15 @@ exports.POST = (req, res) => {
   const userid = Number(req.body.userid) || null;
   const recipientid = req.body.recipientid || null;
   const timezone = req.body.timezone || null;
-  const emailHtml = req.body.emailHtml || null;
+  let emailHtml = req.body.emailHtml || null;
   const emailPhrases = req.body.emailPhrases || null;
   const pushPhrases = req.body.pushPhrases || null;
   const loadedAlready = req.body.loadedAlready || false;
   const isUser = req.body.isUser || false;
+
+  if (emailHtml && emailHtml.length) {
+    emailHtml = btoa(emailHtml);
+  }
 
   // res.setHeader("Referrer-Policy", "no-referrer");
 
