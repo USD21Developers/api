@@ -2,8 +2,8 @@ const moment = require("moment");
 
 exports.POST = (req, res) => {
   // Set database
-  const isLocal = false;
-  const isStaging = false;
+  let isLocal = false;
+  let isStaging = false;
   if (req.headers && req.headers.referer) {
     if (req.headers.referer.indexOf("staging") >= 0) {
       isStaging = true;
