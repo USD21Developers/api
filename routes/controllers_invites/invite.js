@@ -2,11 +2,13 @@ const moment = require("moment");
 
 exports.POST = (req, res) => {
   // Set database
-  const isLocal = req.headers.referer.indexOf("localhost") >= 0 ? true : false;
+  const isLocal = false;
   const isStaging = false;
   if (req.headers && req.headers.referer) {
     if (req.headers.referer.indexOf("staging") >= 0) {
       isStaging = true;
+    } else if (req.headers.referer.indexOf("localhost") >= 0) {
+      isLocal = true;
     }
   }
 
@@ -306,15 +308,12 @@ exports.POST = (req, res) => {
       let eventDateTime;
       const isRecurringEvent = eventObj.frequency === "once" ? false : true;
       const isMultiDay = eventObj.multidaybegindate ? true : false;
-      let domain;
+      let domain = "https://invites.mobi";
       let followUpLinkPrefix;
-      const referer = req.headers["referer"];
-      if (referer.indexOf("localhost") >= 0) {
+      if (isLocal) {
         domain = "http://localhost:5555";
-      } else if (referer.indexOf("staging") >= 0) {
+      } else if (isStaging) {
         domain = "https://staging.invites.mobi";
-      } else {
-        domain = "https://invites.mobi";
       }
       followUpLinkPrefix = `${domain}/r/#`;
       const followUpLink = `${followUpLinkPrefix}/${recipientObj.invitationid}`;
