@@ -13,33 +13,9 @@ const routes_glc = require("./routes/routes_glc");
 const routes_services = require("./routes/routes_services");
 const requestIp = require("request-ip");
 
-const allowedOrigins = [
-  "https://invites.mobi",
-  "https://staging.invites.mobi",
-  "https://invites.usd21.org",
-  "https://staging.invites.usd21.org",
-  "https://localhost",
-  "https://127.0.0.1",
-];
-
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  methods: "GET,POST",
-  allowedHeaders: ["Content-Type", "Authorization"],
-  optionsSuccessStatus: 204,
-};
-
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
-
-app.options("*", cors(corsOptions));
-
+app.options("*", cors());
 app.use(cors());
 app.use(express.json({ limit: "50mb" }));
 app.use(
