@@ -12,8 +12,6 @@ exports.POST = (req, res) => {
     }
   }
 
-  console.log("isStaging: " + isStaging);
-
   const db = isStaging
     ? require("../../database-invites-test")
     : require("../../database-invites");
