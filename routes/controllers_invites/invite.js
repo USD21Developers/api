@@ -27,7 +27,7 @@ exports.POST = (req, res) => {
   const isUser = req.body.isUser || false;
 
   if (emailHtml && emailHtml.length) {
-    emailHtml = atob(emailHtml);
+    emailHtml = Buffer.from(emailHtml, "base64").toString("ascii");
   }
 
   // res.setHeader("Referrer-Policy", "no-referrer");
