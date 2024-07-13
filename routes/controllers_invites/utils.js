@@ -827,9 +827,6 @@ exports.getAddressCoordinates = (db, addressObj) => {
     fetch(endpoint)
       .then((res) => res.json())
       .then((data) => {
-        console.log("utils.js > getAddressCoordinates > data");
-        console.log(data);
-
         if (!data.results) {
           return resolve("");
         } else if (!data.results.length) {
