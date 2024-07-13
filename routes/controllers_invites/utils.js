@@ -821,6 +821,9 @@ exports.getAddressCoordinates = (db, addressObj) => {
       address += "," + encodeURIComponent(line3);
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     const endpoint = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&region=${country}&key=${apiKey}`;
+
+    console.log(apiKey);
+
     const fetch = require("node-fetch");
 
     fetch(endpoint)
@@ -831,6 +834,9 @@ exports.getAddressCoordinates = (db, addressObj) => {
         } else if (!data.results.length) {
           return resolve("");
         }
+
+        console.log(data.results);
+
         const coordinates = data.results[0].geometry.location;
         return resolve(coordinates);
       })
