@@ -37,6 +37,11 @@ exports.POST = (req, res) => {
       ? true
       : false;
 
+  const isIccmGlobalEmail =
+    email.substring(email.length - 12, email.length) === "@iccm.global"
+      ? true
+      : false;
+
   let protocol = "https:";
   let host;
 
@@ -159,6 +164,12 @@ exports.POST = (req, res) => {
 
       // Give privileges to USD21 e-mail account holders
       if (isUsd21Email) {
+        isAuthorized = 1;
+        canAuthorize = 1;
+      }
+
+      // Give privileges to ICCM e-mail account holders
+      if (isIccmGlobalEmail) {
         isAuthorized = 1;
         canAuthorize = 1;
       }

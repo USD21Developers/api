@@ -25,7 +25,7 @@ exports.authenticateToken = (req, res, next) => {
 };
 
 exports.isPrivilegedEmailAccount = (email = "") => {
-  const privilegedDomains = ["usd21.org"];
+  const privilegedDomains = ["usd21.org", "iccm.global"];
   let isPrivilegedEmail = false;
 
   // Validate
