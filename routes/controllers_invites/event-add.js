@@ -580,9 +580,6 @@ exports.POST = (req, res) => {
         return "";
       });
 
-      console.log("event-add.js > geocodedAddress");
-      console.log(geocodedAddress);
-
       if (typeof geocodedAddress === "object") {
         const { lat, lng } = geocodedAddress;
         if (typeof lat === "number" && typeof lng === "number") {
