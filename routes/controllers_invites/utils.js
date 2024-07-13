@@ -823,6 +823,8 @@ exports.getAddressCoordinates = (db, addressObj) => {
     const endpoint = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&region=${country}&key=${apiKey}`;
 
     console.log(apiKey);
+    console.log(endpoint);
+    console.log(addressObj);
 
     const fetch = require("node-fetch");
 
