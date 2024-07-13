@@ -32,9 +32,6 @@ exports.POST = async (req, res) => {
         countryCode: countryCode,
       });
     } else {
-      if (response) {
-        console.log(response);
-      }
       return res.status(400).send({
         msg: "error with geocoding service",
         msgType: "error",
@@ -42,9 +39,6 @@ exports.POST = async (req, res) => {
       });
     }
   } catch (error) {
-    if (response) {
-      console.log(response);
-    }
     console.log(error);
     return res.status(500).send({
       msg: "unable to check country of coordinates",
