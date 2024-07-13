@@ -9,9 +9,6 @@ exports.POST = async (req, res) => {
     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${process.env.GOOGLE_MAPS_API_KEY}`;
     const response = await axios.get(url);
 
-    console.log(url);
-    console.log(response);
-
     if (
       response.data &&
       response.data.results &&
