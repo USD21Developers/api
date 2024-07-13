@@ -822,22 +822,19 @@ exports.getAddressCoordinates = (db, addressObj) => {
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     const endpoint = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&region=${country}&key=${apiKey}`;
 
-    console.log(apiKey);
-    console.log(endpoint);
-    console.log(addressObj);
-
     const fetch = require("node-fetch");
 
     fetch(endpoint)
       .then((res) => res.json())
       .then((data) => {
+        console.log("utils.js > getAddressCoordinates > data");
+        console.log(data);
+
         if (!data.results) {
           return resolve("");
         } else if (!data.results.length) {
           return resolve("");
         }
-
-        console.log(data.results);
 
         const coordinates = data.results[0].geometry.location;
         return resolve(coordinates);
