@@ -6,9 +6,11 @@ exports.POST = async (req, res) => {
 
   try {
     // Get country code from Google Maps Geocoding API
-    const response = await axios.get(
-      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${process.env.GOOGLE_MAPS_API_KEY}`
-    );
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${process.env.GOOGLE_MAPS_API_KEY}`;
+    const response = await axios.get(url);
+
+    console.log(url);
+    console.log(response);
 
     if (
       response.data &&
