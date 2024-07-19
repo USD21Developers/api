@@ -121,6 +121,9 @@ exports.POST = async (req, res) => {
           staging: process.env.GOOGLE_MAPS_API_KEY_STAGING,
           dev: process.env.GOOGLE_MAPS_API_KEY_DEV,
         },
+        isAuthorized: isAuthorized,
+        canAuthorize: canAuthorize,
+        canAuthToAuth: canAuthToAuth,
       },
       process.env.REFRESH_TOKEN_SECRET,
       { expiresIn: "30d" }
