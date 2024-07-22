@@ -282,16 +282,18 @@ exports.POST = (req, res) => {
 
         if (methodOfSending === "QR Code") {
           return res.status(200).send({
+            msg: "new user authorized",
+            msgType: "success",
             qrCodeUrl: authUrl,
           });
         }
 
         if (methodOfSending === "SMS") {
-          // TODO
+          // TODO.  Must think of content of the message.
         }
 
         if (methodOfSending === "email") {
-          // TODO
+          // TODO.  Must think of content of the message.
         }
       }
     );
