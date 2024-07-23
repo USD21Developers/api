@@ -87,7 +87,9 @@ exports.sendMms = (
         mediaUrl: mediaUrl,
       })
       .then((message) => {
-        // console.log(require("util").inspect(message, true, 7, true));
+        if (process.env.ENV === "development") {
+          console.log(require("util").inspect(message, true, 7, true));
+        }
         return resolve(message);
       })
       .catch((error) => {
