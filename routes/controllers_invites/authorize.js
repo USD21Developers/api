@@ -28,14 +28,16 @@ exports.POST = (req, res) => {
   const highestLeadershipRole = req.body.highestLeadershipRole || null;
   const methodOfSending = req.body.methodOfSending || null;
   const phoneNumber = req.body.phoneNumber || null;
+  const phoneData = req.body.phoneData || null;
   const email = req.body.email || null;
   const acceptedOath = req.body.acceptedOath || null;
   const notificationPhrases = req.body.notificationPhrases || null;
   const templates = req.body.templates || null;
   const timeZone = req.body.timeZone || null;
   const localizedExpiryDate = req.body.localizedExpiryDate || null;
+  const utcExpiryDate = req.body.utcExpiryDate || null;
   const now = moment.tz(timeZone);
-  const offset = now.utcOffset();
+  const offsetMinutes = now.utcOffset();
   const smsTemplate = Buffer.from(templates.sms, "base64").toString("ascii");
   const emailTemplate = Buffer.from(templates.email, "base64").toString(
     "ascii"
@@ -168,6 +170,8 @@ exports.POST = (req, res) => {
 
   const sql = `
     SELECT
+      firstname AS userFirstName,
+      lastname AS userLastName,
       canAuthorize,
       canAuthToAuth,
       userType,
@@ -195,12 +199,14 @@ exports.POST = (req, res) => {
       });
     }
 
-    const canAuthorize = result[0].canAuthorize;
-    const canAuthToAuth = result[0].canAuthToAuth;
+    const userFirstName = result[0].userFirstName;
+    const userLastName = result[0].userLastName;
+    const canAuthorize = result[0].canAuthorize === 1 ? true : false;
+    const canAuthToAuth = result[0].canAuthToAuth === 1 ? true : false;
     const userType = result[0].userType;
     const userStatus = result[0].userStatus;
 
-    if (!userStatus !== "registered") {
+    if (userStatus !== "registered") {
       return res.status(400).send({
         msg: "invalid userStatus for authorizing user",
         msgType: "error",
@@ -235,10 +241,7 @@ exports.POST = (req, res) => {
       );
     };
 
-    const expiry = moment()
-      .utc()
-      .add(1, "months")
-      .format("YYYY-MM-DDTHH:mm:ss");
+    const expiry = moment(utcExpiryDate).format("YYYY-MM-DD HH:mm:ss");
 
     let authUrl;
     const authCode = randomString(6);
@@ -323,6 +326,10 @@ exports.POST = (req, res) => {
           msg = msg.replaceAll("{SENTENCE-5}", sentence5);
           msg = msg.replaceAll("{DEADLINE-DATE}", localizedExpiryDate);
           msg = msg.replaceAll("{MORE-INFO}", sentence6);
+          msg = msg.replaceAll("{NEW-USER-FIRST-NAME}", firstName);
+          msg = msg.replaceAll("{FIRST-NAME}", userFirstName);
+          msg = msg.replaceAll("{LAST-NAME}", userLastName);
+          msg = msg.replaceAll("{LINK}", authUrl);
 
           const smsResult = await utils.sendSms(phoneNumber, msg);
 
@@ -334,7 +341,7 @@ exports.POST = (req, res) => {
         }
 
         if (methodOfSending === "email") {
-          let msg = smsTemplate;
+          let msg = emailTemplate;
           msg = msg.replaceAll("{SENTENCE-1}", sentence1);
           msg = msg.replaceAll("{SENTENCE-2}", sentence2HTML);
           msg = msg.replaceAll("{SENTENCE-3}", sentence3);
@@ -345,7 +352,14 @@ exports.POST = (req, res) => {
           msg = msg.replaceAll("{SINCERELY}", sincerely);
           msg = msg.replaceAll("{INTERNET-MINISTRY}", internetMinistry);
 
-          const emailResult = await utils.sendSms(email, msg);
+          const senderEmail = `invites.mobi <fp-admin@usd21.org>`;
+
+          const emailResult = await utils.sendEmail(
+            email,
+            senderEmail,
+            emailSubject,
+            msg
+          );
 
           return res.status(200).send({
             msg: "new user authorized",

@@ -49,13 +49,42 @@ exports.sendSms = (recipient, content) => {
     process.env.TWILIO_ACCOUNT_SID,
     process.env.TWILIO_AUTH_TOKEN
   );
-  let sender = TWILIO_PHONE_NUMBER;
+  let sender = process.env.TWILIO_PHONE_NUM;
   return new Promise((resolve, reject) => {
     client.messages
       .create({
         from: sender,
         to: recipient,
         body: content,
+      })
+      .then((message) => {
+        console.log(require("util").inspect(message, true, 7, true));
+        return resolve(message);
+      })
+      .catch((error) => {
+        return reject(error);
+      });
+  });
+};
+
+exports.sendMms = (
+  recipient,
+  content,
+  mediaUrl = "https://invites.mobi/_assets/img/shim.png"
+) => {
+  const twilio = require("twilio");
+  const client = new twilio(
+    process.env.TWILIO_ACCOUNT_SID,
+    process.env.TWILIO_AUTH_TOKEN
+  );
+  let sender = process.env.TWILIO_PHONE_NUM;
+  return new Promise((resolve, reject) => {
+    client.messages
+      .create({
+        from: sender,
+        to: recipient,
+        body: content,
+        mediaUrl: mediaUrl,
       })
       .then((message) => {
         console.log(require("util").inspect(message, true, 7, true));

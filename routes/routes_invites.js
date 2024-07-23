@@ -55,7 +55,7 @@ router.get("/event-list/:userid", authenticateToken, eventList.GET);
 // AUTHORIZATION
 
 const authorize = require("./controllers_invites/authorize");
-router.post("/authorize", authorize.POST);
+router.post("/authorize", authenticateToken, authorize.POST);
 
 const ipMiddleware = function (req, res, next) {
   const clientIp = requestIp.getClientIp(req);
