@@ -1,3 +1,5 @@
+const moment = require("moment-timezone");
+
 exports.POST = (req, res) => {
   // Enforce authorization
   const usertype = req.user.usertype;
@@ -28,6 +30,16 @@ exports.POST = (req, res) => {
   const phoneNumber = req.body.phoneNumber || null;
   const email = req.body.email || null;
   const acceptedOath = req.body.acceptedOath || null;
+  const notificationPhrases = req.body.notificationPhrases || null;
+  const templates = req.body.templates || null;
+  const timeZone = req.body.timeZone || null;
+  const localizedExpiryDate = req.body.localizedExpiryDate || null;
+  const now = moment.tz(timeZone);
+  const offset = now.utcOffset();
+  const smsTemplate = Buffer.from(templates.sms, "base64").toString("ascii");
+  const emailTemplate = Buffer.from(templates.email, "base64").toString(
+    "ascii"
+  );
 
   // Validate
 
@@ -223,7 +235,6 @@ exports.POST = (req, res) => {
       );
     };
 
-    const moment = require("moment");
     const expiry = moment()
       .utc()
       .add(1, "months")
@@ -272,7 +283,7 @@ exports.POST = (req, res) => {
         authCode,
         expiry,
       ],
-      (error, result) => {
+      async (error, result) => {
         if (error) {
           return res.status(500).send({
             msg: "unable to store authorization",
@@ -288,12 +299,59 @@ exports.POST = (req, res) => {
           });
         }
 
+        const {
+          emailSubject,
+          sentence1,
+          sentence2,
+          sentence2HTML,
+          sentence3,
+          sentence4,
+          sentence5,
+          sentence6,
+          sincerely,
+          internetMinistry,
+        } = notificationPhrases;
+
+        const utils = require("./utils");
+
         if (methodOfSending === "SMS") {
-          // TODO.  Must think of content of the message.
+          let msg = smsTemplate;
+          msg = msg.replaceAll("{SENTENCE-1}", sentence1);
+          msg = msg.replaceAll("{SENTENCE-2}", sentence2);
+          msg = msg.replaceAll("{SENTENCE-3}", sentence3);
+          msg = msg.replaceAll("{SENTENCE-4}", sentence4);
+          msg = msg.replaceAll("{SENTENCE-5}", sentence5);
+          msg = msg.replaceAll("{DEADLINE-DATE}", localizedExpiryDate);
+          msg = msg.replaceAll("{MORE-INFO}", sentence6);
+
+          const smsResult = await utils.sendSms(phoneNumber, msg);
+
+          return res.status(200).send({
+            msg: "new user authorized",
+            msgType: "success",
+            smsResult: smsResult,
+          });
         }
 
         if (methodOfSending === "email") {
-          // TODO.  Must think of content of the message.
+          let msg = smsTemplate;
+          msg = msg.replaceAll("{SENTENCE-1}", sentence1);
+          msg = msg.replaceAll("{SENTENCE-2}", sentence2HTML);
+          msg = msg.replaceAll("{SENTENCE-3}", sentence3);
+          msg = msg.replaceAll("{SENTENCE-4}", sentence4);
+          msg = msg.replaceAll("{SENTENCE-5}", sentence5);
+          msg = msg.replaceAll("{DEADLINE-DATE}", localizedExpiryDate);
+          msg = msg.replaceAll("{MORE-INFO}", sentence6);
+          msg = msg.replaceAll("{SINCERELY}", sincerely);
+          msg = msg.replaceAll("{INTERNET-MINISTRY}", internetMinistry);
+
+          const emailResult = await utils.sendSms(email, msg);
+
+          return res.status(200).send({
+            msg: "new user authorized",
+            msgType: "success",
+            emailResult: emailResult,
+          });
         }
       }
     );
