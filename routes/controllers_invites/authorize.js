@@ -1,4 +1,36 @@
 const moment = require("moment-timezone");
+const twilio = require("twilio");
+
+const priceFromUSA = {
+  sms: 0.007,
+  mms: 0.02,
+};
+
+const hasEnoughBalance = async (type = "MMS") => {
+  return new Promise((resolve, reject) => {
+    const price = type === "MMS" ? priceFromUSA.mms : priceFromUSA.sms;
+    const client = twilio(
+      process.env.TWILIO_ACCOUNT_SID,
+      process.env.TWILIO_AUTH_TOKEN
+    );
+
+    client.balance
+      .fetch()
+      .then((data) => {
+        const balance = Math.round(data.balance * 100) / 100;
+        const currency = data.currency;
+        const hasEnough = balance >= price;
+
+        if (currency !== "USD") return resolve(false);
+
+        return resolve(hasEnough);
+      })
+      .catch((error) => {
+        console.log(error);
+        return resolve(false);
+      });
+  });
+};
 
 exports.POST = (req, res) => {
   // Enforce authorization
@@ -331,12 +363,21 @@ exports.POST = (req, res) => {
           msg = msg.replaceAll("{LAST-NAME}", userLastName);
           msg = msg.replaceAll("{LINK}", authUrl);
 
-          const smsResult = await utils.sendSms(phoneNumber, msg);
+          const canSendMms = hasEnoughBalance(phoneNumber);
+
+          if (!canSendMms) {
+            return res.status(200).send({
+              msg: "not enough money to send text message",
+              msgType: "error",
+            });
+          }
+
+          const mmsResult = await utils.sendMms(phoneNumber, msg);
 
           return res.status(200).send({
             msg: "new user authorized",
             msgType: "success",
-            smsResult: smsResult,
+            mmsResult: mmsResult,
           });
         }
 
