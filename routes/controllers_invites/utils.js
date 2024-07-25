@@ -98,6 +98,32 @@ exports.sendMms = (
   });
 };
 
+exports.sendWhatsApp = (recipient, content) => {
+  const twilio = require("twilio");
+  const client = new twilio(
+    process.env.TWILIO_ACCOUNT_SID,
+    process.env.TWILIO_AUTH_TOKEN
+  );
+  let sender = process.env.TWILIO_WHATSAPP_PHONE_NUM;
+  return new Promise((resolve, reject) => {
+    client.messages
+      .create({
+        from: sender,
+        to: recipient,
+        body: content,
+      })
+      .then((message) => {
+        if (process.env.ENV === "development") {
+          console.log(require("util").inspect(message, true, 7, true));
+        }
+        return resolve(message);
+      })
+      .catch((error) => {
+        return reject(error);
+      });
+  });
+};
+
 sendEmailViaSMTP = (recipient, emailSenderText, subject, body) => {
   const sender = `"${emailSenderText}" <${process.env.SMTP_SENDER_EMAIL}>`;
   return new Promise((resolve, reject) => {

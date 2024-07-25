@@ -61,6 +61,7 @@ exports.POST = (req, res) => {
   const methodOfSending = req.body.methodOfSending || null;
   const phoneNumber = req.body.phoneNumber || null;
   const phoneData = req.body.phoneData || null;
+  const isWhatsApp = req.body.isWhatsApp || false;
   const email = req.body.email || null;
   const acceptedOath = req.body.acceptedOath || null;
   const notificationPhrases = req.body.notificationPhrases || null;
@@ -372,13 +373,23 @@ exports.POST = (req, res) => {
             });
           }
 
-          const mmsResult = await utils.sendMms(phoneNumber, msg);
+          if (isWhatsApp) {
+            const whatsAppResult = await utils.sendWhatsApp(phoneNumber, msg);
 
-          return res.status(200).send({
-            msg: "new user authorized",
-            msgType: "success",
-            mmsResult: mmsResult,
-          });
+            return res.status(200).send({
+              msg: "new user authorized",
+              msgType: "success",
+              whatsAppResult: whatsAppResult,
+            });
+          } else {
+            const mmsResult = await utils.sendMms(phoneNumber, msg);
+
+            return res.status(200).send({
+              msg: "new user authorized",
+              msgType: "success",
+              mmsResult: mmsResult,
+            });
+          }
         }
 
         if (methodOfSending === "email") {
