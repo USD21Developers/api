@@ -32,6 +32,34 @@ const hasEnoughBalance = async (type = "MMS") => {
   });
 };
 
+const storeSsid = (db, result, id) => {
+  return new Promise((resolve, reject) => {
+    if (!result) return reject();
+    if (!result.hasOwnProperty("sid")) return reject();
+    if (typeof result.sid !== "string") return reject();
+    if (result.sid.length !== 34) return reject();
+
+    const sql = `
+      UPDATE
+        preauth
+      SET
+        msgSid = ?
+      WHERE
+        id = ?
+      ;
+    `;
+
+    db.query(sql, [result.sid, id], (error, result) => {
+      if (error) {
+        console.log(error);
+        return reject();
+      }
+
+      return resolve();
+    });
+  });
+};
+
 exports.POST = (req, res) => {
   // Enforce authorization
   const usertype = req.user.usertype;
@@ -58,7 +86,7 @@ exports.POST = (req, res) => {
   const lastName = req.body.lastName || null;
   const churchid = req.body.churchid || null;
   const highestLeadershipRole = req.body.highestLeadershipRole || null;
-  const methodOfSending = req.body.methodOfSending || null;
+  let methodOfSending = req.body.methodOfSending || null;
   const phoneNumber = req.body.phoneNumber || null;
   const phoneData = req.body.phoneData || null;
   const isWhatsApp = req.body.isWhatsApp || false;
@@ -75,6 +103,12 @@ exports.POST = (req, res) => {
   const emailTemplate = Buffer.from(templates.email, "base64").toString(
     "ascii"
   );
+
+  if (isWhatsApp) {
+    methodOfSending = "whatsapp";
+  } else if (methodOfSending === "textmessage") {
+    methodOfSending = "mms";
+  }
 
   // Validate
 
@@ -127,14 +161,16 @@ exports.POST = (req, res) => {
     });
   }
 
-  if (!["SMS", "email", "QR Code"].includes(methodOfSending)) {
+  if (
+    !["sms", "mms", "email", "qrcode", "whatsapp"].includes(methodOfSending)
+  ) {
     return res.status(400).send({
       msg: "invalid value for methodOfSending",
       msgType: "error",
     });
   }
 
-  if (methodOfSending === "SMS") {
+  if (["sms", "mms", "whatsapp"].includes(methodOfSending)) {
     if (!phoneNumber || !phoneNumber.length) {
       return res.status(400).send({
         msg: "phoneNumber is required",
@@ -290,6 +326,7 @@ exports.POST = (req, res) => {
       INSERT INTO preauth(
         authorizedby,
         name,
+        sentvia,
         canAuthorize,
         canAuthToAuth,
         churchid,
@@ -297,6 +334,7 @@ exports.POST = (req, res) => {
         expiresAt,
         createdAt
       ) VALUES (
+        ?,
         ?,
         ?,
         ?,
@@ -313,6 +351,7 @@ exports.POST = (req, res) => {
       [
         req.user.userid,
         `${firstName} ${lastName}`,
+        methodOfSending,
         canAuthorize,
         canAuthToAuth,
         churchid,
@@ -327,7 +366,9 @@ exports.POST = (req, res) => {
           });
         }
 
-        if (methodOfSending === "QR Code") {
+        const id = result.insertId;
+
+        if (methodOfSending === "qrcode") {
           return res.status(200).send({
             msg: "new user authorized",
             msgType: "success",
@@ -350,7 +391,7 @@ exports.POST = (req, res) => {
 
         const utils = require("./utils");
 
-        if (methodOfSending === "SMS") {
+        if (methodOfSending === "mms") {
           let msg = smsTemplate;
           msg = msg.replaceAll("{SENTENCE-1}", sentence1);
           msg = msg.replaceAll("{SENTENCE-2}", sentence2);
@@ -364,7 +405,7 @@ exports.POST = (req, res) => {
           msg = msg.replaceAll("{LAST-NAME}", userLastName);
           msg = msg.replaceAll("{LINK}", authUrl);
 
-          const canSendMms = hasEnoughBalance(phoneNumber);
+          const canSendMms = await hasEnoughBalance(phoneNumber);
 
           if (!canSendMms) {
             return res.status(200).send({
@@ -373,23 +414,81 @@ exports.POST = (req, res) => {
             });
           }
 
-          if (isWhatsApp) {
-            const whatsAppResult = await utils.sendWhatsApp(phoneNumber, msg);
+          const mmsResult = await utils.sendMms(phoneNumber, msg);
 
-            return res.status(200).send({
-              msg: "new user authorized",
-              msgType: "success",
-              whatsAppResult: whatsAppResult,
-            });
-          } else {
-            const mmsResult = await utils.sendMms(phoneNumber, msg);
+          await storeSsid(db, mmsResult, id);
 
+          return res.status(200).send({
+            msg: "new user authorized",
+            msgType: "success",
+            mmsResult: mmsResult,
+          });
+        }
+
+        if (methodOfSending === "sms") {
+          let msg = smsTemplate;
+          msg = msg.replaceAll("{SENTENCE-1}", sentence1);
+          msg = msg.replaceAll("{SENTENCE-2}", sentence2);
+          msg = msg.replaceAll("{SENTENCE-3}", sentence3);
+          msg = msg.replaceAll("{SENTENCE-4}", sentence4);
+          msg = msg.replaceAll("{SENTENCE-5}", sentence5);
+          msg = msg.replaceAll("{DEADLINE-DATE}", localizedExpiryDate);
+          msg = msg.replaceAll("{MORE-INFO}", sentence6);
+          msg = msg.replaceAll("{NEW-USER-FIRST-NAME}", firstName);
+          msg = msg.replaceAll("{FIRST-NAME}", userFirstName);
+          msg = msg.replaceAll("{LAST-NAME}", userLastName);
+          msg = msg.replaceAll("{LINK}", authUrl);
+
+          const canSendSms = await hasEnoughBalance(phoneNumber);
+
+          if (!canSendSms) {
             return res.status(200).send({
-              msg: "new user authorized",
-              msgType: "success",
-              mmsResult: mmsResult,
+              msg: "not enough money to send text message",
+              msgType: "error",
             });
           }
+
+          const smsResult = await utils.sendSms(phoneNumber, msg);
+
+          await storeSsid(db, smsResult, id);
+
+          return res.status(200).send({
+            msg: "new user authorized",
+            msgType: "success",
+            smsResult: smsResult,
+          });
+        }
+
+        if (methodOfSending === "whatsapp") {
+          let msg = smsTemplate;
+          msg = msg.replaceAll("{SENTENCE-1}", sentence1);
+          msg = msg.replaceAll("{SENTENCE-2}", sentence2);
+          msg = msg.replaceAll("{SENTENCE-3}", sentence3);
+          msg = msg.replaceAll("{SENTENCE-4}", sentence4);
+          msg = msg.replaceAll("{SENTENCE-5}", sentence5);
+          msg = msg.replaceAll("{DEADLINE-DATE}", localizedExpiryDate);
+          msg = msg.replaceAll("{MORE-INFO}", sentence6);
+          msg = msg.replaceAll("{NEW-USER-FIRST-NAME}", firstName);
+          msg = msg.replaceAll("{FIRST-NAME}", userFirstName);
+          msg = msg.replaceAll("{LAST-NAME}", userLastName);
+          msg = msg.replaceAll("{LINK}", authUrl);
+
+          const canSendWhatsApp = hasEnoughBalance(phoneNumber);
+
+          if (!canSendWhatsApp) {
+            return res.status(200).send({
+              msg: "not enough money to send text message",
+              msgType: "error",
+            });
+          }
+
+          const whatsAppResult = await utils.sendWhatsApp(phoneNumber, msg);
+
+          return res.status(200).send({
+            msg: "new user authorized",
+            msgType: "success",
+            whatsAppResult: whatsAppResult,
+          });
         }
 
         if (methodOfSending === "email") {
