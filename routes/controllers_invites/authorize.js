@@ -503,7 +503,7 @@ exports.POST = (req, res) => {
           msg = msg.replaceAll("{NEW-USER-FIRST-NAME}", firstName);
           msg = msg.replaceAll("{FIRST-NAME}", userFirstName);
           msg = msg.replaceAll("{LAST-NAME}", userLastName);
-          msg = msg.replaceAll("{LINK}", `<a href="${authUrl}">${authUrl}</a>`);
+          msg = msg.replaceAll("{LINK}", authUrl);
           msg = msg.replaceAll("{SINCERELY}", sincerely);
           msg = msg.replaceAll("{INTERNET-MINISTRY}", internetMinistry);
 
