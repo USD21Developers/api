@@ -500,6 +500,10 @@ exports.POST = (req, res) => {
           msg = msg.replaceAll("{SENTENCE-5}", sentence5);
           msg = msg.replaceAll("{DEADLINE-DATE}", localizedExpiryDate);
           msg = msg.replaceAll("{MORE-INFO}", sentence6);
+          msg = msg.replaceAll("{NEW-USER-FIRST-NAME}", firstName);
+          msg = msg.replaceAll("{FIRST-NAME}", userFirstName);
+          msg = msg.replaceAll("{LAST-NAME}", userLastName);
+          msg = msg.replaceAll("{LINK}", authUrl);
           msg = msg.replaceAll("{SINCERELY}", sincerely);
           msg = msg.replaceAll("{INTERNET-MINISTRY}", internetMinistry);
 
