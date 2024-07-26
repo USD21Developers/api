@@ -32,12 +32,14 @@ const hasEnoughBalance = async (type = "MMS") => {
   });
 };
 
-const storeSsid = (db, result, id) => {
+const storeSsid = (db, result, preauthid, churchid) => {
   return new Promise((resolve, reject) => {
     if (!result) return reject();
     if (!result.hasOwnProperty("sid")) return reject();
     if (typeof result.sid !== "string") return reject();
     if (result.sid.length !== 34) return reject();
+
+    const { sid, to, date_sent, price, price_unit } = result;
 
     const sql = `
       UPDATE
@@ -49,13 +51,58 @@ const storeSsid = (db, result, id) => {
       ;
     `;
 
-    db.query(sql, [result.sid, id], (error, result) => {
+    db.query(sql, [sid, preauthid], (error, result) => {
       if (error) {
         console.log(error);
         return reject();
       }
 
-      return resolve();
+      const sql = `
+        INSERT INTO costs_messaging(
+          churchid,
+          preauthid,
+          type,
+          amount,
+          currency,
+          dateIncurredUTC,
+          addedAt
+        ) VALUES(
+          ?,
+          ?,
+          ?,
+          ?,
+          ?,
+          ?,
+          UTC_TIMESTAMP()
+        )
+      `;
+
+      let type;
+
+      if (sid.substring(0, 2) === "SM") {
+        type = "sms";
+      } else if (sid.substring(0, 2) === "MM") {
+        type = "mms";
+      } else if (to.substring(0, 9) === "whatsapp:") {
+        type = "whatsapp";
+      }
+
+      const dateIncurredUTC = moment(date_sent)
+        .utc()
+        .format("YYYY-MM-DD HH:mm:ss");
+
+      db.query(
+        sql,
+        [churchid, preauthid, type, price, price_unit, dateIncurredUTC],
+        (error, result) => {
+          if (error) {
+            console.log(error);
+            return reject();
+          }
+
+          return resolve();
+        }
+      );
     });
   });
 };
@@ -366,7 +413,7 @@ exports.POST = (req, res) => {
           });
         }
 
-        const id = result.insertId;
+        const insertId = result.insertId;
 
         if (methodOfSending === "qrcode") {
           return res.status(200).send({
@@ -416,7 +463,7 @@ exports.POST = (req, res) => {
 
           const mmsResult = await utils.sendMms(phoneNumber, msg);
 
-          await storeSsid(db, mmsResult, id);
+          await storeSsid(db, mmsResult, insertId, churchid);
 
           return res.status(200).send({
             msg: "new user authorized",
@@ -450,7 +497,7 @@ exports.POST = (req, res) => {
 
           const smsResult = await utils.sendSms(phoneNumber, msg);
 
-          await storeSsid(db, smsResult, id);
+          await storeSsid(db, smsResult, insertId, churchid);
 
           return res.status(200).send({
             msg: "new user authorized",
@@ -483,6 +530,8 @@ exports.POST = (req, res) => {
           }
 
           const whatsAppResult = await utils.sendWhatsApp(phoneNumber, msg);
+
+          await storeSsid(db, whatsAppResult, insertId, churchid);
 
           return res.status(200).send({
             msg: "new user authorized",
