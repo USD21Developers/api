@@ -141,11 +141,8 @@ exports.POST = (req, res) => {
   const acceptedOath = req.body.acceptedOath || null;
   const notificationPhrases = req.body.notificationPhrases || null;
   const templates = req.body.templates || null;
-  const timeZone = req.body.timeZone || null;
   const localizedExpiryDate = req.body.localizedExpiryDate || null;
   const utcExpiryDate = req.body.utcExpiryDate || null;
-  const now = moment.tz(timeZone);
-  const offsetMinutes = now.utcOffset();
   const smsTemplate = Buffer.from(templates.sms, "base64").toString("ascii");
   const emailTemplate = Buffer.from(templates.email, "base64").toString(
     "ascii"
@@ -154,7 +151,7 @@ exports.POST = (req, res) => {
   if (isWhatsApp) {
     methodOfSending = "whatsapp";
   } else if (methodOfSending === "textmessage") {
-    methodOfSending = "mms";
+    methodOfSending = "mms"; // default to MMS to ensure that outgoing messages are not broken into multiple parts
   }
 
   // Validate
@@ -284,6 +281,8 @@ exports.POST = (req, res) => {
     });
   }
 
+  // Determine permissions of the authorizing user
+
   const sql = `
     SELECT
       firstname AS userFirstName,
@@ -319,7 +318,6 @@ exports.POST = (req, res) => {
     const userLastName = result[0].userLastName;
     const canAuthorize = result[0].canAuthorize === 1 ? true : false;
     const canAuthToAuth = result[0].canAuthToAuth === 1 ? true : false;
-    const userType = result[0].userType;
     const userStatus = result[0].userStatus;
 
     if (userStatus !== "registered") {
@@ -348,6 +346,8 @@ exports.POST = (req, res) => {
         });
       }
     }
+
+    // Store the authorization
 
     const randomString = (len) => {
       var p = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -415,6 +415,8 @@ exports.POST = (req, res) => {
 
         const insertId = result.insertId;
 
+        // If authorization was via QR code, return out immediately
+
         if (methodOfSending === "qrcode") {
           return res.status(200).send({
             msg: "new user authorized",
@@ -422,6 +424,8 @@ exports.POST = (req, res) => {
             qrCodeUrl: authUrl,
           });
         }
+
+        // Send message (i.e. MMS, SMS, WhatsApp, or e-mail)
 
         const {
           emailSubject,
