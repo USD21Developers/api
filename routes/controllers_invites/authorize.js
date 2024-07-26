@@ -362,11 +362,11 @@ exports.POST = (req, res) => {
     let authUrl;
     const authCode = randomString(6);
     if (isLocal) {
-      authUrl = `http://localhost:5555/a/#/${authCode}`;
+      authUrl = `http://localhost:5555/a/#/${churchid}/${req.user.userid}/${authCode}`;
     } else if (isStaging) {
-      authUrl = `https://staging.invites.mobi/a/${authCode}`;
+      authUrl = `https://staging.invites.mobi/a/${churchid}/${req.user.userid}/${authCode}`;
     } else {
-      authUrl = `https://invites.mobi/a/${authCode}`;
+      authUrl = `https://invites.mobi/a/${churchid}/${req.user.userid}/${authCode}`;
     }
 
     const sql = `
