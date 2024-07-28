@@ -107,7 +107,41 @@ const storeSsid = (db, result, preauthid, churchid) => {
   });
 };
 
-exports.POST = (req, res) => {
+const getUserPermissions = (db, userid) => {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT
+        usertype,
+        userstatus,
+        isAuthorized,
+        canAuthorize,
+        canAuthToAuth
+      FROM
+        users
+      WHERE
+        userid = ?
+      LIMIT 1
+      ;
+    `;
+
+    db.query(sql, [userid], (error, result) => {
+      if (error) {
+        console.log(error);
+        return reject(error);
+      }
+
+      if (!result.length) {
+        const errorMessage = "user not found";
+        console.log(errorMessage);
+        return reject(new Error(errorMessage));
+      }
+
+      return resolve(result[0]);
+    });
+  });
+};
+
+exports.POST = async (req, res) => {
   // Enforce authorization
   const usertype = req.user.usertype;
   const allowedUsertypes = ["sysadmin", "user"];
@@ -127,6 +161,17 @@ exports.POST = (req, res) => {
   const db = isStaging
     ? require("../../database-invites-test")
     : require("../../database-invites");
+
+  const userPermissions = await getUserPermissions(db, req.user.userid).catch(
+    (error) => console.log(error)
+  );
+
+  if (typeof userPermissions !== "object") {
+    return res.status(500).send({
+      msg: "unable to query for user permissions",
+      msgType: "error",
+    });
+  }
 
   // Parameters
   const firstName = req.body.firstName || null;
@@ -184,18 +229,20 @@ exports.POST = (req, res) => {
     });
   }
 
-  if (!highestLeadershipRole || !highestLeadershipRole.length) {
-    return res.status(400).send({
-      msg: "highestLeadershipRole is required",
-      msgType: "error",
-    });
-  }
+  if (userPermissions.canAuthToAuth === 1) {
+    if (!highestLeadershipRole || !highestLeadershipRole.length) {
+      return res.status(400).send({
+        msg: "highestLeadershipRole is required",
+        msgType: "error",
+      });
+    }
 
-  if (!["HCL and up", "BTL", "neither"].includes(highestLeadershipRole)) {
-    return res.status(400).send({
-      msg: "invalid value for highestLeadershipRole",
-      msgType: "error",
-    });
+    if (!["HCL and up", "BTL", "neither"].includes(highestLeadershipRole)) {
+      return res.status(400).send({
+        msg: "invalid value for highestLeadershipRole",
+        msgType: "error",
+      });
+    }
   }
 
   if (!methodOfSending || !methodOfSending.length) {
