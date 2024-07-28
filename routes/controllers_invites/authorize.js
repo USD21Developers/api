@@ -39,7 +39,15 @@ const storeSsid = (db, result, preauthid, churchid) => {
     if (typeof result.sid !== "string") return reject();
     if (result.sid.length !== 34) return reject();
 
+    if (!result) return reject();
+
     const { sid, to, date_sent, price, price_unit } = result;
+
+    if (!price) {
+      return resolve();
+    }
+
+    console.log(require(util.inspect(result, 7, true, 7)));
 
     const sql = `
       UPDATE
