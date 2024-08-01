@@ -427,7 +427,8 @@ exports.POST = async (req, res) => {
     const sql = `
       INSERT INTO preauth(
         authorizedby,
-        name,
+        firstname,
+        lastname,
         sentvia,
         canAuthorize,
         canAuthToAuth,
@@ -444,6 +445,7 @@ exports.POST = async (req, res) => {
         ?,
         ?,
         ?,
+        ?,
         UTC_TIMESTAMP()
       )
     `;
@@ -452,7 +454,8 @@ exports.POST = async (req, res) => {
       sql,
       [
         req.user.userid,
-        `${firstName} ${lastName}`,
+        firstName,
+        lastName,
         methodOfSending,
         canAuthorize,
         canAuthToAuth,
