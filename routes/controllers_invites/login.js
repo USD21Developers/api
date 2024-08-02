@@ -73,9 +73,18 @@ exports.POST = (req, res) => {
     const datakey = JSON.parse(result[0].datakey);
 
     if (userstatus !== "registered") {
-      return res
-        .status(400)
-        .send({ msg: "user status is not registered", msgType: "error" });
+      return res.status(400).send({
+        msg: "user status is not registered",
+        msgType: "error",
+      });
+    }
+
+    if (!isAuthorized) {
+      return res.status(400).send({
+        msg: "user is not authorized",
+        msgType: "error",
+        userid: userid,
+      });
     }
 
     // Derive KEK and DEK from stored password
