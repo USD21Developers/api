@@ -80,10 +80,26 @@ exports.POST = (req, res) => {
     }
 
     if (!isAuthorized) {
+      const userToken = jsonwebtoken.sign(
+        {
+          churchid: churchid,
+          userid: userid,
+          usertype: usertype,
+          lang: lang,
+          profilephoto: profilephoto,
+          country: country,
+          passwordmustchange: passwordmustchange,
+          isAuthorized: isAuthorized,
+          canAuthorize: canAuthorize,
+          canAuthToAuth: canAuthToAuth,
+        },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: "8d" }
+      );
       return res.status(400).send({
         msg: "user is not authorized",
         msgType: "error",
-        userid: userid,
+        userToken: userToken,
       });
     }
 
