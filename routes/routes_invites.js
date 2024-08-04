@@ -54,14 +54,23 @@ router.get("/event-list/:userid", authenticateToken, eventList.GET);
 
 // AUTHORIZATION
 
-const authorize = require("./controllers_invites/authorize");
-router.post("/authorize", authenticateToken, authorize.POST);
+const authorizationPreregGrant = require("./controllers_invites/authorization-prereg-grant");
+router.post(
+  "/authorization-prereg-grant",
+  authenticateToken,
+  authorizationPreregGrant.POST
+);
 
-const authorizePre = require("./controllers_invites/authorize-pre");
-router.post("/authorize-pre", authorizePre.POST);
+const authorizationPreregClaim = require("./controllers_invites/authorization-prereg-claim");
+router.post("/authorization-prereg-claim", authorizationPreregClaim.POST);
+
+const authorizationPostregGrant = require("./controllers_invites/authorization-postreg-grant");
+router.post("/authorization-postreg-grant", authorizationPostregGrant.POST);
+
+// IP
 
 const ipMiddleware = function (req, res, next) {
-  const clientIp = requestIp.getClientIp(req);
+  const clientIp = requestIp.getClientIp(req); // IP address of request lives in req, per "request-ip" middleware imported from node_modules in app.js
   next();
 };
 
