@@ -1,3 +1,4 @@
+const jsonwebtoken = require("jsonwebtoken");
 const crypto = require("crypto");
 
 exports.POST = (req, res) => {
@@ -85,6 +86,8 @@ exports.POST = (req, res) => {
           churchid: churchid,
           userid: userid,
           usertype: usertype,
+          firstname: firstname,
+          lastname: lastname,
           lang: lang,
           profilephoto: profilephoto,
           country: country,
@@ -166,7 +169,6 @@ exports.POST = (req, res) => {
           });
         }
 
-        const jsonwebtoken = require("jsonwebtoken");
         const refreshToken = jsonwebtoken.sign(
           {
             churchid: churchid,
