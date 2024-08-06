@@ -67,6 +67,9 @@ router.post("/authorization-prereg-claim", authorizationPreregClaim.POST);
 const authorizationPostregGrant = require("./controllers_invites/authorization-postreg-grant");
 router.post("/authorization-postreg-grant", authorizationPostregGrant.POST);
 
+const authorizingUsers = require("./controllers_invites/authorizing-users");
+router.post("/authorizing-users", authorizingUsers.POST);
+
 // IP
 
 const ipMiddleware = function (req, res, next) {
