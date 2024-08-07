@@ -34,11 +34,13 @@ exports.POST = (req, res) => {
 
       const sql = `
         SELECT
+          churchid,
           userid,
           firstname,
           lastname,
           profilephoto,
-          canAuthToAuth
+          canAuthToAuth,
+          createdAt
         FROM
           users
         WHERE
