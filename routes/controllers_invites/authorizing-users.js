@@ -36,6 +36,7 @@ exports.POST = (req, res) => {
         SELECT
           churchid,
           userid,
+          gender,
           firstname,
           lastname,
           profilephoto,
