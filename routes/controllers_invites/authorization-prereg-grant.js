@@ -267,7 +267,7 @@ exports.POST = async (req, res) => {
     });
   }
 
-  if (["sms", "mms", "whatsapp"].includes(methodOfSending)) {
+  if (methodOfSending === "textmessage") {
     if (!phoneNumber || !phoneNumber.length) {
       return res.status(400).send({
         msg: "phoneNumber is required",
