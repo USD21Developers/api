@@ -1,4 +1,40 @@
 const moment = require("moment");
+const jsonwebtoken = require("jsonwebtoken");
+
+const updatePreAuth = (db, preAuthToken, userId) => {
+  return new Promise((resolve, reject) => {
+    jsonwebtoken.verify(
+      preAuthToken,
+      process.env.REFRESH_TOKEN_SECRET,
+      (err, userdata) => {
+        if (err) {
+          return reject(err);
+        }
+
+        const preAuthId = Math.abs(Number(userdata.id));
+
+        const sql = `
+          UPDATE
+            preauth
+          SET
+            claimedAt = UTC_TIMESTAMP(),
+            userid = ?
+          WHERE
+            id = ?
+          ;
+        `;
+
+        db.query(sql, [preAuthId, userId], (error, result) => {
+          if (error) {
+            return reject(error);
+          }
+
+          return resolve();
+        });
+      }
+    );
+  });
+};
 
 exports.POST = (req, res) => {
   const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
@@ -6,6 +42,7 @@ exports.POST = (req, res) => {
     ? require("../../database-invites-test")
     : require("../../database-invites");
   const token = req.body.token || "";
+  const preAuthToken = req.body.preAuthToken || null;
 
   // Validate
 
@@ -55,6 +92,7 @@ exports.POST = (req, res) => {
         .send({ msg: "token already claimed", msgType: "error" });
     }
 
+    const userId = result[0].userid;
     const currenttime = result[0].currenttime;
     const expiry = result[0].expiry;
     const tokenexpired = moment(expiry).isBefore(currenttime);
@@ -82,12 +120,17 @@ exports.POST = (req, res) => {
         t.token = ?
       ;
     `;
-    db.query(sql, [token], (err, result) => {
+    db.query(sql, [token], async (err, result) => {
       if (err) {
         console.log(err);
         return res
           .status(500)
           .send({ msg: "unable to update token record", msgType: "error" });
+      }
+
+      // Set pre-authorization to claimed
+      if (preAuthToken) {
+        await updatePreAuth(db, preAuthToken, userId);
       }
 
       // Registration confirmed
