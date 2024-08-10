@@ -1,6 +1,55 @@
 const crypto = require("crypto");
 const emailValidator = require("email-validator");
 
+const verifyRegJWT = (registrationJWT) => {
+  return new Promise((resolve, reject) => {
+    const jsonwebtoken = require("jsonwebtoken");
+    jsonwebtoken.verify(
+      registrationJWT,
+      process.env.REFRESH_TOKEN_SECRET,
+      (err, userdata) => {
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve(userdata);
+      }
+    );
+  });
+};
+
+const getPreAuth = (db, id) => {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT
+        canAuthorize,
+        canAuthToAuth,
+        userid AS authorizingUser
+      FROM
+        preauth
+      WHERE
+        id = ?
+      AND
+        expiresAt > UTC_TIMESTAMP()
+      LIMIT 1
+      ;
+    `;
+
+    db.query(sql, [id], (error, result) => {
+      if (error) {
+        console.log(error);
+        return reject(error);
+      }
+
+      if (!result.length) {
+        return reject(new Error("expired"));
+      }
+
+      return resolve(result[0]);
+    });
+  });
+};
+
 exports.POST = (req, res) => {
   const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
   const db = isStaging
@@ -24,6 +73,7 @@ exports.POST = (req, res) => {
   const emailLinkText = req.body.emailLinkText || "";
   const emailSignature = req.body.emailSignature || "";
   const datakey = req.body.dataKey || "";
+  const registrationJWT = req.body.registrationToken || "";
   const settings = JSON.stringify({
     openingPage: "home",
     customInviteText: "",
@@ -137,7 +187,7 @@ exports.POST = (req, res) => {
 
     // Check for duplicate e-mail address
     const sql = `SELECT userid FROM users WHERE email = ? LIMIT 1;`;
-    db.query(sql, [email], (err, result) => {
+    db.query(sql, [email], async (err, result) => {
       if (err) {
         console.log(err);
         return res.status(500).send({
@@ -161,6 +211,31 @@ exports.POST = (req, res) => {
       let isAuthorized = 0;
       let canAuthorize = 0;
       let canAuthToAuth = 0;
+
+      // Apply pre-authorizations from registration JWT (if it exists)
+      if (registrationJWT) {
+        let isValidRegJWT = true;
+        const verifiedRegJWT = await verifyRegJWT(registrationJWT).catch(
+          (err) => {
+            isValidRegJWT = false;
+            console.log(err);
+          }
+        );
+
+        if (isValidRegJWT) {
+          let isValidPreAuth = true;
+          const preAuthId = verifiedRegJWT.id;
+          const preAuth = await getPreAuth(db, preAuthId).catch((err) => {
+            isValidPreAuth = false;
+          });
+
+          if (isValidPreAuth) {
+            isAuthorized = 1;
+            canAuthorize = preAuth.canAuthorize;
+            canAuthToAuth = preAuth.canAuthToAuth;
+          }
+        }
+      }
 
       // Give privileges to USD21 e-mail account holders
       if (isUsd21Email) {
