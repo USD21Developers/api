@@ -1,11 +1,11 @@
 const crypto = require("crypto");
 const emailValidator = require("email-validator");
 
-const verifyRegJWT = (registrationJWT) => {
+const verifyPreAuthToken = (preAuthToken) => {
   return new Promise((resolve, reject) => {
     const jsonwebtoken = require("jsonwebtoken");
     jsonwebtoken.verify(
-      registrationJWT,
+      preAuthToken,
       process.env.REFRESH_TOKEN_SECRET,
       (err, userdata) => {
         if (err) {
@@ -73,7 +73,7 @@ exports.POST = (req, res) => {
   const emailLinkText = req.body.emailLinkText || "";
   const emailSignature = req.body.emailSignature || "";
   const datakey = req.body.dataKey || "";
-  const registrationJWT = req.body.registrationToken || "";
+  const preAuthToken = req.body.preAuthToken || "";
   const settings = JSON.stringify({
     openingPage: "home",
     customInviteText: "",
@@ -212,27 +212,26 @@ exports.POST = (req, res) => {
       let canAuthorize = 0;
       let canAuthToAuth = 0;
 
-      // Apply pre-authorizations from registration JWT (if it exists)
-      if (registrationJWT) {
-        let isValidRegJWT = true;
-        const verifiedRegJWT = await verifyRegJWT(registrationJWT).catch(
-          (err) => {
-            isValidRegJWT = false;
-            console.log(err);
-          }
-        );
+      // Apply permissions from pre-authorization token (if it exists)
+      if (preAuthToken) {
+        let isValidPreAuthToken = true;
+        const verifiedPreAuthToken = await verifyPreAuthToken(
+          preAuthToken
+        ).catch((err) => {
+          isValidPreAuthToken = false;
+        });
 
-        if (isValidRegJWT) {
-          let isValidPreAuth = true;
-          const preAuthId = verifiedRegJWT.id;
+        if (isValidPreAuthToken) {
+          let isVerifiedPreAuthToken = true;
+          const preAuthId = verifiedPreAuthToken.id;
           const preAuth = await getPreAuth(db, preAuthId).catch((err) => {
-            isValidPreAuth = false;
+            isVerifiedPreAuthToken = false;
           });
 
-          if (isValidPreAuth) {
+          if (isVerifiedPreAuthToken) {
             isAuthorized = 1;
-            canAuthorize = preAuth.canAuthorize;
-            canAuthToAuth = preAuth.canAuthToAuth;
+            canAuthorize = preAuth.canAuthorize || 0;
+            canAuthToAuth = preAuth.canAuthToAuth || 0;
           }
         }
       }

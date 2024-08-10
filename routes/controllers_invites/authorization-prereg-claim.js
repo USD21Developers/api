@@ -149,7 +149,7 @@ exports.POST = async (req, res) => {
     const expiresInMilliseconds = futureDate - currentDate;
     const expiresInSeconds = Math.floor(expiresInMilliseconds / 1000);
 
-    const registrationToken = jsonwebtoken.sign(
+    const preAuthToken = jsonwebtoken.sign(
       {
         id: id,
         newUser: {
@@ -172,7 +172,7 @@ exports.POST = async (req, res) => {
     return res.status(200).send({
       msg: "authorization verified",
       msgType: "success",
-      registrationToken: registrationToken,
+      preAuthToken: preAuthToken,
     });
   });
 };
