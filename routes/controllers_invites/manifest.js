@@ -3,10 +3,10 @@ exports.GET = (req, res) => {
 
   let localizedContent = {
     name: {
-      en: "Invites",
+      en: "invites.mobi",
     },
     short_name: {
-      en: "Invites",
+      en: "invites.mobi",
     },
     description: {
       en: "The Invites app is a tool for members in good standing with the International Christian Churches (a.k.a. SoldOut Discipling Movement), online at usd21.org.  It enables users to send digital invites to people that they invite to church functions, such as Sunday services or small discussion groups known as Bible Talks.",
