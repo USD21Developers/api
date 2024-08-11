@@ -11,9 +11,6 @@ exports.GET = (req, res) => {
     description: {
       en: "The Invites app is a tool for members in good standing with the International Christian Churches (a.k.a. SoldOut Discipling Movement), online at usd21.org.  It enables users to send digital invites to people that they invite to church functions, such as Sunday services or small discussion groups known as Bible Talks.",
     },
-    start_url: {
-      en: "https://invites.mobi/?utm_source=homescreen",
-    },
     screenshots: {
       en: [],
     },
@@ -81,10 +78,6 @@ exports.GET = (req, res) => {
 
     if (localizedContent.description[simplifiedCode]) {
       manifest.description = localizedContent.description[simplifiedCode];
-    }
-
-    if (localizedContent.start_url[simplifiedCode]) {
-      manifest.start_url = localizedContent.start_url[simplifiedCode];
     }
 
     if (localizedContent.screenshots[simplifiedCode]) {
