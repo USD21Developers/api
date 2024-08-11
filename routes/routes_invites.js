@@ -3,6 +3,11 @@ const router = express.Router();
 const utils = require("./controllers_invites/utils");
 const authenticateToken = utils.authenticateToken;
 
+// MANIFEST
+
+const manifest = require("./controllers_invites/manifest");
+router.get("/manifest.json", manifest.GET);
+
 // REGISTRATION
 
 const register = require("./controllers_invites/register");
