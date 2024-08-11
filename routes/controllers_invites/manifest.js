@@ -11,6 +11,12 @@ exports.GET = (req, res) => {
     description: {
       en: "The Invites app is a tool for members in good standing with the International Christian Churches (a.k.a. SoldOut Discipling Movement), online at usd21.org.  It enables users to send digital invites to people that they invite to church functions, such as Sunday services or small discussion groups known as Bible Talks.",
     },
+    start_url: {
+      en: "https://invites.mobi/?utm_source=homescreen",
+    },
+    screenshots: {
+      en: [],
+    },
   };
 
   let manifest = {
@@ -19,23 +25,23 @@ exports.GET = (req, res) => {
     description: localizedContent.description.en,
     icons: [
       {
-        src: "/android-chrome-192x192.png",
+        src: "https://invites.mobi/android-chrome-192x192.png",
         sizes: "192x192",
         type: "image/png",
       },
       {
-        src: "/android-chrome-512x512.png",
+        src: "https://invites.mobi/android-chrome-512x512.png",
         sizes: "512x512",
         type: "image/png",
       },
       {
-        src: "/maskable-android-chrome-192x192.png",
+        src: "https://invites.mobi/maskable-android-chrome-192x192.png",
         sizes: "192x192",
         type: "image/png",
         purpose: "maskable",
       },
       {
-        src: "/maskable-android-chrome-512x512.png",
+        src: "https://invites.mobi/maskable-android-chrome-512x512.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
@@ -45,7 +51,7 @@ exports.GET = (req, res) => {
     background_color: "#8882d3",
     display: "standalone",
     orientation: "portrait",
-    start_url: "/?utm_source=homescreen",
+    start_url: "https://invites.mobi/?utm_source=homescreen",
     id: "03420b27-a52f-4643-af3a-857d238673dd",
     dir: "auto",
     scope: "/",
@@ -56,7 +62,7 @@ exports.GET = (req, res) => {
     manifest.start_url = `${manifest.start_url}&preAuthToken=${req.cookies.preAuthToken}`;
   }
 
-  let preferredLanguage = req.headers["Accept-Language"];
+  let preferredLanguage = req.headers["accept-language"];
 
   let favoriteLanguages = preferredLanguage.split(",");
 
