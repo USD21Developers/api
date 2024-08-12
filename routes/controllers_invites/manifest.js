@@ -1,6 +1,4 @@
 exports.GET = (req, res) => {
-  console.log("Cookies: ", req.cookies);
-
   let localizedContent = {
     name: {
       en: "Invites",
