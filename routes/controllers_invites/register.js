@@ -266,6 +266,7 @@ exports.POST = (req, res) => {
       if (isPrivilegedEmailAccount(email)) {
         isAuthorized = 1;
         canAuthorize = 1;
+        canAuthToAuth = 1;
       }
 
       // Derive symmetric encryption key from password
