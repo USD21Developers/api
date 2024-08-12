@@ -237,6 +237,9 @@ exports.POST = async (req, res) => {
     });
   }
 
+  let newUserCanAuthorize = 0;
+  let newUserCanAuthToAuth = 0;
+
   if (userPermissions.canAuthToAuth === 1) {
     if (!highestLeadershipRole || !highestLeadershipRole.length) {
       return res.status(400).send({
@@ -250,6 +253,13 @@ exports.POST = async (req, res) => {
         msg: "invalid value for highestLeadershipRole",
         msgType: "error",
       });
+    }
+
+    if (highestLeadershipRole === "HCL and up") {
+      newUserCanAuthorize = 1;
+      newUserCanAuthToAuth = 1;
+    } else if (highestLeadershipRole === "BTL") {
+      newUserCanAuthorize = 1;
     }
   }
 
@@ -455,8 +465,8 @@ exports.POST = async (req, res) => {
         firstName,
         lastName,
         methodOfSending,
-        canAuthorize,
-        canAuthToAuth,
+        newUserCanAuthorize,
+        newUserCanAuthToAuth,
         churchid,
         authCode,
         expiry,
