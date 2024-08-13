@@ -166,6 +166,7 @@ exports.POST = async (req, res) => {
           lastname: lastname,
         },
         authorizedBy: {
+          userid: authorizedBy,
           firstname: authorizedByFirstName,
           lastname: authorizedByLastName,
         },
