@@ -52,9 +52,16 @@ exports.POST = async (req, res) => {
     });
   }
 
-  if (typeof authcode !== "string") {
+  if (typeof authcode !== "number") {
     return res.status(400).send({
-      msg: "authcode must be a string",
+      msg: "authcode must be a number",
+      msgType: "error",
+    });
+  }
+
+  if (authcode <= 0) {
+    return res.status(400).send({
+      msg: "authcode must be a positive number",
       msgType: "error",
     });
   }
@@ -73,7 +80,7 @@ exports.POST = async (req, res) => {
     });
   }
 
-  if (authcode.length !== 6) {
+  if (authcode.toString().length !== 6) {
     return res.status(400).send({
       msg: "authcode must be exactly 6 characters",
       msgType: "error",
@@ -89,6 +96,7 @@ exports.POST = async (req, res) => {
       p.lastname,
       p.sentvia,
       p.churchid,
+      p.authcode,
       p.expiresAt,
       p.createdAt,
       u.firstname AS authorizedByFirstName,
@@ -140,6 +148,7 @@ exports.POST = async (req, res) => {
       authorizedByFirstName,
       authorizedByLastName,
       sentvia,
+      authcode,
       expiresAt,
       createdAt,
     } = result[0];
@@ -162,6 +171,7 @@ exports.POST = async (req, res) => {
         },
         sentvia: sentvia,
         churchid: churchid,
+        authCode: authcode,
         expiresAt: expiresAt,
         createdAt: createdAt,
       },

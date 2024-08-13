@@ -412,18 +412,26 @@ exports.POST = async (req, res) => {
 
     // Store the authorization
 
-    const randomString = (len) => {
-      var p = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-      return [...Array(len)].reduce(
-        (a) => a + p[~~(Math.random() * p.length)],
-        ""
-      );
-    };
+    function generateOTP(numCharacters = 6) {
+      const randomIntegers = [];
+
+      const firstInt = Math.floor(Math.random() * 9) + 1;
+      randomIntegers.push(firstInt);
+
+      for (let i = 1; i < numCharacters; i++) {
+        const randomInt = Math.floor(Math.random() * 10);
+        randomIntegers.push(randomInt);
+      }
+
+      return parseInt(randomIntegers.join(""), 10);
+    }
 
     const expiry = moment(utcExpiryDate).format("YYYY-MM-DD HH:mm:ss");
 
+    const authCode = generateOTP(6);
+
     let authUrl;
-    const authCode = randomString(6);
+
     if (isLocal) {
       authUrl = `http://localhost:5555/a/#/${churchid}/${req.user.userid}/${authCode}`;
     } else if (isStaging) {
@@ -488,6 +496,7 @@ exports.POST = async (req, res) => {
             msg: "new user authorized",
             msgType: "success",
             qrCodeUrl: authUrl,
+            authCode: authCode,
           });
         }
 
@@ -497,6 +506,7 @@ exports.POST = async (req, res) => {
             msg: "new user authorized",
             msgType: "success",
             url: authUrl,
+            authCode: authCode,
           });
         }
 
@@ -508,8 +518,9 @@ exports.POST = async (req, res) => {
           sentence2HTML,
           sentence3,
           sentence4,
-          sentence5,
-          sentence6,
+          moreInfo,
+          registerBefore,
+          hereIsAuthCode,
           sincerely,
           internetMinistry,
         } = notificationPhrases;
@@ -519,16 +530,18 @@ exports.POST = async (req, res) => {
         if (methodOfSending === "email") {
           let msg = emailTemplate;
           msg = msg.replaceAll("{SENTENCE-1}", sentence1);
-          msg = msg.replaceAll("{SENTENCE-2}", sentence2HTML);
-          msg = msg.replaceAll("{SENTENCE-3}", sentence3);
-          msg = msg.replaceAll("{SENTENCE-4}", sentence4);
-          msg = msg.replaceAll("{SENTENCE-5}", sentence5);
-          msg = msg.replaceAll("{DEADLINE-DATE}", localizedExpiryDate);
-          msg = msg.replaceAll("{MORE-INFO}", sentence6);
           msg = msg.replaceAll("{NEW-USER-FIRST-NAME}", firstName);
           msg = msg.replaceAll("{FIRST-NAME}", userFirstName);
           msg = msg.replaceAll("{LAST-NAME}", userLastName);
+          msg = msg.replaceAll("{SENTENCE-2}", sentence2HTML);
+          msg = msg.replaceAll("{SENTENCE-3}", sentence3);
+          msg = msg.replaceAll("{SENTENCE-4}", sentence4);
+          msg = msg.replaceAll("{MORE-INFO}", moreInfo);
           msg = msg.replaceAll("{LINK}", authUrl);
+          msg = msg.replaceAll("{DEADLINE-DATE}", localizedExpiryDate);
+          msg = msg.replaceAll("{REGISTER-BEFORE}", registerBefore);
+          msg = msg.replaceAll("{HERE-IS-AUTH-CODE}", hereIsAuthCode);
+          msg = msg.replaceAll("{AUTH-CODE}", authCode);
           msg = msg.replaceAll("{SINCERELY}", sincerely);
           msg = msg.replaceAll("{INTERNET-MINISTRY}", internetMinistry);
 
