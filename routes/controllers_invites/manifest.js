@@ -55,9 +55,6 @@ exports.GET = (req, res) => {
 
   if (req.cookies.preAuthToken) {
     manifest.start_url = `${manifest.start_url}&preAuthToken=${req.cookies.preAuthToken}`;
-    console.log("preAuthToken detected in cookies!");
-    console.log(req.cookies.preAuthToken);
-    console.log(manifest.start_url);
   }
 
   let preferredLanguage = req.headers["accept-language"];
