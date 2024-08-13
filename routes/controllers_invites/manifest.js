@@ -54,6 +54,8 @@ exports.GET = (req, res) => {
   };
 
   if (req.cookies.preAuthToken) {
+    console.log("preAuthToken detected in cookies!");
+    console.log(req.cookies.preAuthToken);
     manifest.start_url = `${manifest.start_url}&preAuthToken=${req.cookies.preAuthToken}`;
   }
 
