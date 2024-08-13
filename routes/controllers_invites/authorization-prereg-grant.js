@@ -423,8 +423,8 @@ exports.POST = async (req, res) => {
           msg = msg.replaceAll("{SENTENCE-4}", sentence4);
           msg = msg.replaceAll("{MORE-INFO}", moreInfo);
           msg = msg.replaceAll("{LINK}", authUrl);
-          msg = msg.replaceAll("{DEADLINE-DATE}", localizedExpiryDate);
           msg = msg.replaceAll("{REGISTER-BEFORE}", registerBefore);
+          msg = msg.replaceAll("{DEADLINE-DATE}", localizedExpiryDate);
           msg = msg.replaceAll("{HERE-IS-AUTH-CODE}", hereIsAuthCode);
           msg = msg.replaceAll("{AUTH-CODE}", authCode);
           msg = msg.replaceAll("{SINCERELY}", sincerely);
