@@ -38,21 +38,21 @@ exports.POST = async (req, res) => {
     });
   }
 
-  if (typeof churchid !== "number") {
+  if (isNaN(churchid)) {
     return res.status(400).send({
       msg: "churchid must be a number",
       msgType: "error",
     });
   }
 
-  if (typeof authorizedBy !== "number") {
+  if (isNaN(authorizedBy)) {
     return res.status(400).send({
       msg: "authorizedBy must be a number",
       msgType: "error",
     });
   }
 
-  if (typeof authcode !== "number") {
+  if (isNaN(authcode)) {
     return res.status(400).send({
       msg: "authcode must be a number",
       msgType: "error",
@@ -114,76 +114,80 @@ exports.POST = async (req, res) => {
     ;
   `;
 
-  db.query(sql, [churchid, authorizedBy, authcode], (error, result) => {
-    if (error) {
-      console.log(error);
-      return res.status(500).send({
-        msg: "unable to query for preauth",
-        msgType: "error",
-      });
-    }
+  db.query(
+    sql,
+    [Number(churchid), Number(authorizedBy), Number(authcode)],
+    (error, result) => {
+      if (error) {
+        console.log(error);
+        return res.status(500).send({
+          msg: "unable to query for preauth",
+          msgType: "error",
+        });
+      }
 
-    if (!result.length) {
-      return res.status(404).send({
-        msg: "no records found",
-        msgType: "error",
-      });
-    }
+      if (!result.length) {
+        return res.status(404).send({
+          msg: "no records found",
+          msgType: "error",
+        });
+      }
 
-    const expiry = moment(result[0].expiresAt).utc();
-    const isExpired = now.isAfter(expiry);
+      const expiry = moment(result[0].expiresAt).utc();
+      const isExpired = now.isAfter(expiry);
 
-    if (isExpired) {
-      return res.status(400).send({
-        msg: "preauth is expired",
-        msgType: "error",
-        expiry: expiry.format(),
-      });
-    }
+      if (isExpired) {
+        return res.status(400).send({
+          msg: "preauth is expired",
+          msgType: "error",
+          expiry: expiry.format(),
+        });
+      }
 
-    const {
-      id,
-      firstname,
-      lastname,
-      authorizedByFirstName,
-      authorizedByLastName,
-      sentvia,
-      authcode,
-      expiresAt,
-      createdAt,
-    } = result[0];
+      const {
+        id,
+        firstname,
+        lastname,
+        authorizedByFirstName,
+        authorizedByLastName,
+        sentvia,
+        authcode,
+        expiresAt,
+        createdAt,
+      } = result[0];
 
-    const futureDate = new Date(expiry.format());
-    const currentDate = new Date(now.utc().format());
-    const expiresInMilliseconds = futureDate - currentDate;
-    const expiresInSeconds = Math.floor(expiresInMilliseconds / 1000);
+      const futureDate = new Date(expiry.format());
+      const currentDate = new Date(now.utc().format());
+      const expiresInMilliseconds = futureDate - currentDate;
+      const expiresInSeconds = Math.floor(expiresInMilliseconds / 1000);
 
-    const preAuthToken = jsonwebtoken.sign(
-      {
-        id: id,
-        newUser: {
-          firstname: firstname,
-          lastname: lastname,
+      const preAuthToken = jsonwebtoken.sign(
+        {
+          id: id,
+          newUser: {
+            firstname: firstname,
+            lastname: lastname,
+          },
+          authorizedBy: {
+            userid: Number(authorizedBy),
+            firstname: authorizedByFirstName,
+            lastname: authorizedByLastName,
+          },
+          sentvia: sentvia,
+          churchid: Number(churchid),
+          authCode: Number(authcode),
+          expiresAt: expiresAt,
+          createdAt: createdAt,
         },
-        authorizedBy: {
-          userid: authorizedBy,
-          firstname: authorizedByFirstName,
-          lastname: authorizedByLastName,
-        },
-        sentvia: sentvia,
-        churchid: churchid,
-        authCode: authcode,
-        expiresAt: expiresAt,
-        createdAt: createdAt,
-      },
-      process.env.REFRESH_TOKEN_SECRET,
-      { expiresIn: expiresInSeconds }
-    );
+        process.env.REFRESH_TOKEN_SECRET,
+        { expiresIn: expiresInSeconds }
+      );
 
-    return res.status(200).send({
-      msg: "authorization verified",
-      msgType: "success",
-      preAuthToken: preAuthToken,
-    });
-  });
+      return res.status(200).send({
+        msg: "authorization verified",
+        msgType: "success",
+        preAuthToken: preAuthToken,
+      });
+    }
+  );
 };
