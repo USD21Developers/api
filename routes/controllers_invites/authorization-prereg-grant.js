@@ -1,119 +1,4 @@
 const moment = require("moment-timezone");
-const twilio = require("twilio");
-
-const priceFromUSA = {
-  sms: 0.007,
-  mms: 0.02,
-};
-
-const hasEnoughBalance = async (type = "MMS") => {
-  return new Promise((resolve, reject) => {
-    const price = type === "MMS" ? priceFromUSA.mms : priceFromUSA.sms;
-    const client = twilio(
-      process.env.TWILIO_ACCOUNT_SID,
-      process.env.TWILIO_AUTH_TOKEN
-    );
-
-    client.balance
-      .fetch()
-      .then((data) => {
-        const balance = Math.round(data.balance * 100) / 100;
-        const currency = data.currency;
-        const hasEnough = balance >= price;
-
-        if (currency !== "USD") return resolve(false);
-
-        return resolve(hasEnough);
-      })
-      .catch((error) => {
-        console.log(error);
-        return resolve(false);
-      });
-  });
-};
-
-const storeSsid = (db, result, preauthid, churchid) => {
-  return new Promise((resolve, reject) => {
-    if (!result) return reject();
-    if (!result.hasOwnProperty("sid")) return reject();
-    if (typeof result.sid !== "string") return reject();
-    if (result.sid.length !== 34) return reject();
-
-    if (!result) return reject();
-
-    const { sid, to, date_sent, price, price_unit } = result;
-
-    if (!price) {
-      return resolve();
-    }
-
-    console.log(require(util.inspect(result, 7, true, 7)));
-
-    const sql = `
-      UPDATE
-        preauth
-      SET
-        msgSid = ?
-      WHERE
-        id = ?
-      ;
-    `;
-
-    db.query(sql, [sid, preauthid], (error, result) => {
-      if (error) {
-        console.log(error);
-        return reject();
-      }
-
-      const sql = `
-        INSERT INTO costs_messaging(
-          churchid,
-          preauthid,
-          type,
-          amount,
-          currency,
-          dateIncurredUTC,
-          addedAt
-        ) VALUES(
-          ?,
-          ?,
-          ?,
-          ?,
-          ?,
-          ?,
-          UTC_TIMESTAMP()
-        )
-      `;
-
-      let type;
-
-      if (sid.substring(0, 2) === "SM") {
-        type = "sms";
-      } else if (sid.substring(0, 2) === "MM") {
-        type = "mms";
-      } else if (to.substring(0, 9) === "whatsapp:") {
-        type = "whatsapp";
-      }
-
-      const dateIncurredUTC = moment(date_sent)
-        .utc()
-        .format("YYYY-MM-DD HH:mm:ss");
-
-      db.query(
-        sql,
-        [churchid, preauthid, type, price, price_unit, dateIncurredUTC],
-        (error, result) => {
-          if (error) {
-            console.log(error);
-            return reject();
-          }
-
-          return resolve();
-        }
-      );
-    });
-  });
-};
 
 const getUserPermissions = (db, userid) => {
   return new Promise((resolve, reject) => {
@@ -201,11 +86,9 @@ exports.POST = async (req, res) => {
     "ascii"
   );
 
-  /* if (isWhatsApp) {
+  if (isWhatsApp) {
     methodOfSending = "whatsapp";
-  } else if (methodOfSending === "textmessage") {
-    methodOfSending = "mms"; // default to MMS to ensure that outgoing messages are not broken into multiple parts
-  } */
+  }
 
   // Validate
 
@@ -270,7 +153,9 @@ exports.POST = async (req, res) => {
     });
   }
 
-  if (!["textmessage", "email", "qrcode"].includes(methodOfSending)) {
+  if (
+    !["textmessage", "whatsapp", "email", "qrcode"].includes(methodOfSending)
+  ) {
     return res.status(400).send({
       msg: "invalid value for methodOfSending",
       msgType: "error",
