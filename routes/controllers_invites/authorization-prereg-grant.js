@@ -416,9 +416,9 @@ exports.POST = async (req, res) => {
           let msg = emailTemplate;
           msg = msg.replaceAll("{SENTENCE-1}", sentence1);
           msg = msg.replaceAll("{NEW-USER-FIRST-NAME}", firstName);
+          msg = msg.replaceAll("{SENTENCE-2}", sentence2HTML);
           msg = msg.replaceAll("{FIRST-NAME}", userFirstName);
           msg = msg.replaceAll("{LAST-NAME}", userLastName);
-          msg = msg.replaceAll("{SENTENCE-2}", sentence2HTML);
           msg = msg.replaceAll("{SENTENCE-3}", sentence3);
           msg = msg.replaceAll("{SENTENCE-4}", sentence4);
           msg = msg.replaceAll("{MORE-INFO}", moreInfo);
