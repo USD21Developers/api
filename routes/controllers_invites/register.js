@@ -18,6 +18,51 @@ const verifyPreAuthToken = (preAuthToken) => {
   });
 };
 
+const verifyAuthCode = (db, churchid, authCode) => {
+  return new Promise((resolve, reject) => {
+    let returnObject = {
+      isValid: false,
+      canAuthorize: false,
+      canAuthToAuth: false,
+    };
+    const sql = `
+      SELECT
+        canAuthorize,
+        canAuthToAuth
+      FROM
+        preauth
+      WHERE
+        authcode = ?
+      AND
+        churchid = ?
+      AND
+        userid IS NULL
+      AND
+        claimedAt IS NULL
+      AND
+        expiresAt > UTC_TIMESTAMP()
+      LIMIT 1
+      ;
+    `;
+
+    db.query(sql, [authCode, churchid], (error, result) => {
+      if (error) {
+        return resolve(returnObject);
+      }
+
+      if (!result.length) {
+        return resolve(returnObject);
+      }
+
+      returnObject.isValid = true;
+      returnObject.canAuthorize = result[0].canAuthorize === 1 ? true : false;
+      returnObject.canAuthToAuth = result[0].canAuthToAuth === 1 ? true : false;
+
+      return resolve(returnObject);
+    });
+  });
+};
+
 const getPreAuth = (db, id) => {
   return new Promise((resolve, reject) => {
     const sql = `
@@ -73,7 +118,8 @@ exports.POST = (req, res) => {
   const emailLinkText = req.body.emailLinkText || "";
   const emailSignature = req.body.emailSignature || "";
   const datakey = req.body.dataKey || "";
-  const preAuthToken = req.body.preAuthToken || "";
+  const preAuthToken = req.body.preAuthToken || null;
+  const authCode = req.body.authCode || null;
   const settings = JSON.stringify({
     openingPage: "home",
     customInviteText: "",
@@ -234,6 +280,12 @@ exports.POST = (req, res) => {
             canAuthToAuth = preAuth.canAuthToAuth || 0;
           }
         }
+      } else if (authCode) {
+        const authCodeValidity = await verifyAuthCode(db, churchid, authCode);
+
+        if (authCodeValidity.isValid) isAuthorized = 1;
+        if (authCodeValidity.canAuthorize) canAuthorize = 1;
+        if (authCodeValidity.canAuthToAuth) canAuthToAuth = 1;
       }
 
       // Give privileges to USD21 e-mail account holders
