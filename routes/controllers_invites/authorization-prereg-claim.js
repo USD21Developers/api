@@ -1,5 +1,65 @@
-const jsonwebtoken = require("jsonwebtoken");
 const moment = require("moment");
+
+const getPreAuthData = (db, churchid, authorizedby, authcode) => {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT
+        p.sentvia,
+        p.churchid,
+        DATE_FORMAT(CONVERT_TZ(p.expiresAt, '+00:00', '+00:00'), '%Y-%m-%dT%H:%i:%sZ') AS expiry,
+        p.firstname AS newUserFirstName,
+        p.lastname AS newUserLastName,
+        u.firstname AS authorizedByFirstName,
+        u.lastname AS authorizedByLastName
+      FROM
+        preauth p
+      INNER JOIN users u ON p.authorizedby = u.userid
+      WHERE
+        p.churchid = ?
+      AND
+        p.authorizedby = ?
+      AND
+        p.authcode = ?
+      LIMIT 1
+      ;
+    `;
+
+    db.query(sql, [churchid, authorizedby, authcode], (err, result) => {
+      if (err) {
+        return reject(err);
+      }
+
+      if (!result.length) {
+        return reject(new Error("no records found"));
+      }
+
+      const {
+        sentvia,
+        expiry,
+        newUserFirstName,
+        newUserLastName,
+        authorizedByFirstName,
+        authorizedByLastName,
+      } = result[0];
+
+      const preAuthData = {
+        authorizedBy: {
+          firstname: authorizedByFirstName,
+          lastname: authorizedByLastName,
+          userid: authorizedby,
+        },
+        expiry: expiry,
+        newUser: {
+          firstname: newUserFirstName,
+          lastname: newUserLastName,
+        },
+        sentvia: sentvia,
+      };
+
+      return resolve(preAuthData);
+    });
+  });
+};
 
 exports.POST = async (req, res) => {
   // Set database
@@ -87,107 +147,23 @@ exports.POST = async (req, res) => {
     });
   }
 
-  // Check DB
+  const preAuthArray = [
+    Number(churchid),
+    Number(authorizedBy),
+    Number(authcode),
+  ];
 
-  const sql = `
-    SELECT
-      p.id,
-      p.firstname,
-      p.lastname,
-      p.sentvia,
-      p.churchid,
-      p.authcode,
-      p.expiresAt,
-      p.createdAt,
-      u.firstname AS authorizedByFirstName,
-      u.lastname AS authorizedByLastName
-    FROM
-      preauth p
-    INNER JOIN users u ON u.userid = p.authorizedby
-    WHERE
-      p.churchid = ?
-    AND
-      p.authorizedby = ?
-    AND
-      p.authcode = ?
-    LIMIT 1
-    ;
-  `;
-
-  db.query(
-    sql,
-    [Number(churchid), Number(authorizedBy), Number(authcode)],
-    (error, result) => {
-      if (error) {
-        console.log(error);
-        return res.status(500).send({
-          msg: "unable to query for preauth",
-          msgType: "error",
-        });
-      }
-
-      if (!result.length) {
-        return res.status(404).send({
-          msg: "no records found",
-          msgType: "error",
-        });
-      }
-
-      const expiry = moment(result[0].expiresAt).utc();
-      const isExpired = now.isAfter(expiry);
-
-      if (isExpired) {
-        return res.status(400).send({
-          msg: "preauth is expired",
-          msgType: "error",
-          expiry: expiry.format(),
-        });
-      }
-
-      const {
-        id,
-        firstname,
-        lastname,
-        authorizedByFirstName,
-        authorizedByLastName,
-        sentvia,
-        authcode,
-        expiresAt,
-        createdAt,
-      } = result[0];
-
-      const futureDate = new Date(expiry.format());
-      const currentDate = new Date(now.utc().format());
-      const expiresInMilliseconds = futureDate - currentDate;
-      const expiresInSeconds = Math.floor(expiresInMilliseconds / 1000);
-
-      const preAuthToken = jsonwebtoken.sign(
-        {
-          id: id,
-          newUser: {
-            firstname: firstname,
-            lastname: lastname,
-          },
-          authorizedBy: {
-            userid: Number(authorizedBy),
-            firstname: authorizedByFirstName,
-            lastname: authorizedByLastName,
-          },
-          sentvia: sentvia,
-          churchid: Number(churchid),
-          authCode: Number(authcode),
-          expiresAt: expiresAt,
-          createdAt: createdAt,
-        },
-        process.env.REFRESH_TOKEN_SECRET,
-        { expiresIn: expiresInSeconds }
-      );
-
-      return res.status(200).send({
-        msg: "authorization verified",
-        msgType: "success",
-        preAuthToken: preAuthToken,
-      });
-    }
+  const preAuthData = await getPreAuthData(
+    db,
+    Number(churchid),
+    Number(authorizedBy),
+    Number(authcode)
   );
+
+  return res.status(200).send({
+    msg: "authorization verified",
+    msgType: "success",
+    preAuthArray: preAuthArray,
+    preAuthData: preAuthData,
+  });
 };

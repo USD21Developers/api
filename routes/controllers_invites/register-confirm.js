@@ -1,36 +1,39 @@
 const moment = require("moment");
-const jsonwebtoken = require("jsonwebtoken");
 
-const updatePreAuth = (db, preAuthToken, userId) => {
+const updatePreAuth = (db, preAuth, userId) => {
   return new Promise((resolve, reject) => {
-    jsonwebtoken.verify(
-      preAuthToken,
-      process.env.REFRESH_TOKEN_SECRET,
-      (err, userdata) => {
-        if (err) {
-          return reject(err);
-        }
-
-        const preAuthId = Math.abs(Number(userdata.id));
-
-        const sql = `
+    if (typeof "preAuth" === "string") {
+      preAuth = JSON.parse(preAuth);
+    }
+    const { churchid, authorizedby, authcode } = preAuth;
+    const sql = `
           UPDATE
             preauth
           SET
             claimedAt = UTC_TIMESTAMP(),
             userid = ?
           WHERE
-            id = ?
+            claimedAt IS NULL
+          AND
+            userid IS NULL
+          AND
+            churchid = ?
+          AND
+            authorizedby = ?
+          AND
+            authcode = ?
           ;
         `;
 
-        db.query(sql, [preAuthId, userId], (error, result) => {
-          if (error) {
-            return reject(error);
-          }
+    db.query(
+      sql,
+      [userId, churchid, authorizedby, authcode],
+      (error, result) => {
+        if (error) {
+          return reject(error);
+        }
 
-          return resolve();
-        });
+        return resolve();
       }
     );
   });
@@ -42,7 +45,7 @@ exports.POST = (req, res) => {
     ? require("../../database-invites-test")
     : require("../../database-invites");
   const token = req.body.token || "";
-  const preAuthToken = req.body.preAuthToken || null;
+  const preAuth = req.body.preAuth || null;
 
   // Validate
 
@@ -129,8 +132,8 @@ exports.POST = (req, res) => {
       }
 
       // Set pre-authorization to claimed
-      if (preAuthToken) {
-        await updatePreAuth(db, preAuthToken, userId);
+      if (preAuth) {
+        await updatePreAuth(db, preAuth, userId);
       }
 
       // Registration confirmed

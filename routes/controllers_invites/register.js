@@ -1,23 +1,6 @@
 const crypto = require("crypto");
 const emailValidator = require("email-validator");
 
-const verifyPreAuthToken = (preAuthToken) => {
-  return new Promise((resolve, reject) => {
-    const jsonwebtoken = require("jsonwebtoken");
-    jsonwebtoken.verify(
-      preAuthToken,
-      process.env.REFRESH_TOKEN_SECRET,
-      (err, userdata) => {
-        if (err) {
-          return reject(err);
-        }
-
-        return resolve(userdata);
-      }
-    );
-  });
-};
-
 const verifyAuthCode = (db, churchid, authCode) => {
   return new Promise((resolve, reject) => {
     let returnObject = {
@@ -118,7 +101,7 @@ exports.POST = (req, res) => {
   const emailLinkText = req.body.emailLinkText || "";
   const emailSignature = req.body.emailSignature || "";
   const datakey = req.body.dataKey || "";
-  const preAuthToken = req.body.preAuthToken || null;
+  let preAuth = req.body.preAuth || null;
   const authCode = req.body.authCode || null;
   const settings = JSON.stringify({
     openingPage: "home",
@@ -127,6 +110,12 @@ exports.POST = (req, res) => {
     enablePushNotifications: false,
     autoAddToFollowupList: false,
   });
+
+  if (preAuth) {
+    if (typeof preAuth !== "object") {
+      preAuth = JSON.parse(preAuth);
+    }
+  }
 
   const isUsd21Email =
     email.substring(email.length - 10, email.length) === "@usd21.org"
@@ -258,34 +247,25 @@ exports.POST = (req, res) => {
       let canAuthorize = 0;
       let canAuthToAuth = 0;
 
-      // Apply permissions from pre-authorization token (if it exists)
-      if (preAuthToken) {
-        let isValidPreAuthToken = true;
-        const verifiedPreAuthToken = await verifyPreAuthToken(
-          preAuthToken
-        ).catch((err) => {
-          isValidPreAuthToken = false;
-        });
+      // Apply permissions from pre-authorization (if it exists)
+      if (preAuth) {
+        const preAuthorization = await verifyAuthCode(
+          db,
+          preAuth.churchid,
+          preAuth.authcode
+        );
 
-        if (isValidPreAuthToken) {
-          let isVerifiedPreAuthToken = true;
-          const preAuthId = verifiedPreAuthToken.id;
-          const preAuth = await getPreAuth(db, preAuthId).catch((err) => {
-            isVerifiedPreAuthToken = false;
-          });
-
-          if (isVerifiedPreAuthToken) {
-            isAuthorized = 1;
-            canAuthorize = preAuth.canAuthorize || 0;
-            canAuthToAuth = preAuth.canAuthToAuth || 0;
-          }
+        if (preAuthorization.isValid) {
+          isAuthorized = 1;
+          canAuthorize = preAuthorization.canAuthorize || 0;
+          canAuthToAuth = preAuthorization.canAuthToAuth || 0;
         }
       } else if (authCode) {
-        const authCodeValidity = await verifyAuthCode(db, churchid, authCode);
+        const preAuthorization = await verifyAuthCode(db, churchid, authCode);
 
-        if (authCodeValidity.isValid) isAuthorized = 1;
-        if (authCodeValidity.canAuthorize) canAuthorize = 1;
-        if (authCodeValidity.canAuthToAuth) canAuthToAuth = 1;
+        if (preAuthorization.isValid) isAuthorized = 1;
+        if (preAuthorization.canAuthorize) canAuthorize = 1;
+        if (preAuthorization.canAuthToAuth) canAuthToAuth = 1;
       }
 
       // Give privileges to USD21 e-mail account holders

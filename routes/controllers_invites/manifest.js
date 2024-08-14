@@ -53,8 +53,16 @@ exports.GET = (req, res) => {
     categories: ["productivity", "religion"],
   };
 
-  if (req.cookies.preAuthToken) {
-    manifest.start_url = `${manifest.start_url}&preAuthToken=${req.cookies.preAuthToken}`;
+  if (req.cookies.preAuthArray) {
+    const strPreAuthArray = req.cookies.preAuthArray;
+    const preAuthArray = strPreAuthArray.split(",").map(Number);
+    const churchid = preAuthArray[0];
+    const authorizedby = preAuthArray[1];
+    const authcode = preAuthArray[2];
+
+    manifest.start_url = `${manifest.start_url}&churchid=${churchid}&authorizedby=${authorizedby}&authcode=${authcode}`;
+
+    console.log(`start_url: ${manifest.start_url}`);
   }
 
   let preferredLanguage = req.headers["accept-language"];
