@@ -128,26 +128,20 @@ exports.POST = (req, res) => {
       : false;
 
   let protocol = "https:";
-  let host;
+  let host = "invites.mobi";
 
   switch (process.env.ENV) {
     case "development":
       protocol = "http:";
       host = "localhost:5555";
       break;
+    case "staging":
+      host = "staging.invites.mobi";
     case "production":
       if (isStaging) {
-        if (req.headers.referer.indexOf("staging.invites.usd21.org")) {
-          host = "staging.invites.usd21.org";
-        } else {
-          host = "staging.invites.mobi";
-        }
+        host = "staging.invites.mobi";
       } else {
-        if (req.headers.referer.indexOf("invites.usd21.org")) {
-          host = "invites.usd21.org";
-        } else {
-          host = "invites.mobi";
-        }
+        host = "invites.mobi";
       }
       break;
   }
