@@ -39,7 +39,7 @@ exports.GET = (req, res) => {
         src: "https://invites.mobi/maskable-android-chrome-512x512.png",
         sizes: "512x512",
         type: "image/png",
-        purpose: "any",
+        purpose: "maskable",
       },
     ],
     theme_color: "#102951",
