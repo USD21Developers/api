@@ -9,7 +9,7 @@ const verifyAuthCode = (db, churchid, authCode) => {
       canAuthToAuth: false,
       churchid: {
         asAuthorized: null,
-        asRegistered: churchid,
+        asRegistered: Number(churchid),
       },
       authorizedby: null,
     };
@@ -33,7 +33,7 @@ const verifyAuthCode = (db, churchid, authCode) => {
       ;
     `;
 
-    db.query(sql, [authCode, churchid], (error, result) => {
+    db.query(sql, [Number(authCode), Number(churchid)], (error, result) => {
       if (error) {
         return resolve(returnObject);
       }
@@ -47,12 +47,12 @@ const verifyAuthCode = (db, churchid, authCode) => {
       returnObject.canAuthorize = result[0].canAuthorize === 1 ? true : false;
       returnObject.canAuthToAuth = result[0].canAuthToAuth === 1 ? true : false;
       returnObject.authorizedby = result[0].authorizedby
-        ? result[0].authorizedby
+        ? Number(result[0].authorizedby)
         : null;
-      returnObject.churchid.asAuthorized = result[0].churchid;
+      returnObject.churchid.asAuthorized = Number(result[0].churchid);
 
       // Reset everything if churches don't match
-      if (churchid !== result[0].churchid) {
+      if (Number(churchid) !== Number(result[0].churchid)) {
         returnObject.isValid = false;
         returnObject.canAuthorize = false;
         returnObject.canAuthToAuth = false;
@@ -247,7 +247,7 @@ exports.POST = (req, res) => {
         }
       } else if (authCode) {
         // Apply permissions from authCode (if it exists)
-        const preAuthorization = await verifyAuthCode(db, churchid, authCode);
+        preAuthorization = await verifyAuthCode(db, churchid, authCode);
 
         if (preAuthorization.isValid) isAuthorized = 1;
         if (preAuthorization.canAuthorize) canAuthorize = 1;
@@ -391,11 +391,13 @@ exports.POST = (req, res) => {
                 authcode: "",
               };
 
-              if (authCode) forUrl.authcode = authCode;
+              if (authCode) forUrl.authcode = Number(authCode);
 
               if (preAuthorization) {
-                forUrl.churchid = preAuthorization.churchid.asRegistered;
-                forUrl.authorizedby = preAuthorization.authorizedby;
+                forUrl.churchid = Number(
+                  preAuthorization.churchid.asRegistered
+                );
+                forUrl.authorizedby = Number(preAuthorization.authorizedby);
               }
 
               require("./utils").storeProfileImage(
