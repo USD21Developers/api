@@ -8,18 +8,21 @@ const verifyAuthCode = (db, churchid, authCode) => {
       canAuthorize: false,
       canAuthToAuth: false,
       authorizedby: null,
+      churchid: {
+        asAuthorized: null,
+        asRegistered: churchid,
+      },
     };
     const sql = `
       SELECT
         canAuthorize,
         canAuthToAuth,
-        authorizedby
+        authorizedby,
+        churchid
       FROM
         preauth
       WHERE
         authcode = ?
-      AND
-        churchid = ?
       AND
         userid IS NULL
       AND
@@ -39,12 +42,24 @@ const verifyAuthCode = (db, churchid, authCode) => {
         return resolve(returnObject);
       }
 
+      // Populate return object
       returnObject.isValid = true;
       returnObject.canAuthorize = result[0].canAuthorize === 1 ? true : false;
       returnObject.canAuthToAuth = result[0].canAuthToAuth === 1 ? true : false;
       returnObject.authorizedby = result[0].authorizedby
         ? result[0].authorizedby
         : null;
+      returnObject.churchid.asAuthorized = result[0].churchid;
+
+      // Reset everything if churches don't match
+      if (churchid !== result[0].churchid) {
+        returnObject.isValid = false;
+        returnObject.canAuthorize = false;
+        returnObject.canAuthToAuth = false;
+        console.log(
+          `For userid ${req.user.userid}, churchid as authorized (${returnObject.churchid.asAuthorized}) does not match churchid as registered (${returnObject.churchid.asRegistered}).`
+        );
+      }
 
       return resolve(returnObject);
     });
@@ -215,8 +230,8 @@ exports.POST = (req, res) => {
       let canAuthToAuth = 0;
       let authorizedBy = null;
 
-      // Apply permissions from pre-authorization (if it exists)
       if (preAuth) {
+        // Apply permissions from pre-authorization (if it exists)
         const preAuthorization = await verifyAuthCode(
           db,
           preAuth.churchid,
@@ -232,6 +247,7 @@ exports.POST = (req, res) => {
           }
         }
       } else if (authCode) {
+        // Apply permissions from authCode (if it exists)
         const preAuthorization = await verifyAuthCode(db, churchid, authCode);
 
         if (preAuthorization.isValid) isAuthorized = 1;
