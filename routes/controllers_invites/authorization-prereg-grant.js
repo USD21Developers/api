@@ -317,8 +317,8 @@ exports.POST = async (req, res) => {
         });
       }
 
-      // Text message
-      if (methodOfSending === "textmessage") {
+      // Text message/WhatsApp
+      if (["textmessage", "whatsapp"].includes(methodOfSending)) {
         return res.status(200).send({
           msg: "new user authorized",
           msgType: "success",
