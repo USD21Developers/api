@@ -7,11 +7,11 @@ const verifyAuthCode = (db, churchid, authCode) => {
       isValid: false,
       canAuthorize: false,
       canAuthToAuth: false,
-      authorizedby: null,
       churchid: {
         asAuthorized: null,
         asRegistered: churchid,
       },
+      authorizedby: null,
     };
     const sql = `
       SELECT
@@ -59,36 +59,6 @@ const verifyAuthCode = (db, churchid, authCode) => {
       }
 
       return resolve(returnObject);
-    });
-  });
-};
-
-const setPreAuthAsClaimed = (db, churchid, authCode, newUserId) => {
-  return new Promise((resolve, reject) => {
-    const sql = `
-      UPDATE
-        preauth
-      SET
-        claimedAt = UTC_TIMESTAMP(),
-        userid = ?
-      WHERE
-        churchid = ?
-      AND
-        authCode = ?
-      AND
-        claimedAt IS NULL
-      AND
-        userid IS NULL
-      ;
-    `;
-
-    db.query(sql, [newUserId, churchid, authCode], (err, result) => {
-      if (err) {
-        console.log(err);
-        return reject(err);
-      }
-
-      return resolve();
     });
   });
 };
@@ -257,9 +227,11 @@ exports.POST = (req, res) => {
       let canAuthToAuth = 0;
       let authorizedBy = null;
 
+      let preAuthorization = null;
+
       if (preAuth) {
         // Apply permissions from pre-authorization (if it exists)
-        const preAuthorization = await verifyAuthCode(
+        preAuthorization = await verifyAuthCode(
           db,
           preAuth.churchid,
           preAuth.authcode
@@ -413,9 +385,17 @@ exports.POST = (req, res) => {
               }
 
               const userid = result.insertId;
+              const forUrl = {
+                churchid: "",
+                authorizedby: "",
+                authcode: "",
+              };
 
-              if (authCode) {
-                await setPreAuthAsClaimed(db, churchid, authCode, userid);
+              if (authCode) forUrl.authcode = authCode;
+
+              if (preAuthorization) {
+                forUrl.churchid = preAuthorization.churchid.asRegistered;
+                forUrl.authorizedby = preAuthorization.authorizedby;
               }
 
               require("./utils").storeProfileImage(
@@ -453,7 +433,7 @@ exports.POST = (req, res) => {
 
                 const uuid = require("crypto").randomUUID();
 
-                const confirmationUrl = `${protocol}//${host}/register/confirm/#${registrationToken}`;
+                const confirmationUrl = `${protocol}//${host}/register/confirm/#/${forUrl.churchid}/${forUrl.authorizedby}/${forUrl.authcode}/${registrationToken}`;
 
                 const body = `
                   <p>
