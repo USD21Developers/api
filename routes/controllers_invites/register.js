@@ -7,6 +7,7 @@ const verifyAuthCode = (db, churchid, authCode) => {
       isValid: false,
       canAuthorize: false,
       canAuthToAuth: false,
+      authorizedby: null,
     };
     const sql = `
       SELECT
@@ -41,6 +42,9 @@ const verifyAuthCode = (db, churchid, authCode) => {
       returnObject.isValid = true;
       returnObject.canAuthorize = result[0].canAuthorize === 1 ? true : false;
       returnObject.canAuthToAuth = result[0].canAuthToAuth === 1 ? true : false;
+      returnObject.authorizedby = result[0].authorizedby
+        ? result[0].authorizedby
+        : null;
 
       return resolve(returnObject);
     });
