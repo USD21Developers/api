@@ -63,6 +63,36 @@ const verifyAuthCode = (db, churchid, authCode) => {
   });
 };
 
+const setPreAuthAsClaimed = (db, churchid, authCode, newUserId) => {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      UPDATE
+        preauth
+      SET
+        claimedAt = UTC_TIMESTAMP(),
+        userid = ?
+      WHERE
+        churchid = ?
+      AND
+        authCode = ?
+      AND
+        claimedAt IS NULL
+      AND
+        userid IS NULL
+      ;
+    `;
+
+    db.query(sql, [newUserId, churchid, authCode], (err, result) => {
+      if (err) {
+        console.log(err);
+        return reject(err);
+      }
+
+      return resolve();
+    });
+  });
+};
+
 exports.POST = (req, res) => {
   const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
   const db = isStaging
@@ -383,6 +413,8 @@ exports.POST = (req, res) => {
               }
 
               const userid = result.insertId;
+
+              await setPreAuthAsClaimed(db, churchid, authCode, userid);
 
               require("./utils").storeProfileImage(
                 userid,
