@@ -11,7 +11,8 @@ const verifyAuthCode = (db, churchid, authCode) => {
     const sql = `
       SELECT
         canAuthorize,
-        canAuthToAuth
+        canAuthToAuth,
+        authorizedby
       FROM
         preauth
       WHERE
@@ -42,38 +43,6 @@ const verifyAuthCode = (db, churchid, authCode) => {
       returnObject.canAuthToAuth = result[0].canAuthToAuth === 1 ? true : false;
 
       return resolve(returnObject);
-    });
-  });
-};
-
-const getPreAuth = (db, id) => {
-  return new Promise((resolve, reject) => {
-    const sql = `
-      SELECT
-        canAuthorize,
-        canAuthToAuth,
-        userid AS authorizingUser
-      FROM
-        preauth
-      WHERE
-        id = ?
-      AND
-        expiresAt > UTC_TIMESTAMP()
-      LIMIT 1
-      ;
-    `;
-
-    db.query(sql, [id], (error, result) => {
-      if (error) {
-        console.log(error);
-        return reject(error);
-      }
-
-      if (!result.length) {
-        return reject(new Error("expired"));
-      }
-
-      return resolve(result[0]);
     });
   });
 };
@@ -240,6 +209,7 @@ exports.POST = (req, res) => {
       let isAuthorized = 0;
       let canAuthorize = 0;
       let canAuthToAuth = 0;
+      let authorizedBy = null;
 
       // Apply permissions from pre-authorization (if it exists)
       if (preAuth) {
@@ -253,6 +223,9 @@ exports.POST = (req, res) => {
           isAuthorized = 1;
           canAuthorize = preAuthorization.canAuthorize || 0;
           canAuthToAuth = preAuthorization.canAuthToAuth || 0;
+          if (preAuthorization.authorizedby) {
+            authorizedBy = preAuthorization.authorizedby;
+          }
         }
       } else if (authCode) {
         const preAuthorization = await verifyAuthCode(db, churchid, authCode);
@@ -260,6 +233,9 @@ exports.POST = (req, res) => {
         if (preAuthorization.isValid) isAuthorized = 1;
         if (preAuthorization.canAuthorize) canAuthorize = 1;
         if (preAuthorization.canAuthToAuth) canAuthToAuth = 1;
+        if (preAuthorization.authorizedby) {
+          authorizedBy = preAuthorization.authorizedby;
+        }
       }
 
       // Give privileges to USD21 e-mail account holders
@@ -355,9 +331,9 @@ exports.POST = (req, res) => {
 
           const sql = `
             INSERT INTO users(
-              churchid, username, password, firstname, lastname, gender, email, usertype, lang, country, datakey, isAuthorized, canAuthorize, canAuthToAuth, settings, createdAt
+              churchid, username, password, firstname, lastname, gender, email, usertype, lang, country, datakey, isAuthorized, canAuthorize, canAuthToAuth, authorizedby, settings, createdAt
             ) VALUES (
-              ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, utc_timestamp()
+              ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, utc_timestamp()
             );
           `;
           db.query(
@@ -377,6 +353,7 @@ exports.POST = (req, res) => {
               isAuthorized,
               canAuthorize,
               canAuthToAuth,
+              authorizedBy,
               settings,
             ],
             async (err, result) => {

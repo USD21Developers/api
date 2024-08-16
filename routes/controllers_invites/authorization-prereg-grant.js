@@ -74,21 +74,15 @@ exports.POST = async (req, res) => {
   let methodOfSending = req.body.methodOfSending || null;
   const phoneNumber = req.body.phoneNumber || null;
   const phoneData = req.body.phoneData || null;
-  const isWhatsApp = req.body.isWhatsApp || false;
   const email = req.body.email || null;
   const acceptedOath = req.body.acceptedOath || null;
   const notificationPhrases = req.body.notificationPhrases || null;
   const templates = req.body.templates || null;
   const localizedExpiryDate = req.body.localizedExpiryDate || null;
   const utcExpiryDate = req.body.utcExpiryDate || null;
-  const smsTemplate = Buffer.from(templates.sms, "base64").toString("ascii");
   const emailTemplate = Buffer.from(templates.email, "base64").toString(
     "ascii"
   );
-
-  if (isWhatsApp) {
-    methodOfSending = "whatsapp";
-  }
 
   // Validate
 
