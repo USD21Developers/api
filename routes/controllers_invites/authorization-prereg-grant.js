@@ -113,7 +113,7 @@ exports.POST = async (req, res) => {
     });
   }
 
-  if (typeof churchid !== "number") {
+  if (isNaN(churchid)) {
     return res.status(400).send({
       msg: "churchid must be a number",
       msgType: "error",
@@ -162,7 +162,7 @@ exports.POST = async (req, res) => {
     });
   }
 
-  if (methodOfSending === "textmessage") {
+  if (["textmessage", "whatsapp"].includes(methodOfSending)) {
     if (!phoneNumber || !phoneNumber.length) {
       return res.status(400).send({
         msg: "phoneNumber is required",
@@ -229,223 +229,154 @@ exports.POST = async (req, res) => {
     });
   }
 
-  // Determine permissions of the authorizing user
+  // Store the authorization
+
+  const generateOTP = (numCharacters = 6) => {
+    const randomIntegers = [];
+
+    const firstInt = Math.floor(Math.random() * 9) + 1;
+    randomIntegers.push(firstInt);
+
+    for (let i = 1; i < numCharacters; i++) {
+      const randomInt = Math.floor(Math.random() * 10);
+      randomIntegers.push(randomInt);
+    }
+
+    return parseInt(randomIntegers.join(""), 10);
+  };
+
+  const expiry = moment(utcExpiryDate).format("YYYY-MM-DD HH:mm:ss");
+
+  const authCode = generateOTP(6);
+
+  let authUrl = `https://invites.mobi/a/${churchid}/${req.user.userid}/${authCode}`;
+
+  if (isLocal) {
+    authUrl = `http://localhost:5555/a/#/${churchid}/${req.user.userid}/${authCode}`;
+  } else if (isStaging) {
+    authUrl = `https://staging.invites.mobi/a/${churchid}/${req.user.userid}/${authCode}`;
+  }
 
   const sql = `
-    SELECT
-      firstname AS userFirstName,
-      lastname AS userLastName,
+    INSERT INTO preauth(
+      authorizedby,
+      firstname,
+      lastname,
+      sentvia,
       canAuthorize,
       canAuthToAuth,
-      userType,
-      userStatus
-    FROM
-      users
-    WHERE
-      userid = ?
-    LIMIT 1
-    ;
+      churchid,
+      authcode,
+      expiresAt,
+      createdAt
+    ) VALUES (
+      ?,
+      ?,
+      ?,
+      ?,
+      ?,
+      ?,
+      ?,
+      ?,
+      ?,
+      UTC_TIMESTAMP()
+    );
   `;
 
-  db.query(sql, [req.user.userid], (error, result) => {
-    if (error) {
-      return res.status(500).send({
-        msg: "unable to query for authorizing user's permissions",
-        msgType: "error",
-      });
-    }
-
-    if (!result.length) {
-      return res.status(404).send({
-        msg: "authorizing user was not found",
-        msgType: "error",
-      });
-    }
-
-    const userFirstName = result[0].userFirstName;
-    const userLastName = result[0].userLastName;
-    const canAuthorize = result[0].canAuthorize === 1 ? true : false;
-    const canAuthToAuth = result[0].canAuthToAuth === 1 ? true : false;
-    const userStatus = result[0].userStatus;
-
-    if (userStatus !== "registered") {
-      return res.status(400).send({
-        msg: "invalid userStatus for authorizing user",
-        msgType: "error",
-      });
-    }
-
-    if (!canAuthorize) {
-      return res.status(400).send({
-        msg: "authorizing user does not have permission to authorize",
-        msgType: "error",
-      });
-    }
-
-    if (
-      highestLeadershipRole === "HCL and up" ||
-      highestLeadershipRole === "BTL"
-    ) {
-      if (!canAuthToAuth) {
-        return res.status(400).send({
-          msg: "authorizing user does not have permission to authorize for this leadership role",
+  db.query(
+    sql,
+    [
+      req.user.userid,
+      firstName,
+      lastName,
+      methodOfSending,
+      newUserCanAuthorize,
+      newUserCanAuthToAuth,
+      churchid,
+      authCode,
+      expiry,
+    ],
+    async (error, result) => {
+      if (error) {
+        return res.status(500).send({
+          msg: "unable to store authorization",
           msgType: "error",
-          highestLeadershipRole: highestLeadershipRole,
+        });
+      }
+
+      const insertId = result.insertId;
+
+      // QR Code
+
+      if (methodOfSending === "qrcode") {
+        return res.status(200).send({
+          msg: "new user authorized",
+          msgType: "success",
+          qrCodeUrl: authUrl,
+          authCode: authCode,
+        });
+      }
+
+      // Text message
+      if (methodOfSending === "textmessage") {
+        return res.status(200).send({
+          msg: "new user authorized",
+          msgType: "success",
+          url: authUrl,
+          authCode: authCode,
+        });
+      }
+
+      // E-mail
+
+      const {
+        emailSubject,
+        sentence1,
+        sentence2HTML,
+        sentence3,
+        sentence4,
+        moreInfo,
+        registerBefore,
+        hereIsAuthCode,
+        sincerely,
+        internetMinistry,
+      } = notificationPhrases;
+
+      const utils = require("./utils");
+
+      if (methodOfSending === "email") {
+        let msg = emailTemplate;
+        msg = msg.replaceAll("{SENTENCE-1}", sentence1);
+        msg = msg.replaceAll("{NEW-USER-FIRST-NAME}", firstName);
+        msg = msg.replaceAll("{SENTENCE-2}", sentence2HTML);
+        msg = msg.replaceAll("{FIRST-NAME}", userFirstName);
+        msg = msg.replaceAll("{LAST-NAME}", userLastName);
+        msg = msg.replaceAll("{SENTENCE-3}", sentence3);
+        msg = msg.replaceAll("{SENTENCE-4}", sentence4);
+        msg = msg.replaceAll("{MORE-INFO}", moreInfo);
+        msg = msg.replaceAll("{LINK}", authUrl);
+        msg = msg.replaceAll("{REGISTER-BEFORE}", registerBefore);
+        msg = msg.replaceAll("{DEADLINE-DATE}", localizedExpiryDate);
+        msg = msg.replaceAll("{HERE-IS-AUTH-CODE}", hereIsAuthCode);
+        msg = msg.replaceAll("{AUTH-CODE}", authCode);
+        msg = msg.replaceAll("{SINCERELY}", sincerely);
+        msg = msg.replaceAll("{INTERNET-MINISTRY}", internetMinistry);
+
+        const senderEmail = `invites.mobi <fp-admin@usd21.org>`;
+
+        const emailResult = await utils.sendEmail(
+          email,
+          senderEmail,
+          emailSubject,
+          msg
+        );
+
+        return res.status(200).send({
+          msg: "new user authorized",
+          msgType: "success",
+          emailResult: emailResult,
         });
       }
     }
-
-    // Store the authorization
-
-    function generateOTP(numCharacters = 6) {
-      const randomIntegers = [];
-
-      const firstInt = Math.floor(Math.random() * 9) + 1;
-      randomIntegers.push(firstInt);
-
-      for (let i = 1; i < numCharacters; i++) {
-        const randomInt = Math.floor(Math.random() * 10);
-        randomIntegers.push(randomInt);
-      }
-
-      return parseInt(randomIntegers.join(""), 10);
-    }
-
-    const expiry = moment(utcExpiryDate).format("YYYY-MM-DD HH:mm:ss");
-
-    const authCode = generateOTP(6);
-
-    let authUrl;
-
-    if (isLocal) {
-      authUrl = `http://localhost:5555/a/#/${churchid}/${req.user.userid}/${authCode}`;
-    } else if (isStaging) {
-      authUrl = `https://staging.invites.mobi/a/${churchid}/${req.user.userid}/${authCode}`;
-    } else {
-      authUrl = `https://invites.mobi/a/${churchid}/${req.user.userid}/${authCode}`;
-    }
-
-    const sql = `
-      INSERT INTO preauth(
-        authorizedby,
-        firstname,
-        lastname,
-        sentvia,
-        canAuthorize,
-        canAuthToAuth,
-        churchid,
-        authcode,
-        expiresAt,
-        createdAt
-      ) VALUES (
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        UTC_TIMESTAMP()
-      )
-    `;
-
-    db.query(
-      sql,
-      [
-        req.user.userid,
-        firstName,
-        lastName,
-        methodOfSending,
-        newUserCanAuthorize,
-        newUserCanAuthToAuth,
-        churchid,
-        authCode,
-        expiry,
-      ],
-      async (error, result) => {
-        if (error) {
-          return res.status(500).send({
-            msg: "unable to store authorization",
-            msgType: "error",
-          });
-        }
-
-        const insertId = result.insertId;
-
-        // QR Code
-
-        if (methodOfSending === "qrcode") {
-          return res.status(200).send({
-            msg: "new user authorized",
-            msgType: "success",
-            qrCodeUrl: authUrl,
-            authCode: authCode,
-          });
-        }
-
-        // Text message
-        if (methodOfSending === "textmessage") {
-          return res.status(200).send({
-            msg: "new user authorized",
-            msgType: "success",
-            url: authUrl,
-            authCode: authCode,
-          });
-        }
-
-        // E-mail
-
-        const {
-          emailSubject,
-          sentence1,
-          sentence2HTML,
-          sentence3,
-          sentence4,
-          moreInfo,
-          registerBefore,
-          hereIsAuthCode,
-          sincerely,
-          internetMinistry,
-        } = notificationPhrases;
-
-        const utils = require("./utils");
-
-        if (methodOfSending === "email") {
-          let msg = emailTemplate;
-          msg = msg.replaceAll("{SENTENCE-1}", sentence1);
-          msg = msg.replaceAll("{NEW-USER-FIRST-NAME}", firstName);
-          msg = msg.replaceAll("{SENTENCE-2}", sentence2HTML);
-          msg = msg.replaceAll("{FIRST-NAME}", userFirstName);
-          msg = msg.replaceAll("{LAST-NAME}", userLastName);
-          msg = msg.replaceAll("{SENTENCE-3}", sentence3);
-          msg = msg.replaceAll("{SENTENCE-4}", sentence4);
-          msg = msg.replaceAll("{MORE-INFO}", moreInfo);
-          msg = msg.replaceAll("{LINK}", authUrl);
-          msg = msg.replaceAll("{REGISTER-BEFORE}", registerBefore);
-          msg = msg.replaceAll("{DEADLINE-DATE}", localizedExpiryDate);
-          msg = msg.replaceAll("{HERE-IS-AUTH-CODE}", hereIsAuthCode);
-          msg = msg.replaceAll("{AUTH-CODE}", authCode);
-          msg = msg.replaceAll("{SINCERELY}", sincerely);
-          msg = msg.replaceAll("{INTERNET-MINISTRY}", internetMinistry);
-
-          const senderEmail = `invites.mobi <fp-admin@usd21.org>`;
-
-          const emailResult = await utils.sendEmail(
-            email,
-            senderEmail,
-            emailSubject,
-            msg
-          );
-
-          return res.status(200).send({
-            msg: "new user authorized",
-            msgType: "success",
-            emailResult: emailResult,
-          });
-        }
-      }
-    );
-  });
+  );
 };
