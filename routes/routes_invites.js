@@ -70,7 +70,11 @@ const authorizationPreregClaim = require("./controllers_invites/authorization-pr
 router.post("/authorization-prereg-claim", authorizationPreregClaim.POST);
 
 const authorizationPostregGrant = require("./controllers_invites/authorization-postreg-grant");
-router.post("/authorization-postreg-grant", authorizationPostregGrant.POST);
+router.post(
+  "/authorization-postreg-grant",
+  authenticateToken,
+  authorizationPostregGrant.POST
+);
 
 const authorizingUsers = require("./controllers_invites/authorizing-users");
 router.post("/authorizing-users", authorizingUsers.POST);
