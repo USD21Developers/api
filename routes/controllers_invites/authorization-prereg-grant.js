@@ -4,6 +4,8 @@ const getUserPermissions = (db, userid) => {
   return new Promise((resolve, reject) => {
     const sql = `
       SELECT
+        firstname,
+        lastname,
         usertype,
         userstatus,
         isAuthorized,
@@ -343,8 +345,8 @@ exports.POST = async (req, res) => {
         msg = msg.replaceAll("{SENTENCE-1}", sentence1);
         msg = msg.replaceAll("{NEW-USER-FIRST-NAME}", firstName);
         msg = msg.replaceAll("{SENTENCE-2}", sentence2HTML);
-        msg = msg.replaceAll("{FIRST-NAME}", userFirstName);
-        msg = msg.replaceAll("{LAST-NAME}", userLastName);
+        msg = msg.replaceAll("{FIRST-NAME}", userPermissions.firstname);
+        msg = msg.replaceAll("{LAST-NAME}", userPermissions.lastname);
         msg = msg.replaceAll("{SENTENCE-3}", sentence3);
         msg = msg.replaceAll("{SENTENCE-4}", sentence4);
         msg = msg.replaceAll("{MORE-INFO}", moreInfo);
