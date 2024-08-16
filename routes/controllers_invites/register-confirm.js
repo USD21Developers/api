@@ -2,9 +2,6 @@ const moment = require("moment");
 
 const updatePreAuth = (db, preAuth, userId) => {
   return new Promise((resolve, reject) => {
-    if (typeof "preAuth" === "string") {
-      preAuth = JSON.parse(preAuth);
-    }
     const { churchid, authorizedby, authcode } = preAuth;
     const sql = `
           UPDATE
@@ -131,7 +128,7 @@ exports.POST = (req, res) => {
           .send({ msg: "unable to update token record", msgType: "error" });
       }
 
-      // Set pre-authorization to claimed
+      // Set status of pre-authorization to claimed
       if (preAuth) {
         await updatePreAuth(db, preAuth, userId);
       }
