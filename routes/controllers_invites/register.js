@@ -414,7 +414,9 @@ exports.POST = (req, res) => {
 
               const userid = result.insertId;
 
-              await setPreAuthAsClaimed(db, churchid, authCode, userid);
+              if (authCode) {
+                await setPreAuthAsClaimed(db, churchid, authCode, userid);
+              }
 
               require("./utils").storeProfileImage(
                 userid,
