@@ -56,9 +56,6 @@ const verifyAuthCode = (db, churchid, authCode) => {
         returnObject.isValid = false;
         returnObject.canAuthorize = false;
         returnObject.canAuthToAuth = false;
-        console.log(
-          `For userid ${req.user.userid}, churchid as authorized (${returnObject.churchid.asAuthorized}) does not match churchid as registered (${returnObject.churchid.asRegistered}).`
-        );
       }
 
       return resolve(returnObject);
