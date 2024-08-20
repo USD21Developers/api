@@ -136,7 +136,7 @@ exports.POST = (req, res) => {
   const user = getUser(userid);
   const invite = getInvite(eventid, userid, recipientid);
 
-  Promise.all([event, user, invite]).then((values) => {
+  Promise.allSettled([event, user, invite]).then((values) => {
     // debugger;
     const event = values[0];
     const user = values[1];
