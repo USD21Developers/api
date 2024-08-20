@@ -391,7 +391,7 @@ exports.validateNewPassword = (password) => {
   let isValid = false;
   const zxcvbn = require("zxcvbn");
   const complexityScoreMeasured = zxcvbn(password).score || 0;
-  const minimumComplexityScore = 3;
+  const minimumComplexityScore = 2;
 
   if (complexityScoreMeasured >= minimumComplexityScore) isValid = true;
 
