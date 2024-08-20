@@ -138,9 +138,9 @@ exports.POST = (req, res) => {
 
   Promise.allSettled([event, user, invite]).then((values) => {
     // debugger;
-    const event = values[0];
-    const user = values[1];
-    const recipient = values[2];
+    const event = values[0].value ? values[0].value : null;
+    const user = values[1].value ? values[1].value : null;
+    const recipient = values[2].value ? values[2].value : null;
     return res.status(200).send({
       msg: "invite info retrieved",
       msgType: "success",
