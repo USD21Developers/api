@@ -48,12 +48,12 @@ exports.POST = async (req, res) => {
       msgType: "error",
     });
   }
-  if (!recipientid || !recipientid.length) {
+  /* if (!recipientid || !recipientid.length) {
     return res.status(400).send({
       msg: "recipientid is required",
       msgType: "error",
     });
-  }
+  } */
   if (!country || !country.length) {
     return res.status(400).send({
       msg: "country is required",
