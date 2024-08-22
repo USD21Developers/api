@@ -347,7 +347,7 @@ exports.POST = async (req, res) => {
       db.query(sql, [req.user.userid], (error, result) => {
         if (error) {
           const errorMessage = "unable to query for invites";
-          console.log(`${errMessage}:`, error);
+          console.log(`${errorMessage}:`, error);
           return reject(new Error(errorMessage, error));
         }
 
@@ -361,7 +361,6 @@ exports.POST = async (req, res) => {
             recipientname,
             recipientsms,
             recipientemail,
-            sentvia,
             sharedvia,
             sharedfromcoordinates,
             sharedfromtimezone,
@@ -372,7 +371,7 @@ exports.POST = async (req, res) => {
             unsubscribedFromPushAt,
           } = item;
 
-          if (sentvia === "qrcode") followup = 0;
+          if (sharedvia === "qrcode") followup = 0;
 
           const utctime = moment(invitedAt).format("YYYY-MM-DDTHH:mm:ss");
 
