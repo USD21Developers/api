@@ -38,7 +38,8 @@ exports.POST = async (req, res) => {
       if (value !== 0 && value !== 1) return reject();
 
       const invitationids = unsyncedFollowups.map((item) => {
-        const { invitationid } = item;
+        const { invitationid, sentvia } = item;
+        if (sentvia === "qrcode") return;
         return invitationid;
       });
 
@@ -51,6 +52,8 @@ exports.POST = async (req, res) => {
           invitationid IN (?)
         AND
           userid = ?
+        AND
+          sentvia !== 'qrcode'
         ;
       `;
 

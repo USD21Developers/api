@@ -65,7 +65,10 @@ exports.POST = async (req, res) => {
   function saveUnsyncedFollowups(unsyncedFollowups) {
     const unsyncedFollowupPromises = unsyncedFollowups.map((item) => {
       return new Promise((resolve, reject) => {
-        const { invitationid, followup } = item;
+        let { invitationid, followup, sentvia } = item;
+
+        if (sentvia === "qrcode") followup = 0;
+
         const sql = `
           UPDATE
             invitations
@@ -75,6 +78,8 @@ exports.POST = async (req, res) => {
             invitationid = ?
           AND
             userid =  ?
+          AND
+            sentvia !== 'qrcode'
           ;
         `;
         db.query(
@@ -104,7 +109,7 @@ exports.POST = async (req, res) => {
   function saveUnsyncedInvites(unsyncedInvites) {
     const unsyncedInvitePromises = unsyncedInvites.map((item) => {
       return new Promise((resolve, reject) => {
-        const {
+        let {
           eventid,
           followup,
           sentvia,
@@ -113,6 +118,7 @@ exports.POST = async (req, res) => {
           timezone,
           recipient,
         } = item;
+
         const timeMomentObj = moment.utc(utctime);
         const invitedAt = timeMomentObj.format("YYYY-MM-DD HH:mm:ss");
         const createdAt = moment.utc().format("YYYY-MM-DD HH:mm:ss");
@@ -127,11 +133,14 @@ exports.POST = async (req, res) => {
         const encryptedEmail = recipientemail
           ? JSON.stringify(recipientemail)
           : null;
-        const followUp = followup ? followup : 0;
+        let followUp = followup ? followup : 0;
+
+        if (sentvia === "qrcode") followUp = 0;
 
         const sql = `
           SELECT
-            invitationid
+            invitationid,
+            sentvia
           FROM
             invitations
           WHERE
@@ -180,7 +189,7 @@ exports.POST = async (req, res) => {
                 sql,
                 [
                   eventid,
-                  followup,
+                  followUp,
                   req.user.userid,
                   recipientid,
                   recipientname.trim(),
@@ -240,7 +249,7 @@ exports.POST = async (req, res) => {
                 sql,
                 [
                   eventid,
-                  followup,
+                  followUp,
                   req.user.userid,
                   recipientid,
                   recipientname.trim(),
@@ -319,6 +328,7 @@ exports.POST = async (req, res) => {
           recipientname,
           recipientsms,
           recipientemail,
+          sentvia,
           sharedvia,
           sharedfromcoordinates,
           sharedfromtimezone,
@@ -342,7 +352,7 @@ exports.POST = async (req, res) => {
         }
 
         const invites = result.map((item) => {
-          const {
+          let {
             invitationid,
             isDeleted,
             eventid,
@@ -351,6 +361,7 @@ exports.POST = async (req, res) => {
             recipientname,
             recipientsms,
             recipientemail,
+            sentvia,
             sharedvia,
             sharedfromcoordinates,
             sharedfromtimezone,
@@ -360,6 +371,8 @@ exports.POST = async (req, res) => {
             unsubscribedFromPush,
             unsubscribedFromPushAt,
           } = item;
+
+          if (sentvia === "qrcode") followup = 0;
 
           const utctime = moment(invitedAt).format("YYYY-MM-DDTHH:mm:ss");
 

@@ -21,15 +21,10 @@ exports.POST = (req, res) => {
           .send("invalid access token");
       }
 
-      const {
-        eventid,
-        followup,
-        sentvia,
-        coords,
-        utctime,
-        timezone,
-        recipient,
-      } = invite;
+      let { eventid, followup, sentvia, coords, utctime, timezone, recipient } =
+        invite;
+
+      if (sentvia === "qrcode") followup = 0;
 
       const {
         id: recipientid,

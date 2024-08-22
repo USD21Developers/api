@@ -20,49 +20,154 @@ exports.POST = async (req, res) => {
     : require("../../database-invites");
 
   // Params
-
-  // This param is derived from the QR code, which is scanned by the authorizing user
-  const userid = req.body.userid || null;
-
-  // These params are derived from the form that is completed by the authorizing user
-  const churchid = req.body.churchid || null;
-  const highestLeadershipRole = req.body.highestLeadershipRole || null;
   const acceptedOath = req.body.acceptedOath || null;
-  const welcomeEmailPhrases = req.body.welcomeEmailPhrases || null;
-  const welcomeEmailTemplate = req.body.welcomeEmailTemplate || null;
-  const userToken = req.body.userToken || null;
+  const registrantUserId = req.body.registrantUserId || null;
+  const highestLeadershipRole = req.body.highestLeadershipRole || null; // [ "HCL and up", "BTL", "neither" ]
 
   // TODO:  validate form
 
-  // TODO:  verify authenticity of "userToken" JWT
+  if (!acceptedOath) {
+    return res.status(400).send({
+      msg: "oath is required",
+      msgType: "error",
+    });
+  }
 
-  // TODO:  validate:  new user's account must actually exist
+  if (!registrantUserId) {
+    return res.status(400).send({
+      msg: "registrantUserId is required",
+      msgType: "error",
+    });
+  }
 
-  // TODO:  validate:  new user's account must not be in a "pending confirmation" or "frozen" state; must be "registered"
+  if (isNaN(registrantUserId)) {
+    return res.status(400).send({
+      msg: "registrantUserId must be a number",
+      msgType: "error",
+    });
+  }
 
-  // TODO:  validate:  authorizing user must have "canAuthToAuth" permission if churchid from form is different that churchid in user's account (this could happen if, by the time they are granting the authorization, the new user has already changed churches)
+  if (req.user.canAuthorize !== 1) {
+    return res.status(400).send({
+      msg: "approving user lacks permission to authorize",
+      msgType: "error",
+    });
+  }
 
-  // TODO:  set new user's "canAuthorize" field to 1 (if "highestLeadershipRole" is any higher than "none")
+  if (req.user.canAuthToAuth === 1) {
+    if (!highestLeadershipRole) {
+      return res.status(400).send({
+        msg: "highest leadership role is required",
+        msgType: "error",
+      });
+    }
+  }
 
-  // TODO:  set new user's "canAuthToAuth" field to 1 (if "highestLeadershipRole" is "house church leader or higher")
+  const sql = `
+    SELECT
+      userid AS registrantUserId,
+      churchid,
+      isAuthorized,
+      canAuthorize,
+      canAuthToAuth,
+      authorizedby
+    FROM
+      users
+    WHERE
+      userid = ?
+    LIMIT 1
+    ;
+  `;
 
-  // TODO:  set new user's "isAuthorized" field to 1
+  db.query(sql, [registrantUserId], (error, result) => {
+    if (error) {
+      return res.status(500).send({
+        msg: "unable to query for new user",
+        msgType: "error",
+      });
+    }
 
-  // TODO:  add "authorizedby" field to "users" table.
+    if (!result.length) {
+      return res.status(400).send({
+        msg: "new user not found",
+        msgType: "error",
+      });
+    }
 
-  // TODO:  in "authorization-postreg-grant" script (this script), set "authorizedby" field in "users" table to the userid of the authorizing user.
+    const {
+      registrantUserId,
+      churchid,
+      isAuthorized,
+      canAuthorize,
+      canAuthToAuth,
+      authorizedby,
+      userstatus,
+    } = result[0];
 
-  // TODO:  in "authorization-prereg-claim" script, set "authorizedby" field in "users" table to the userid of the authorizing user.
+    if (userstatus !== "registered") {
+      return res.status(400).send({
+        msg: "invalid user status of new user",
+        msgType: "error",
+      });
+    }
 
-  // TODO:  in the API response, send back both (A) refreshToken and (B) accessToken, so new user doesn't have to log in all over again. User had to log in, in order to access the "/authorize/me/" route on the front end.
+    if (isAuthorized) {
+      return res.status(200).send({
+        msg: "new user authorized",
+        msgType: "success",
+      });
+    }
 
-  let refreshToken;
-  let accessToken;
+    if (req.user.canAuthToAuth !== 1) {
+      if (req.user.churchid !== churchid) {
+        return res.status(400).send({
+          msg: "church of approver must match that of new user",
+          msgType: "error",
+        });
+      }
+    }
 
-  return req.status(200).send({
-    msg: "user is now authorized",
-    msgType: "success",
-    refreshToken: refreshToken,
-    accessToken: accessToken,
+    let newUserCanAuthorize = canAuthorize;
+    let newUserCanAuthToAuth = canAuthToAuth;
+
+    if (["HCL and up", "BTL"].includes(highestLeadershipRole)) {
+      newUserCanAuthorize = 1;
+
+      if (highestLeadershipRole === "HCL and up") {
+        newUserCanAuthToAuth = 1;
+      }
+    }
+
+    const sql = `
+      UPDATE
+        users
+      SET
+        isAuthorized = 1,
+        canAuthorize = ?,
+        canAuthToAuth = ?,
+        authorizedby = ?
+      WHERE
+        userid = ?
+      ;
+    `;
+
+    db.query(
+      sql,
+      [newUserCanAuthorize, newUserCanAuthToAuth, req.user.userid],
+      (error, result) => {
+        if (error) {
+          console.log(error);
+          return res.status(500).send({
+            msg: "unable to authorize new user",
+            msgType: "error",
+          });
+        }
+
+        return req.status(200).send({
+          msg: "new user authorized",
+          msgType: "success",
+        });
+      }
+    );
   });
 };
