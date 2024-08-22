@@ -53,7 +53,7 @@ exports.POST = async (req, res) => {
         AND
           userid = ?
         AND
-          sentvia !== 'qrcode'
+          sharedvia !== 'qrcode'
         ;
       `;
 

@@ -112,7 +112,7 @@ exports.POST = async (req, res) => {
         let {
           eventid,
           followup,
-          sentvia,
+          sharedvia,
           coords,
           utctime,
           timezone,
@@ -140,7 +140,7 @@ exports.POST = async (req, res) => {
         const sql = `
           SELECT
             invitationid,
-            sentvia
+            sharedvia
           FROM
             invitations
           WHERE
@@ -195,7 +195,7 @@ exports.POST = async (req, res) => {
                   recipientname.trim(),
                   encryptedSms,
                   encryptedEmail,
-                  sentvia,
+                  sharedvia,
                   pointCoords,
                   timezone,
                   req.user.lang,
@@ -255,7 +255,7 @@ exports.POST = async (req, res) => {
                   recipientname.trim(),
                   encryptedSms,
                   encryptedEmail,
-                  sentvia,
+                  sharedvia,
                   pointCoords,
                   timezone,
                   req.user.lang,
