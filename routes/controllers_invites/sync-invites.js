@@ -328,7 +328,6 @@ exports.POST = async (req, res) => {
           recipientname,
           recipientsms,
           recipientemail,
-          sentvia,
           sharedvia,
           sharedfromcoordinates,
           sharedfromtimezone,
