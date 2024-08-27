@@ -80,7 +80,7 @@ const authorizingUsers = require("./controllers_invites/authorizing-users");
 router.post("/authorizing-users", authorizingUsers.POST);
 
 const amIAuthorized = require("./controllers_invites/am-i-authorized");
-router.post("/am-i-authorized", authenticateToken, amIAuthorized.POST);
+router.post("/am-i-authorized", amIAuthorized.POST);
 
 // IP
 
