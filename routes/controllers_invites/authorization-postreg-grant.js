@@ -13,7 +13,6 @@ exports.POST = async (req, res) => {
   }
 
   // Set database
-  const isLocal = req.headers.referer.indexOf("localhost") >= 0 ? true : false;
   const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
   const db = isStaging
     ? require("../../database-invites-test")
@@ -70,7 +69,8 @@ exports.POST = async (req, res) => {
       isAuthorized,
       canAuthorize,
       canAuthToAuth,
-      authorizedby
+      authorizedby,
+      userstatus
     FROM
       users
     WHERE
@@ -111,7 +111,7 @@ exports.POST = async (req, res) => {
       });
     }
 
-    if (isAuthorized) {
+    if (isAuthorized === 1) {
       return res.status(200).send({
         msg: "new user authorized",
         msgType: "success",
@@ -153,7 +153,12 @@ exports.POST = async (req, res) => {
 
     db.query(
       sql,
-      [newUserCanAuthorize, newUserCanAuthToAuth, req.user.userid],
+      [
+        newUserCanAuthorize,
+        newUserCanAuthToAuth,
+        req.user.userid,
+        registrantUserId,
+      ],
       (error, result) => {
         if (error) {
           console.log(error);
