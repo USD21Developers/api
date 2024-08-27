@@ -1,16 +1,16 @@
 exports.POST = (req, res) => {
-  // Enforce authorization
-  const usertype = req.user.usertype;
-  const allowedUsertypes = ["sysadmin", "user"];
-  let isAuthorized = false;
-  if (allowedUsertypes.includes(usertype)) isAuthorized = true;
-  if (!isAuthorized) {
-    console.log(`User (userid ${req.user.userid}) is not authorized.`);
-    return res.status(401).send({
-      msg: "user is not authorized for this action",
+  // Params
+  const jwt = req.body.userToken || null;
+
+  // Validate
+  if (!userToken) {
+    return res.status(400).send({
+      msg: "userToken is required",
       msgType: "error",
     });
   }
+
+  const userToken = JSON.parse(jwt);
 
   // Set database
   const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
@@ -28,7 +28,20 @@ exports.POST = (req, res) => {
     ;
   `;
 
-  db.query(sql, [req.user.userid], async (error, result) => {
+  // User must be registered
+  const usertype = userToken.usertype;
+  const allowedUsertypes = ["sysadmin", "user"];
+  let isAuthorized = false;
+  if (allowedUsertypes.includes(usertype)) isAuthorized = true;
+  if (!isAuthorized) {
+    console.log(`User (userid ${userToken.userid}) is not authorized.`);
+    return res.status(401).send({
+      msg: "user is not authorized for this action",
+      msgType: "error",
+    });
+  }
+
+  db.query(sql, [userToken.userid], async (error, result) => {
     if (error) {
       console.log(error);
       return res.status(500).send({
@@ -77,7 +90,7 @@ exports.POST = (req, res) => {
       ;
     `;
 
-    db.query(sql, [req.user.userid], (error, result) => {
+    db.query(sql, [userToken.userid], (error, result) => {
       if (error) {
         console.log(error);
         return res.status(500).send({
