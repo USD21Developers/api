@@ -56,6 +56,7 @@ exports.GET = async (req, res) => {
         usertype,
         userstatus,
         profilephoto,
+        isAuthorized,
         lang,
         country,
         createdAt,
