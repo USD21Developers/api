@@ -113,7 +113,7 @@ exports.POST = async (req, res) => {
 
     if (isAuthorized === 1) {
       return res.status(200).send({
-        msg: "new user authorized",
+        msg: "user already authorized",
         msgType: "success",
       });
     }
