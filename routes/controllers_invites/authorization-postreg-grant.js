@@ -168,7 +168,7 @@ exports.POST = async (req, res) => {
           });
         }
 
-        return req.status(200).send({
+        return res.status(200).send({
           msg: "new user authorized",
           msgType: "success",
         });
