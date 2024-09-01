@@ -28,6 +28,149 @@ exports.POST = async (req, res) => {
   const lastname = req.body.lastname || null;
   const password = req.body.password || null;
   const datakey = req.body.datakey || null;
+  const emailSenderText = req.body.emailSenderText || "";
+  const emailSubject = req.body.emailSubject || "";
+  const emailParagraph1 = req.body.emailParagraph1 || "";
+  const emailLinkText = req.body.emailLinkText || "";
+  const emailSignature = req.body.emailSignature || "";
+
+  let protocol = "https:";
+  let host = "invites.mobi";
+
+  switch (process.env.ENV) {
+    case "development":
+      protocol = "http:";
+      host = "localhost:5555";
+      break;
+    case "staging":
+      host = "staging.invites.mobi";
+    case "production":
+      if (isStaging) {
+        host = "staging.invites.mobi";
+      } else {
+        host = "invites.mobi";
+      }
+      break;
+  }
+
+  const checkEmailChanged = (db, email) => {
+    return new Promise((resolve, reject) => {
+      const sql = `
+        SELECT
+          email
+        FROM
+          users
+        WHERE
+          userid = ?
+        LIMIT 1
+        ;
+      `;
+
+      db.query(sql, [req.user.userid], (error, result) => {
+        if (error) {
+          console.log(error);
+          return resolve(false);
+        }
+
+        if (!result.length) {
+          return resolve(false);
+        }
+
+        const isChanged = result[0].email === email ? false : true;
+
+        return resolve(isChanged);
+      });
+    });
+  };
+
+  const sendChurchEmailAddressConfirmation = (db, email) => {
+    return new Promise((resolve, reject) => {
+      const token = crypto.randomBytes(32).toString("hex");
+      const sql = `
+        INSERT INTO tokens(
+          token,
+          expiry,
+          purpose,
+          userid,
+          createdAt
+        ) VALUES (
+          ?,
+          ADDTIME(utc_timestamp(), "24:0:0"),
+          'church email',
+          ?,
+          utc_timestamp()
+        );
+      `;
+
+      db.query(sql, [token, req.user.userid], (error, result) => {
+        if (error) {
+          return reject(error);
+        }
+
+        const sql = `
+          SELECT
+            firstname,
+            lastname
+          FROM
+            users
+          WHERE
+            userid = ?
+          LIMIT 1
+          ;
+        `;
+
+        db.query(sql, [req.user.userid], (error, result) => {
+          if (error) {
+            console.log(error);
+            return reject(error);
+          }
+
+          if (!result.length) {
+            return reject(new Error("user not found"));
+          }
+
+          const { firstname, lastname } = result[0];
+          const uuid = require("crypto").randomUUID();
+          const confirmationUrl = `${protocol}//${host}/profile/confirm-email/#/${token}`;
+
+          const body = `
+            <p>
+              ${emailParagraph1}
+            </p>
+            <p style="margin: 30px 0">
+              <strong>
+                <big>
+                  <a href="${confirmationUrl}" style="text-decoration: underline" target="_blank" rel="noopener noreferrer">
+                    ${emailLinkText}
+                  </a>
+                </big>
+              </strong>
+            </p>
+            <p>${emailSignature}</p>
+            <br>
+            <br>
+            <div class="messageUUID">
+              <hr style="border: 0; border-top: 1px solid #dddddd" />
+              <small><small style="font-size: 10px; color: #dddddd">
+                Message ID: ${uuid}
+              </small></small>
+            </div>
+          `;
+
+          const recipient = `"${firstname} ${lastname}" <${email}>`;
+          require("./utils")
+            .sendEmail(recipient, emailSenderText, emailSubject, body)
+            .then((result) => {
+              return resolve(result[0]);
+            })
+            .catch((err) => {
+              console.log(err);
+              return reject(err);
+            });
+        });
+      });
+    });
+  };
 
   const updatePassword = (db, datakey, password) => {
     return new Promise((resolve, reject) => {
@@ -161,7 +304,17 @@ exports.POST = async (req, res) => {
     }
   }
 
-  // TODO: implement a process to confirm email address (via e-mail) if it has changed
+  let churchEmailUnverified = 0;
+  let isEmailChanged = false;
+  const isPrivilegedEmailAccount =
+    require("./utils").isPrivilegedEmailAccount(email);
+  if (isPrivilegedEmailAccount) {
+    isEmailChanged = await checkEmailChanged(db, email);
+    if (isEmailChanged) {
+      churchEmailUnverified = 1;
+      await sendChurchEmailAddressConfirmation(db, email);
+    }
+  }
 
   const sql = `
     UPDATE
@@ -169,6 +322,7 @@ exports.POST = async (req, res) => {
     SET
       churchid = ?,
       email = ?,
+      churchEmailUnverified = ?,
       firstname = ?,
       lastname = ?
     WHERE
@@ -178,7 +332,14 @@ exports.POST = async (req, res) => {
 
   db.query(
     sql,
-    [churchid, email, firstname, lastname, req.user.userid],
+    [
+      churchid,
+      email,
+      churchEmailUnverified,
+      firstname,
+      lastname,
+      req.user.userid,
+    ],
     async (error, result) => {
       if (error) {
         console.log(error);
@@ -207,6 +368,7 @@ exports.POST = async (req, res) => {
           firstname,
           lastname,
           email,
+          churchEmailUnverified,
           username,
           gender,
           profilephoto,
@@ -248,6 +410,7 @@ exports.POST = async (req, res) => {
           firstname,
           lastname,
           email,
+          churchEmailUnverified,
           username,
           gender,
           profilephoto,
@@ -268,6 +431,7 @@ exports.POST = async (req, res) => {
             firstname: firstname,
             lastname: lastname,
             email: email,
+            churchEmailUnverified: churchEmailUnverified,
             username: username,
             gender: gender,
             profilephoto: profilephoto,
