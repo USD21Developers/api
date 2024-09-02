@@ -80,7 +80,17 @@ exports.POST = (req, res) => {
 
     if (!isPrivilegedEmailAccount) {
       return res.status(200).send({
-        msg: "email is not church-issued",
+        msg: "unconfirmed",
+        msgType: "success",
+      });
+    }
+
+    const isConfirmedYet =
+      canAuthorize === 1 && canAuthToAuth === 1 ? true : false;
+
+    if (!isConfirmedYet) {
+      return res.status(200).send({
+        msg: "unconfirmed",
         msgType: "success",
       });
     }
@@ -131,7 +141,7 @@ exports.POST = (req, res) => {
     );
 
     return res.status(200).send({
-      msg: "email is church-issued",
+      msg: "confirmed",
       msgType: "success",
       refreshToken: refreshToken,
       accessToken: accessToken,
