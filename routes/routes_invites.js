@@ -169,6 +169,13 @@ router.post(
   profileEmailConfirm.POST
 );
 
+const profileIsPrivilegedEmail = require("./controllers_invites/profile-is-privileged-email");
+router.post(
+  "/profile-is-privileged-email",
+  authenticateToken,
+  profileIsPrivilegedEmail.POST
+);
+
 // INVITES
 
 const invite = require("./controllers_invites/invite");
