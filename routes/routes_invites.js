@@ -162,6 +162,13 @@ router.post("/profile", authenticateToken, profile.POST);
 const profilePhoto = require("./controllers_invites/profile-photo");
 router.post("/profile-photo", authenticateToken, profilePhoto.POST);
 
+const profileEmailConfirm = require("./controllers_invites/profile-email-confirm");
+router.post(
+  "/profile-email-confirm",
+  authenticateToken,
+  profileEmailConfirm.POST
+);
+
 // INVITES
 
 const invite = require("./controllers_invites/invite");
