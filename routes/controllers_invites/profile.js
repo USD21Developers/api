@@ -85,8 +85,36 @@ exports.POST = async (req, res) => {
 
   const sendChurchEmailAddressConfirmation = (db, email) => {
     return new Promise((resolve, reject) => {
-      const token = crypto.randomBytes(32).toString("hex");
       const sql = `
+        SELECT
+          canAuthorize,
+          canAuthToAuth
+        FROM
+          users
+        WHERE
+          userid = ?
+        LIMIT 1
+        ;
+      `;
+
+      db.query(sql, [req.user.userid], (error, result) => {
+        if (error) {
+          console.log(error);
+          return reject(error);
+        }
+
+        if (!result) {
+          return reject(new Error("user not found"));
+        }
+
+        const { canAuthorize, canAuthToAuth } = result[0];
+
+        if (canAuthorize || canAuthToAuth) {
+          return resolve();
+        }
+
+        const token = crypto.randomBytes(32).toString("hex");
+        const sql = `
         INSERT INTO tokens(
           token,
           expiry,
@@ -102,12 +130,12 @@ exports.POST = async (req, res) => {
         );
       `;
 
-      db.query(sql, [token, req.user.userid], (error, result) => {
-        if (error) {
-          return reject(error);
-        }
+        db.query(sql, [token, req.user.userid], (error, result) => {
+          if (error) {
+            return reject(error);
+          }
 
-        const sql = `
+          const sql = `
           SELECT
             firstname,
             lastname
@@ -119,21 +147,21 @@ exports.POST = async (req, res) => {
           ;
         `;
 
-        db.query(sql, [req.user.userid], (error, result) => {
-          if (error) {
-            console.log(error);
-            return reject(error);
-          }
+          db.query(sql, [req.user.userid], (error, result) => {
+            if (error) {
+              console.log(error);
+              return reject(error);
+            }
 
-          if (!result.length) {
-            return reject(new Error("user not found"));
-          }
+            if (!result.length) {
+              return reject(new Error("user not found"));
+            }
 
-          const { firstname, lastname } = result[0];
-          const uuid = require("crypto").randomUUID();
-          const confirmationUrl = `${protocol}//${host}/profile/confirm-email/#/${token}`;
+            const { firstname, lastname } = result[0];
+            const uuid = require("crypto").randomUUID();
+            const confirmationUrl = `${protocol}//${host}/profile/confirm-email/#/${token}`;
 
-          const body = `
+            const body = `
             <p>
               ${emailParagraph1}
             </p>
@@ -157,16 +185,17 @@ exports.POST = async (req, res) => {
             </div>
           `;
 
-          const recipient = `"${firstname} ${lastname}" <${email}>`;
-          require("./utils")
-            .sendEmail(recipient, emailSenderText, emailSubject, body)
-            .then((result) => {
-              return resolve(result[0]);
-            })
-            .catch((err) => {
-              console.log(err);
-              return reject(err);
-            });
+            const recipient = `"${firstname} ${lastname}" <${email}>`;
+            require("./utils")
+              .sendEmail(recipient, emailSenderText, emailSubject, body)
+              .then((result) => {
+                return resolve(result[0]);
+              })
+              .catch((err) => {
+                console.log(err);
+                return reject(err);
+              });
+          });
         });
       });
     });
