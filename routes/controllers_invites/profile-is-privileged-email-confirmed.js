@@ -17,6 +17,29 @@ exports.POST = (req, res) => {
     ? require("../../database-invites-test")
     : require("../../database-invites");
 
+  const reverseChurchEmailUnverified = (db) => {
+    return new Promise((resolve, reject) => {
+      const sql = `
+        UPDATE
+          users
+        SET
+          churchEmailUnverified = 0
+        WHERE
+          userid = ?
+        ;
+      `;
+
+      db.query(sql, [req.user.userid], (error, result) => {
+        if (error) {
+          console.log(error);
+          return reject(error);
+        }
+
+        return resolve();
+      });
+    });
+  };
+
   const sql = `
     SELECT
       churchid,
@@ -26,6 +49,7 @@ exports.POST = (req, res) => {
       firstname,
       lastname,
       email,
+      churchEmailUnverified,
       username,
       gender,
       profilephoto,
@@ -41,7 +65,7 @@ exports.POST = (req, res) => {
     ;
   `;
 
-  db.query(sql, [req.user.userid], (error, result) => {
+  db.query(sql, [req.user.userid], async (error, result) => {
     if (error) {
       console.log(error);
       return res.status(500).send({
@@ -65,6 +89,7 @@ exports.POST = (req, res) => {
       firstname,
       lastname,
       email,
+      churchEmailUnverified,
       username,
       gender,
       profilephoto,
@@ -139,6 +164,8 @@ exports.POST = (req, res) => {
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "10m" }
     );
+
+    await reverseChurchEmailUnverified(db);
 
     return res.status(200).send({
       msg: "confirmed",
