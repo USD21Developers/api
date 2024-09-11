@@ -74,7 +74,7 @@ exports.POST = async (req, res) => {
       u.gender,
       u.profilephoto,
       (
-        SELECT *
+        SELECT COUNT(*)
         FROM events
         WHERE isDeleted <> 1
         AND createdBy = u.userid
