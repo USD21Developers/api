@@ -86,10 +86,6 @@ exports.POST = async (req, res) => {
           sharewithfollowers = 1
         AND
           (
-            frequency <> 'once'
-          )
-        OR
-          (
             frequency = 'once'
             AND
               (
@@ -97,6 +93,10 @@ exports.POST = async (req, res) => {
                 OR
                 multidayenddate >= UTC_TIMESTAMP()
               )
+          )
+        OR
+          (
+            frequency <> 'once'
           )
       ) AS eventsSharing,
       MIN(f.id) AS followid
