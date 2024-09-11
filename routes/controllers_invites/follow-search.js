@@ -74,30 +74,23 @@ exports.POST = async (req, res) => {
       u.gender,
       u.profilephoto,
       (
-        SELECT
-          COUNT(*)
-        FROM
-          events
-        WHERE
-          isDeleted = 0
-        AND
-          createdBy = u.userid
-        AND
-          sharewithfollowers = 1
-        AND
+        SELECT *
+        FROM events
+        WHERE isDeleted <> 1
+        AND createdBy = u.userid
+        AND sharewithfollowers = 1
+        AND (
+          frequency <> 'once'
+          OR
           (
             frequency = 'once'
-            AND
-              (
-                startdate >= UTC_TIMESTAMP()
-                OR
-                multidayenddate >= UTC_TIMESTAMP()
-              )
+            AND (
+              startdate >= UTC_TIMESTAMP
+              OR
+              multidayenddate >= UTC_TIMESTAMP
+            )
           )
-        OR
-          (
-            frequency <> 'once'
-          )
+        )
       ) AS eventsSharing,
       MIN(f.id) AS followid
     FROM
