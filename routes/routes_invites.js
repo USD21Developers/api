@@ -176,6 +176,9 @@ router.post(
   profileIsPrivilegedEmailConfirmed.POST
 );
 
+const newChurch = require("./controllers_invites/new-church");
+router.post("/new-church", authenticateToken, newChurch.POST);
+
 // INVITES
 
 const invite = require("./controllers_invites/invite");
