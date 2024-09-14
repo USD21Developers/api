@@ -21,15 +21,6 @@ exports.POST = async (req, res) => {
   // Parameters
   const countryid = req.body.countryid ? Number(req.body.countryid) : null;
   const churchid = req.body.churchid ? Number(req.body.churchid) : null;
-  const unlistedChurch = req.body.unlistedChurch
-    ? req.body.unlistedChurch
-    : null;
-
-  const handleUnlistedChurch = (db, countryid, unlistedChurch) => {
-    return new Promise((resolve, reject) => {
-      // TODO: notify admin that this church needs to be added
-    });
-  };
 
   if (!countryid) {
     return res.status(400).send({
@@ -39,18 +30,9 @@ exports.POST = async (req, res) => {
   }
 
   if (!churchid) {
-    if (!unlistedChurch) {
-      return res.status(400).send({
-        msg: "unlistedChurch is required",
-        msgType: "error",
-      });
-    }
-
-    const response = await handleUnlistedChurch(db, countryid, unlistedChurch);
-    return res.status(200).send({
-      msg: "admin notified to update churches with unlisted church",
-      msgType: "success",
-      response: response,
+    return res.status(400).send({
+      msg: "churchid is required",
+      msgType: "error",
     });
   }
 
