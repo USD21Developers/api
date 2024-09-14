@@ -19,8 +19,8 @@ exports.POST = async (req, res) => {
     : require("../../database-invites");
 
   // Parameters
-  const countryid = req.body.countryid ? Number(req.body.countryid) : null;
-  const churchid = req.body.churchid ? Number(req.body.churchid) : null;
+  const countryid = req.body.countryid ? req.body.countryid : null;
+  const churchid = req.body.churchid ? req.body.churchid : null;
 
   if (!countryid) {
     return res.status(400).send({
@@ -47,17 +47,21 @@ exports.POST = async (req, res) => {
     ;
   `;
 
-  db.query(sql, [churchid, countryid, req.user.userid], (error, result) => {
-    if (error) {
-      return res.status(500).send({
-        msg: "unable to update churchid",
-        msgType: "error",
+  db.query(
+    sql,
+    [Number(churchid), countryid, req.user.userid],
+    (error, result) => {
+      if (error) {
+        return res.status(500).send({
+          msg: "unable to update churchid",
+          msgType: "error",
+        });
+      }
+
+      return res.status(200).send({
+        msg: "churchid updated",
+        msgType: "success",
       });
     }
-
-    return res.status(200).send({
-      msg: "churchid updated",
-      msgType: "success",
-    });
-  });
+  );
 };
