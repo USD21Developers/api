@@ -23,7 +23,7 @@ exports.POST = async (req, res) => {
   const name = req.body.name || null;
   let email = req.body.email || null;
   let phoneNumber = req.body.phoneNumber || null;
-  const sentvia = req.body.sentvia || null;
+  let sentvia = req.body.sentvia || null;
 
   // Validate
 
@@ -32,6 +32,14 @@ exports.POST = async (req, res) => {
       msg: "invitationid is required",
       msgType: "error",
     });
+  }
+
+  if (sentvia === "sms") {
+    if (!phoneNumber) {
+      if (email) {
+        sentvia = "email";
+      }
+    }
   }
 
   if (!name || name.length === 0) {
