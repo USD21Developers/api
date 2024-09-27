@@ -199,6 +199,9 @@ router.post("/delete-invites", authenticateToken, deleteInvites.POST);
 const undeleteInvite = require("./controllers_invites/undelete-invite");
 router.post("/undelete-invite", authenticateToken, undeleteInvite.POST);
 
+const editInvite = require("./controllers_invites/invite-edit");
+router.post("/invite-edit", authenticateToken, editInvite.POST);
+
 // RECIPIENTS
 
 const recipient = require("./controllers_invites/recipient");
