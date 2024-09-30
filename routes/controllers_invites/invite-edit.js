@@ -21,6 +21,7 @@ exports.POST = async (req, res) => {
   // Parameters
   const invitationid = req.body.invitationid || null;
   const name = req.body.name || null;
+  const removeMap = req.body.removeMap || false;
   let email = req.body.email || null;
   let phoneNumber = req.body.phoneNumber || null;
   let sentvia = req.body.sentvia || null;
@@ -56,7 +57,7 @@ exports.POST = async (req, res) => {
     });
   }
 
-  const sql = `
+  let sql = `
     UPDATE
       invitations
     SET
@@ -70,6 +71,24 @@ exports.POST = async (req, res) => {
       userid = ?
     ;
   `;
+
+  if (removeMap) {
+    sql = `
+      UPDATE
+        invitations
+      SET
+        recipientname = ?,
+        recipientsms = ?,
+        recipientemail = ?,
+        sharedvia = ?,
+        sharedfromcoordinates = NULL
+      WHERE
+        invitationid = ?
+      AND
+        userid = ?
+      ;
+    `;
+  }
 
   db.query(
     sql,
