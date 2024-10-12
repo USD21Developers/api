@@ -248,4 +248,9 @@ router.post(
 const mapEvangelism = require("./controllers_invites/map-evangelism");
 router.post("/map-evangelism", authenticateToken, mapEvangelism.POST);
 
+// ADMIN
+
+const photosPendingReview = require("./controllers_invites/photos-pending-review");
+router.post("/photos-pending-review", authenticateToken, photosPendingReview.POST);
+
 module.exports = router;
