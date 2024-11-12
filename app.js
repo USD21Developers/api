@@ -38,10 +38,10 @@ const every24Hours = "0 0 * * *";
 const everySunday = "* * * * 0";
 const everyMonday = "* * * * 1";
 const everyTuesday = "* * * * 2";
-const everyWednesday = "* * * * 2";
-const everyThursday = "* * * * 2";
-const everyFriday = "* * * * 2";
-const everySaturday = "* * * * 2";
+const everyWednesday = "* * * * 3";
+const everyThursday = "* * * * 4";
+const everyFriday = "* * * * 5";
+const everySaturday = "* * * * 6";
 
 const cronOptions = {
   scheduled: true,
