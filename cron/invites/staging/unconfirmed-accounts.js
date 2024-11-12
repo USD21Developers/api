@@ -4,7 +4,7 @@ exports.unconfirmedAccounts = (schedule, cronOptions) => {
   cron.schedule(
     schedule,
     () => {
-      const db = require("./database-invites-test");
+      const db = require("../../../database-invites-test");
 
       const sql = `
         SELECT userid
@@ -63,7 +63,7 @@ exports.unconfirmedAccounts = (schedule, cronOptions) => {
 
               userids.forEach((userid) => {
                 const deleteProfileImage =
-                  require("./routes/controllers_invites/utils").deleteProfileImage;
+                  require("../../../routes/controllers_invites/utils").deleteProfileImage;
 
                 deletedUsers.push(deleteProfileImage(userid, db));
               });

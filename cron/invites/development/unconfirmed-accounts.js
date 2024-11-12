@@ -4,10 +4,10 @@ exports.unconfirmedAccounts = (schedule, cronOptions) => {
   cron.schedule(
     schedule,
     () => {
-      const db = require("./database-invites");
+      const db = require("../../../database-invites");
 
       const sql = `
-        SELECT userid
+        SELECT u.userid
         FROM users u
         INNER JOIN tokens t ON t.userid = u.userid
         WHERE t.expiry < UTC_TIMESTAMP()
@@ -19,7 +19,9 @@ exports.unconfirmedAccounts = (schedule, cronOptions) => {
           return console.log(err);
         }
 
-        const userids = result.length ? result.join() : "";
+        const userids = result.length
+          ? result.map((item) => item.userid).join()
+          : "";
 
         const sql = `
           DELETE FROM photoreview
@@ -53,8 +55,6 @@ exports.unconfirmedAccounts = (schedule, cronOptions) => {
               if (err) {
                 return console.log(err);
               }
-
-              const userids = userids.split(",").map((item) => Number(item));
 
               if (!Array.isArray(userids)) return;
               if (!userids.length) return;

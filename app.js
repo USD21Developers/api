@@ -33,15 +33,28 @@ app.use("/glc", routes_glc);
 app.use("/services", routes_services);
 
 // cron job variables
-const everyMonday = "* * * * * */Monday";
-const every2Minutes = "* */1 * * * *";
+const every60Seconds = "* * * * *";
+const every24Hours = "0 0 * * *";
+const everySunday = "* * * * 0";
+const everyMonday = "* * * * 1";
+const everyTuesday = "* * * * 2";
+const everyWednesday = "* * * * 2";
+const everyThursday = "* * * * 2";
+const everyFriday = "* * * * 2";
+const everySaturday = "* * * * 2";
+
 const cronOptions = {
   scheduled: true,
   timezone: "America/Phoenix",
 };
 
-require(`./cron/invites/${process.env.ENV}/unconfirmed-accounts`).unconfirmedAccounts(
+/* require(`./cron/invites/${process.env.ENV}/unconfirmed-accounts`).unconfirmedAccounts(
   everyMonday,
+  cronOptions
+); */
+
+require(`./cron/invites/${process.env.ENV}/sync-churches`).syncChurches(
+  every24Hours,
   cronOptions
 );
 
