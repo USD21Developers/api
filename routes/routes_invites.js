@@ -91,6 +91,9 @@ const ipMiddleware = function (req, res, next) {
 
 // SYNC
 
+const syncChurches = require("./controllers_invites/sync-churches");
+router.get("/sync-churches", syncChurches.GET);
+
 const syncEvents = require("./controllers_invites/sync-events");
 router.get("/sync-events", authenticateToken, syncEvents.GET);
 
@@ -251,6 +254,10 @@ router.post("/map-evangelism", authenticateToken, mapEvangelism.POST);
 // ADMIN
 
 const photosPendingReview = require("./controllers_invites/photos-pending-review");
-router.post("/photos-pending-review", authenticateToken, photosPendingReview.POST);
+router.post(
+  "/photos-pending-review",
+  authenticateToken,
+  photosPendingReview.POST
+);
 
 module.exports = router;
