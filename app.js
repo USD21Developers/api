@@ -53,6 +53,11 @@ const cronOptions = {
   cronOptions
 ); */
 
+require(`./cron/invites/staging/sync-churches`).syncChurches(
+  every24Hours,
+  cronOptions
+);
+
 require(`./cron/invites/${process.env.ENV}/sync-churches`).syncChurches(
   every24Hours,
   cronOptions
