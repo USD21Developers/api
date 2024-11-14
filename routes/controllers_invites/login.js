@@ -1,5 +1,6 @@
 const jsonwebtoken = require("jsonwebtoken");
 const crypto = require("crypto");
+let decryptOK = true;
 
 exports.POST = (req, res) => {
   const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
@@ -74,6 +75,8 @@ exports.POST = (req, res) => {
     const datakey = JSON.parse(result[0].datakey);
 
     if (userstatus !== "registered") {
+      decryptOK = false;
+
       return res.status(400).send({
         msg: "user status is not registered",
         msgType: "error",
@@ -81,6 +84,7 @@ exports.POST = (req, res) => {
     }
 
     if (!isAuthorized) {
+      decryptOK = false;
       const userToken = jsonwebtoken.sign(
         {
           churchid: churchid,
@@ -105,6 +109,8 @@ exports.POST = (req, res) => {
         userToken: userToken,
       });
     }
+
+    if (!decryptOK) return;
 
     // Derive KEK and DEK from stored password
     const saltBase64 = new Buffer.from(passwordFromDB.kek.salt, "base64");
