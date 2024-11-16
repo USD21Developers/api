@@ -68,6 +68,7 @@ exports.POST = (req, res) => {
   const db = isStaging
     ? require("../../database-invites-test")
     : require("../../database-invites");
+
   const username = req.body.username.toLowerCase().trim() || "";
   const password = req.body.password || "";
   const email = req.body.email || "";
@@ -80,6 +81,7 @@ exports.POST = (req, res) => {
   const country = req.body.country.substring(0, 2).toLowerCase() || "";
   const churchid = req.body.churchid || "";
   const unlistedchurch = req.body.unlistedchurch || ""; // TODO: notify admin that this church needs to be added
+  const cameToFaithViaApp = req.body.cameToFaithViaApp || null;
   const emailSenderText = req.body.emailSenderText || "";
   const emailSubject = req.body.emailSubject || "";
   const emailParagraph1 = req.body.emailParagraph1 || "";
@@ -180,6 +182,27 @@ exports.POST = (req, res) => {
     return res
       .status(400)
       .send({ msg: "unlisted church missing", msgType: "error" });
+
+  if (!cameToFaithViaApp) {
+    return res.status(400).send({
+      msg: "cameToFaithViaApp is required",
+      msgType: "error",
+    });
+  }
+
+  if (isNaN(cameToFaithViaApp)) {
+    return res.status(400).send({
+      msg: "cameToFaithViaApp must be a number",
+      msgType: "error",
+    });
+  }
+
+  if (cameToFaithViaApp !== 0 && cameToFaithViaApp !== 1) {
+    return res.status(400).send({
+      msg: "cameToFaithViaApp must be equal to either 0 or 1",
+      msgType: "error",
+    });
+  }
 
   if (!datakey.length)
     return res.status(400).send({ msg: "datakey missiong", msgType: "error" });
@@ -350,7 +373,7 @@ exports.POST = (req, res) => {
 
           const sql = `
             INSERT INTO users(
-              churchid, username, password, firstname, lastname, gender, email, usertype, lang, country, datakey, isAuthorized, canAuthorize, canAuthToAuth, authorizedby, settings, createdAt
+              churchid, username, password, firstname, lastname, gender, email, usertype, lang, country, cameToFaithViaApp, datakey, isAuthorized, canAuthorize, canAuthToAuth, authorizedby, settings, createdAt
             ) VALUES (
               ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, utc_timestamp()
             );
@@ -368,6 +391,7 @@ exports.POST = (req, res) => {
               usertype,
               lang,
               country,
+              cameToFaithViaApp,
               dataKeyObj,
               isAuthorized,
               canAuthorize,
