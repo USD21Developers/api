@@ -106,21 +106,21 @@ exports.POST = async (req, res) => {
 
   if (firstname.length && lastname.length) {
     sql += `
-        firstname LIKE ?
+        LOWER(firstname) LIKE LOWER(?)
       AND
-        lastname LIKE ?
+        LOWER(lastname) LIKE LOWER(?)
     `;
-    sqlPlaceholders = [churchid, `%${firstname}`, `%${lastname}`];
+    sqlPlaceholders = [churchid, `${firstname}%`, `${lastname}%`];
   } else if (firstname.length && !lastname.length) {
     sql += `
-      firstname LIKE ?
+      LOWER(firstname) LIKE LOWER(?)
     `;
-    sqlPlaceholders = [churchid, `%${firstname}`];
+    sqlPlaceholders = [churchid, `${firstname}%`];
   } else if (!firstname.length && lastname.length) {
     sql += `
-      lastname LIKE ?
+      LOWER(lastname) LIKE LOWER(?)
     `;
-    sqlPlaceholders = [churchid, `%${lastname}`];
+    sqlPlaceholders = [churchid, `${lastname}%`];
   }
 
   sql += `
