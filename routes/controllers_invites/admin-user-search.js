@@ -19,7 +19,7 @@ exports.POST = async (req, res) => {
     : require("../../database-invites");
 
   // Enforce required church role
-  if (req.user.canAuthorize === 0 && req.user.canAuthToAuth === 0) {
+  if (req.user.canAuthToAuth === 0) {
     return res.status(401).send({
       msg: "user is not authorized for this action",
       msgType: "error",
