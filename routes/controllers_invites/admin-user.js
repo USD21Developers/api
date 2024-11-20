@@ -54,6 +54,7 @@ exports.POST = async (req, res) => {
       // Query
       const sql = `
         SELECT
+          userid,
           churchid,
           username,
           isAuthorized,
