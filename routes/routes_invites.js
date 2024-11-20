@@ -256,6 +256,9 @@ router.post("/map-evangelism", authenticateToken, mapEvangelism.POST);
 const adminUserSearch = require("./controllers_invites/admin-user-search");
 router.post("/admin-user-search", authenticateToken, adminUserSearch.POST);
 
+const adminUser = require("./controllers_invites/admin-user");
+router.post("/admin-user", authenticateToken, adminUser.POST);
+
 const photosPendingReview = require("./controllers_invites/photos-pending-review");
 router.post(
   "/photos-pending-review",
