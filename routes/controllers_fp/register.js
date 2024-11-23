@@ -101,8 +101,9 @@ exports.POST = (req, res) => {
       let may_create_preauthorized_users = 0;
 
       // Designate usertype as "sysadmin" if user's e-mail is a match
-      const superUsers = ["jeremy@usd21.org", "jason.mcneill@usd21.org"];
-      if (superUsers.includes(email)) {
+      const superUsers = JSON.parse(process.env.SUPERUSERS_FP);
+      const superUserEmails = superUsers.map((item) => item.email);
+      if (superUserEmails.includes(email)) {
         usertype = "sysadmin";
       }
 
