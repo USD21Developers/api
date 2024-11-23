@@ -99,22 +99,15 @@ exports.POST = (req, res) => {
       let usertype = "user";
       let may_create_coupons = 0;
       let may_create_preauthorized_users = 0;
-      
+
       // Designate usertype as "sysadmin" if user's e-mail is a match
-      const listOfSysadmins = [
-        "kip@usd21.org",
-        "ron@usd21.org",
-        "jeremy@usd21.org",
-        "jason.mcneill@usd21.org"
-      ];
-      if (listOfSysadmins.includes(email)) {
+      const superUsers = ["jeremy@usd21.org", "jason.mcneill@usd21.org"];
+      if (superUsers.includes(email)) {
         usertype = "sysadmin";
       }
 
       // Designate user as authorized to create coupons if user's e-mail is a match
-      const listOfAuthorizedCouponMakers = [
-        "donna.cruz@usd21.org"
-      ];
+      const listOfAuthorizedCouponMakers = ["donna.cruz@usd21.org"];
       if (listOfAuthorizedCouponMakers.includes(email)) {
         may_create_coupons = 1;
       }
@@ -184,7 +177,7 @@ exports.POST = (req, res) => {
               country,
               usertype,
               may_create_coupons,
-              may_create_preauthorized_users
+              may_create_preauthorized_users,
             ],
             (err, result) => {
               if (err) {
