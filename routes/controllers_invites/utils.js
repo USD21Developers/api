@@ -43,6 +43,38 @@ exports.isPrivilegedEmailAccount = (email = "") => {
   return isPrivilegedEmail;
 };
 
+exports.isSuperUser = (db, userid) => {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT
+        email
+      FROM
+        users
+      WHERE
+        userid = ?
+      LIMIT 1
+      ;
+    `;
+
+    db.query(sql, [userid], (error, result) => {
+      if (error) {
+        return reject(error);
+      }
+
+      if (!result.length) {
+        return reject("no records found");
+      }
+
+      const email = result[0].email;
+      const superUsers = JSON.parse(process.env.SUPERUSERS_INVITES);
+      const superUsersEmails = superUsers.map((item) => item.email);
+      const isSuper = superUsersEmails.includes(email);
+
+      return resolve(isSuper);
+    });
+  });
+};
+
 exports.sendSms = (recipient, content) => {
   const twilio = require("twilio");
   const client = new twilio(

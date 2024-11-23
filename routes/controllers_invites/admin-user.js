@@ -49,6 +49,35 @@ exports.POST = async (req, res) => {
     });
   }
 
+  const getRequesterEmail = (db, userid) => {
+    return new Promise((resolve, reject) => {
+      const sql = `
+        SELECT
+          email
+        FROM
+          users
+        WHERE
+          userid = ?
+        LIMIT 1
+        ;
+      `;
+
+      db.query(sql, [userid], (error, result) => {
+        if (error) {
+          return reject(error);
+        }
+
+        if (!result.length) {
+          return reject("no records found");
+        }
+
+        const email = result[0].email;
+
+        return resolve(email);
+      });
+    });
+  };
+
   const getUser = (db, userid) => {
     return new Promise((resolve, reject) => {
       // Query
@@ -94,42 +123,48 @@ exports.POST = async (req, res) => {
   };
 
   const getAuthorizedBy = (db, userid) => {
-    const sql = `
-      SELECT
-        userid,
-        firstname,
-        lastname,
-        churchid
-      FROM
-        users
-      WHERE
-        userid = ?
-      LIMIT 1
-      ;
-    `;
+    return new Promise((resolve, reject) => {
+      const sql = `
+        SELECT
+          userid,
+          firstname,
+          lastname,
+          churchid
+        FROM
+          users
+        WHERE
+          userid = ?
+        LIMIT 1
+        ;
+      `;
 
-    db.query(sql, [userid], (error, result) => {
-      if (error) {
-        return reject(error);
-      }
+      db.query(sql, [userid], (error, result) => {
+        if (error) {
+          return reject(error);
+        }
 
-      const authorizedUser = result.length ? result : null;
+        const authorizedUser = result.length ? result : null;
 
-      return resolve(authorizedUser);
+        return resolve(authorizedUser);
+      });
     });
   };
 
+  const requesterIsSuperUser = await require("./utils").isSuperUser(
+    db,
+    req.user.userid
+  );
+
   const user = await getUser(db, userid);
 
-  const authorizedByUser = await getUser(db, user.authorizedby);
-
-  if (authorizedByUser) {
-    user.authorizedby = authorizedByUser;
-  }
+  user.authorizedby = isNaN(user.authorizedby)
+    ? null
+    : await getAuthorizedBy(db, user.authorizedby);
 
   return res.status(200).send({
     msg: "user retrieved",
     msgType: "success",
     user: user,
+    editable: requesterIsSuperUser,
   });
 };
