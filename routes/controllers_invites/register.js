@@ -293,8 +293,9 @@ exports.POST = (req, res) => {
       }
 
       // Designate usertype as "sysadmin" if user's e-mail is a match
-      const listOfSysadmins = ["jeremy@usd21.org", "jason.mcneill@usd21.org"];
-      if (listOfSysadmins.includes(email)) {
+      const superUsers = JSON.parse(process.env.SUPERUSERS_INVITES);
+      const superUserEmails = superUsers.map((item) => item.email);
+      if (superUserEmails.includes(email)) {
         usertype = "sysadmin";
       }
 
