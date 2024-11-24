@@ -259,6 +259,9 @@ router.post("/admin-user-search", authenticateToken, adminUserSearch.POST);
 const adminUser = require("./controllers_invites/admin-user");
 router.post("/admin-user", authenticateToken, adminUser.POST);
 
+const adminUserUpdate = require("./controllers_invites/admin-user-update");
+router.post("/admin-user-update", authenticateToken, adminUserUpdate.POST);
+
 const photosPendingReview = require("./controllers_invites/photos-pending-review");
 router.post(
   "/photos-pending-review",
