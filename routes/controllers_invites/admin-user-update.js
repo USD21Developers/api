@@ -19,6 +19,7 @@ exports.POST = async (req, res) => {
     : require("../../database-invites");
 
   const isSuperUser = await require("./utils").isSuperUser(db, req.user.userid);
+  let churchEmailUnverified = 0;
 
   // Params
   const userid = req.body.userid || null;
@@ -32,6 +33,98 @@ exports.POST = async (req, res) => {
   const userstatus = req.body.userstatus || null;
   const canAuthorize = req.body.canAuthorize || 0;
   const canAuthToAuth = req.body.canAuthToAuth || 0;
+
+  const getUser = (db, userid) => {
+    return new Promise((resolve, reject) => {
+      const sql = `
+        SELECT
+          userid,
+          churchid,
+          isAuthorized,
+          canAuthorize,
+          canAuthToAuth,
+          firstname,
+          lastname,
+          churchEmailUnverified,
+          usertype,
+          userstatus,
+          lang,
+          country,
+          timezone,
+          createdAt,
+          updatedAt
+        FROM
+          users
+        WHERE
+          userid = ?
+        LIMIT 1
+        ;
+      `;
+
+      db.query(sql, [userid], (error, result) => {
+        if (error) {
+          return reject(error);
+        }
+
+        if (!result.length) {
+          return reject(new Error("user not found"));
+        }
+
+        const user = result[0];
+
+        return resolve(user);
+      });
+    });
+  };
+
+  const getSysadmin = (db, userid) => {
+    return new Promise((resolve, reject) => {
+      const sql = `
+        SELECT
+          userid,
+          churchid,
+          isAuthorized,
+          canAuthorize,
+          canAuthToAuth,
+          firstname,
+          lastname,
+          churchEmailUnverified,
+          usertype,
+          userstatus,
+          lang,
+          country,
+          timezone,
+          createdAt,
+          updatedAt
+        FROM
+          users
+        WHERE
+          userid = ?
+        AND
+          usertype = 'sysadmin'
+        LIMIT 1
+        ;
+      `;
+
+      db.query(sql, [userid], (error, result) => {
+        if (error) {
+          return reject(error);
+        }
+
+        if (!result.length) {
+          return reject(new Error("sysadmin not found"));
+        }
+
+        const sysadmin = result[0];
+
+        return resolve(sysadmin);
+      });
+    });
+  };
+
+  const user = await getUser(db, userid);
+
+  churchEmailUnverified = user.churchEmailUnverified;
 
   const checkIfEmailAlreadyInUse = (db, email, userid) => {
     return new Promise((resolve, reject) => {
@@ -73,7 +166,8 @@ exports.POST = async (req, res) => {
           firstname = ?,
           lastname = ?,
           email = ?,
-          usertype = ?
+          usertype = ?,
+          churchEmailUnverified = ?
         WHERE
           userid = ?
         ;
@@ -88,6 +182,7 @@ exports.POST = async (req, res) => {
           lastname.trim(),
           email.trim().toLowerCase(),
           usertype,
+          churchEmailUnverified,
         ],
         (error, result) => {
           if (error) {
@@ -343,20 +438,96 @@ exports.POST = async (req, res) => {
       });
     }
 
-    // TODO:  superUser must not downgrade their own usertype
-    // TODO:  superUser must not set their own userstatus to "frozen"
-    // TODO:  superUser must not set "canAuthorize" to 0
-    // TODO:  superUser must not set "canAuthToAuth" to 0
+    if (isSuperUser) {
+      if (usertypeNew !== "sysadmin") {
+        return res.status(400).send({
+          msg: "insufficient permissions to downgrade usertype for this user",
+          msgType: "error",
+        });
+      }
+
+      if (userstatus === "frozen") {
+        return res.status(400).send({
+          msg: "insufficient permissions to set userstatus to frozen for this user",
+          msgType: "error",
+        });
+      }
+
+      if (Number(canAuthorize) !== 1) {
+        return res.status(400).send({
+          msgType:
+            "insufficient permissions to downgrade canAuthorize for this user",
+          msgType: "error",
+        });
+      }
+
+      if (Number(canAuthToAuth) !== 1) {
+        return res.status(400).send({
+          msgType:
+            "insufficient permissions to downgrade canAuthToAuth for this user",
+          msgType: "error",
+        });
+      }
+
+      const isPrivilegedEmailAccount =
+        require("./utils").isPrivilegedEmailAccount;
+      const currentEmailIsPrivileged = isPrivilegedEmailAccount(user.email);
+      const newEmailIsPrivileged = isPrivilegedEmailAccount(email);
+
+      if (newEmailIsPrivileged && !currentEmailIsPrivileged) {
+        churchEmailUnverified = 1;
+      }
+    }
 
     await updateAsSuperUser(db);
   }
 
-  // TODO:  sysadmin must not downgrade their own usertype
-  // TODO:  sysadmin must not set their own userstatus to "frozen"
-  // TODO:  sysadmin must not set "canAuthorize" to 0
-  // TODO:  sysadmin must not set "canAuthToAuth" to 0
-  // TODO:  sysadmin must not update a user from another congregation
+  if (user.userid === req.user.userid) {
+    if (user.usertype === "sysadmin" && usertypeNew !== "sysadmin") {
+      return res.status(400).send({
+        msg: "sysadmins cannot downgrade their own usertype",
+        msgType: "error",
+      });
+    }
+
+    if (user.usertype === "sysadmin") {
+      if (user.userstatus !== "frozen" && userstatus === "frozen") {
+        return res.status(400).send({
+          msg: "sysadmins cannot downgrade their own userstatus",
+          msgType: "error",
+        });
+      }
+
+      if (user.canAuthorize === 1 && canAuthorize !== 1) {
+        return res.status(400).send({
+          msg: "sysadmins cannot downgrade their own canAuthorize setting",
+          msgType: "error",
+        });
+      }
+
+      if (user.canAuthToAuth === 1 && canAuthToAuth !== 1) {
+        return res.status(400).send({
+          msg: "sysadmins cannot downgrade their own canAuthToAuth setting",
+          msgType: "error",
+        });
+      }
+    }
+  }
+
+  if (req.user.usertype === "sysadmin" && !isSuperUser) {
+    const sysAdminUser = await getSysadmin(db, req.user.userid);
+
+    if (sysAdminUser.churchid !== user.churchid) {
+      return res.status(400).send({
+        msg: "insufficient permissions to modify a user from another congregation",
+        msgType: "error",
+      });
+    }
+  }
+
   // TODO:  set a limit for how frequently a user's churchid can be changed (e.g. not more frequently than 30 days)
+  // TODO:  implement a new table to log all pre-authorizations (record the full name of the authorizing user as it was spelled at the time)
+  // TODO:  implement a new table to log both upgrades and downgrades of users' ability to pre-authorize
 
   return res.status(200).send({
     msg: "user updated",
