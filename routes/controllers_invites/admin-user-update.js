@@ -123,6 +123,13 @@ exports.POST = async (req, res) => {
   };
 
   const user = await getUser(db, userid);
+  const sysadmin = await getSysadmin(db, req.user.userid);
+
+  const changesToLog = {
+    userBefore: user,
+    userAfter: user,
+    sysadmin: sysadmin,
+  };
 
   churchEmailUnverified = user.churchEmailUnverified;
 
@@ -189,9 +196,23 @@ exports.POST = async (req, res) => {
             return reject(error);
           }
 
+          changesToLog.userAfter.firstname = firstname.trim();
+          changesToLog.userAfter.lastname = lastname.trim();
+          changesToLog.userAfter.email = email.trim().toLowerCase();
+          changesToLog.userAfter.usertype = usertype;
+          changesToLog.churchEmailUnverified = churchEmailUnverified;
+
           return resolve();
         }
       );
+    });
+  };
+
+  const logChange = (db, changesToLog) => {
+    return new Promise((resolve, reject) => {
+      debugger;
+
+      resolve();
     });
   };
 
@@ -515,9 +536,7 @@ exports.POST = async (req, res) => {
   }
 
   if (req.user.usertype === "sysadmin" && !isSuperUser) {
-    const sysAdminUser = await getSysadmin(db, req.user.userid);
-
-    if (sysAdminUser.churchid !== user.churchid) {
+    if (sysadmin.churchid !== user.churchid) {
       return res.status(400).send({
         msg: "insufficient permissions to modify a user from another congregation",
         msgType: "error",
@@ -525,12 +544,55 @@ exports.POST = async (req, res) => {
     }
   }
 
-  // TODO:  set a limit for how frequently a user's churchid can be changed (e.g. not more frequently than 30 days)
-  // TODO:  implement a new table to log all pre-authorizations (record the full name of the authorizing user as it was spelled at the time)
-  // TODO:  implement a new table to log both upgrades and downgrades of users' ability to pre-authorize
+  // TODO:  implement changes
 
-  return res.status(200).send({
-    msg: "user updated",
-    msgType: "success",
-  });
+  const sql = `
+    UPDATE
+      users
+    SET
+      churchid = ?,
+      country = ?,
+      lang = ?,
+      userstatus = ?,
+      canAuthorize = ?,
+      canAuthToAuth = ?
+    WHERE
+      userid = ?
+    ;
+  `;
+
+  db.query(
+    sql,
+    [
+      Number(churchid),
+      country,
+      lang,
+      userstatus,
+      Number(canAuthorize),
+      Number(canAuthToAuth),
+    ],
+    async (error, result) => {
+      if (error) {
+        console.log(error);
+        return res.status(500).send({
+          msg: "unable to update user",
+          msgType: "error",
+        });
+      }
+
+      changesToLog.userAfter.churchid = churchid;
+      changesToLog.userAfter.country = country;
+      changesToLog.userAfter.lang = lang;
+      changesToLog.userAfter.userstatus = userstatus;
+      changesToLog.userAfter.canAuthorize = canAuthorize;
+      changesToLog.userAfter.canAuthToAuth = canAuthToAuth;
+
+      await logChange(db, changesToLog);
+
+      return res.status(200).send({
+        msg: "user updated",
+        msgType: "success",
+      });
+    }
+  );
 };
