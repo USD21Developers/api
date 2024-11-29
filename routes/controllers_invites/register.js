@@ -81,7 +81,7 @@ exports.POST = (req, res) => {
   const country = req.body.country.substring(0, 2).toLowerCase() || "";
   const churchid = req.body.churchid || "";
   const unlistedchurch = req.body.unlistedchurch || ""; // TODO: notify admin that this church needs to be added
-  const cameToFaithViaApp = req.body.cameToFaithViaApp || null;
+  const cameToFaithViaApp = req.body.cameToFaithViaApp;
   const emailSenderText = req.body.emailSenderText || "";
   const emailSubject = req.body.emailSubject || "";
   const emailParagraph1 = req.body.emailParagraph1 || "";
@@ -182,13 +182,6 @@ exports.POST = (req, res) => {
     return res
       .status(400)
       .send({ msg: "unlisted church missing", msgType: "error" });
-
-  if (!cameToFaithViaApp) {
-    return res.status(400).send({
-      msg: "cameToFaithViaApp is required",
-      msgType: "error",
-    });
-  }
 
   if (isNaN(cameToFaithViaApp)) {
     return res.status(400).send({
@@ -376,7 +369,7 @@ exports.POST = (req, res) => {
             INSERT INTO users(
               churchid, username, password, firstname, lastname, gender, email, usertype, lang, country, cameToFaithViaApp, datakey, isAuthorized, canAuthorize, canAuthToAuth, authorizedby, settings, createdAt
             ) VALUES (
-              ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, utc_timestamp()
+              ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, utc_timestamp()
             );
           `;
           db.query(
