@@ -24,6 +24,21 @@ exports.authenticateToken = (req, res, next) => {
   );
 };
 
+exports.hashString = (input) => {
+  return crypto.createHash("sha256").update(input).digest("hex");
+};
+
+exports.hashStringAsync = async (input) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const hash = crypto.createHash("sha256").update(input).digest("hex");
+      resolve(hash);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
 exports.isPrivilegedEmailAccount = (email = "") => {
   const privilegedDomains = ["usd21.org", "iccm.global"];
   let isPrivilegedEmail = false;
