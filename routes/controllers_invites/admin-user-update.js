@@ -209,13 +209,56 @@ exports.POST = async (req, res) => {
     });
   };
 
-  const logChange = (db, changesToLog) => {
+  const checkIfIdenticalLogExists = (db, userid, user_after_hash) => {
     return new Promise((resolve, reject) => {
+      const sql = `
+        SELECT
+          logid
+        FROM
+          logs_adminchanges
+        WHERE
+          userid = ?
+        AND
+          user_after_hash = ?
+        ORDER BY logid DESC
+        LIMIT 1
+        ;
+      `;
+
+      db.query(sql, [userid, user_after_hash], (error, result) => {
+        if (error) {
+          return reject(error);
+        }
+
+        const identicalLogExists = result.length ? true : false;
+
+        return resolve(identicalLogExists);
+      });
+    });
+  };
+
+  const logChange = (db, changesToLog) => {
+    return new Promise(async (resolve, reject) => {
       const changed_userid = changesToLog.user.after.userid;
       const changed_by_userid = changesToLog.sysadmin.userid;
       const user_before = JSON.stringify(changesToLog.user.before);
       const user_after = JSON.stringify(changesToLog.user.after);
       const sysadmin = JSON.stringify(changesToLog.sysadmin);
+      const user_after_hash = await require("./utils").hashStringAsync(
+        user_after
+      );
+      const identicalLogExists = await checkIfIdenticalLogExists(
+        db,
+        userid,
+        user_after_hash
+      );
+
+      if (identicalLogExists) {
+        return res.status(200).send({
+          msg: "user unchanged",
+          msgType: "success",
+        });
+      }
 
       const sql = `
         INSERT INTO logs_adminchanges(
