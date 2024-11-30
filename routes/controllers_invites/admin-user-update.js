@@ -50,9 +50,7 @@ exports.POST = async (req, res) => {
           userstatus,
           lang,
           country,
-          timezone,
-          createdAt,
-          updatedAt
+          createdAt
         FROM
           users
         WHERE
@@ -93,7 +91,6 @@ exports.POST = async (req, res) => {
           userstatus,
           lang,
           country,
-          timezone,
           createdAt,
           updatedAt
         FROM
@@ -126,8 +123,10 @@ exports.POST = async (req, res) => {
   const sysadmin = await getSysadmin(db, req.user.userid);
 
   const changesToLog = {
-    userBefore: user,
-    userAfter: user,
+    user: {
+      before: user,
+      after: user,
+    },
     sysadmin: sysadmin,
   };
 
@@ -196,10 +195,12 @@ exports.POST = async (req, res) => {
             return reject(error);
           }
 
-          changesToLog.userAfter.firstname = firstname.trim();
-          changesToLog.userAfter.lastname = lastname.trim();
-          changesToLog.userAfter.email = email.trim().toLowerCase();
-          changesToLog.userAfter.usertype = usertype;
+          changesToLog.user.after.country = country;
+          changesToLog.user.after.lang = lang;
+          changesToLog.user.after.firstname = firstname.trim();
+          changesToLog.user.after.lastname = lastname.trim();
+          changesToLog.user.after.email = email.trim().toLowerCase();
+          changesToLog.user.after.usertype = usertype;
           changesToLog.churchEmailUnverified = churchEmailUnverified;
 
           return resolve();
@@ -210,9 +211,41 @@ exports.POST = async (req, res) => {
 
   const logChange = (db, changesToLog) => {
     return new Promise((resolve, reject) => {
-      debugger;
+      const changed_userid = changesToLog.user.after.userid;
+      const changed_by_userid = changesToLog.sysadmin.userid;
+      const user_before = JSON.stringify(changesToLog.user.before);
+      const user_after = JSON.stringify(changesToLog.user.after);
+      const sysadmin = JSON.stringify(changesToLog.sysadmin);
 
-      resolve();
+      const sql = `
+        INSERT INTO logs_adminchanges(
+          changed_userid,
+          changed_by_userid,
+          user_before,
+          user_after,
+          sysadmin,
+          createdAt
+        ) VALUES (
+          ?,
+          ?,
+          ?,
+          ?,
+          ?,
+          UTC_TIMESTAMP()
+        )
+      `;
+
+      db.query(
+        sql,
+        [changed_userid, changed_by_userid, user_before, user_after, sysadmin],
+        (error, result) => {
+          if (error) {
+            return reject(error);
+          }
+
+          return resolve(result);
+        }
+      );
     });
   };
 
@@ -544,15 +577,11 @@ exports.POST = async (req, res) => {
     }
   }
 
-  // TODO:  implement changes
-
   const sql = `
     UPDATE
       users
     SET
       churchid = ?,
-      country = ?,
-      lang = ?,
       userstatus = ?,
       canAuthorize = ?,
       canAuthToAuth = ?
@@ -563,14 +592,7 @@ exports.POST = async (req, res) => {
 
   db.query(
     sql,
-    [
-      Number(churchid),
-      country,
-      lang,
-      userstatus,
-      Number(canAuthorize),
-      Number(canAuthToAuth),
-    ],
+    [churchid, userstatus, canAuthorize, canAuthToAuth, userid],
     async (error, result) => {
       if (error) {
         console.log(error);
@@ -580,14 +602,12 @@ exports.POST = async (req, res) => {
         });
       }
 
-      changesToLog.userAfter.churchid = churchid;
-      changesToLog.userAfter.country = country;
-      changesToLog.userAfter.lang = lang;
-      changesToLog.userAfter.userstatus = userstatus;
-      changesToLog.userAfter.canAuthorize = canAuthorize;
-      changesToLog.userAfter.canAuthToAuth = canAuthToAuth;
+      changesToLog.user.after.churchid = churchid;
+      changesToLog.user.after.userstatus = userstatus;
+      changesToLog.user.after.canAuthorize = canAuthorize;
+      changesToLog.user.after.canAuthToAuth = canAuthToAuth;
 
-      await logChange(db, changesToLog);
+      logChange(db, changesToLog);
 
       return res.status(200).send({
         msg: "user updated",
