@@ -142,7 +142,7 @@ exports.POST = async (req, res) => {
         WHERE
           email = ?
         AND
-          userid !== ?
+          userid <> ?
         LIMIT 1
         ;
       `;
