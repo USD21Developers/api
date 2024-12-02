@@ -217,7 +217,7 @@ exports.POST = async (req, res) => {
         FROM
           logs_adminchanges
         WHERE
-          userid = ?
+          changed_userid = ?
         AND
           user_after_hash = ?
         ORDER BY logid DESC
@@ -254,10 +254,7 @@ exports.POST = async (req, res) => {
       );
 
       if (identicalLogExists) {
-        return res.status(200).send({
-          msg: "user unchanged",
-          msgType: "success",
-        });
+        return resolve("user unchanged");
       }
 
       const sql = `
@@ -266,9 +263,11 @@ exports.POST = async (req, res) => {
           changed_by_userid,
           user_before,
           user_after,
+          user_after_hash,
           sysadmin,
           createdAt
         ) VALUES (
+          ?,
           ?,
           ?,
           ?,
@@ -280,13 +279,20 @@ exports.POST = async (req, res) => {
 
       db.query(
         sql,
-        [changed_userid, changed_by_userid, user_before, user_after, sysadmin],
+        [
+          changed_userid,
+          changed_by_userid,
+          user_before,
+          user_after,
+          user_after_hash,
+          sysadmin,
+        ],
         (error, result) => {
           if (error) {
             return reject(error);
           }
 
-          return resolve(result);
+          return resolve("user updated");
         }
       );
     });
@@ -650,7 +656,7 @@ exports.POST = async (req, res) => {
       changesToLog.user.after.canAuthorize = canAuthorize;
       changesToLog.user.after.canAuthToAuth = canAuthToAuth;
 
-      logChange(db, changesToLog);
+      const logResult = await logChange(db, changesToLog);
 
       return res.status(200).send({
         msg: "user updated",
