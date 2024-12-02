@@ -532,7 +532,11 @@ exports.POST = async (req, res) => {
       });
     }
 
-    const isEmailAlreadyInUse = await checkIfEmailAlreadyInUse(db, email);
+    const isEmailAlreadyInUse = await checkIfEmailAlreadyInUse(
+      db,
+      email,
+      userid
+    );
 
     if (isEmailAlreadyInUse) {
       return res.status(400).send({
