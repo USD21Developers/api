@@ -663,10 +663,17 @@ exports.POST = async (req, res) => {
 
       const logResult = await logChange(db, changesToLog);
 
-      return res.status(200).send({
-        msg: "user updated",
-        msgType: "success",
-      });
+      if (logResult === "user updated") {
+        return res.status(200).send({
+          msg: "user updated",
+          msgType: "success",
+        });
+      } else {
+        return res.status(200).send({
+          msg: logResult,
+          msgType: "error",
+        });
+      }
     }
   );
 };
