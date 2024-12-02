@@ -563,16 +563,14 @@ exports.POST = async (req, res) => {
 
       if (Number(canAuthorize) !== 1) {
         return res.status(400).send({
-          msgType:
-            "insufficient permissions to downgrade canAuthorize for this user",
+          msg: "insufficient permissions to downgrade canAuthorize for this user",
           msgType: "error",
         });
       }
 
       if (Number(canAuthToAuth) !== 1) {
         return res.status(400).send({
-          msgType:
-            "insufficient permissions to downgrade canAuthToAuth for this user",
+          msg: "insufficient permissions to downgrade canAuthToAuth for this user",
           msgType: "error",
         });
       }
