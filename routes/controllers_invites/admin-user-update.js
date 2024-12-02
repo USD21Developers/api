@@ -189,6 +189,7 @@ exports.POST = async (req, res) => {
           email.trim().toLowerCase(),
           usertype,
           churchEmailUnverified,
+          userid,
         ],
         (error, result) => {
           if (error) {
