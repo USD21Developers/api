@@ -228,7 +228,6 @@ exports.POST = async (req, res) => {
           hash_after = ?
         ORDER BY
           logid DESC
-        LIMIT 1
         ;
       `;
 
@@ -237,7 +236,7 @@ exports.POST = async (req, res) => {
           return reject(error);
         }
 
-        if (result.length) {
+        if (result.length > 0) {
           return resolve("user unchanged");
         }
 
