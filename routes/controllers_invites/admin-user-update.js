@@ -50,7 +50,7 @@ exports.POST = async (req, res) => {
           userstatus,
           lang,
           country,
-          createdAt
+          DATE_FORMAT(createdAt, '%Y-%m-%dT%H:%i:%s') AS createdAt
         FROM
           users
         WHERE
@@ -91,8 +91,8 @@ exports.POST = async (req, res) => {
           userstatus,
           lang,
           country,
-          createdAt,
-          updatedAt
+          DATE_FORMAT(createdAt, '%Y-%m-%dT%H:%i:%s') AS createdAt,
+          DATE_FORMAT(updatedAt, '%Y-%m-%dT%H:%i:%s') AS updatedAt
         FROM
           users
         WHERE
@@ -210,62 +210,47 @@ exports.POST = async (req, res) => {
     });
   };
 
-  const checkIfIdenticalLogExists = (db, userid, user_after_hash) => {
-    return new Promise((resolve, reject) => {
+  const logChange = (db, newlog) => {
+    return new Promise(async (resolve, reject) => {
+      const userid = newlog.user.after.userid;
+      const changed_by = JSON.stringify(newlog.sysadmin);
+      const changed_by_userid = newlog.sysadmin.userid;
+      const user_before = JSON.stringify(newlog.user.before);
+      const user_after = JSON.stringify(newlog.user.after);
+      const hash_after = await require("./utils").hashStringAsync(user_after);
+
       const sql = `
         SELECT
           logid
         FROM
           logs_adminchanges
         WHERE
-          changed_userid = ?
+          userid = ?
         AND
-          user_after_hash = ?
-        ORDER BY logid DESC
+          hash_after = ?
+        ORDER BY
+          logid DESC
         LIMIT 1
         ;
       `;
 
-      db.query(sql, [userid, user_after_hash], (error, result) => {
+      db.query(sql, [userid, hash_after], (error, result) => {
         if (error) {
           return reject(error);
         }
 
-        const identicalLogExists = result.length ? true : false;
+        if (result.length) {
+          return resolve("user unchanged");
+        }
 
-        return resolve(identicalLogExists);
-      });
-    });
-  };
-
-  const logChange = (db, newlog) => {
-    return new Promise(async (resolve, reject) => {
-      const changed_userid = newlog.user.after.userid;
-      const changed_by_userid = newlog.sysadmin.userid;
-      const user_before = JSON.stringify(newlog.user.before);
-      const user_after = JSON.stringify(newlog.user.after);
-      const sysadmin = JSON.stringify(newlog.sysadmin);
-      const user_after_hash = await require("./utils").hashStringAsync(
-        user_after
-      );
-      const identicalLogExists = await checkIfIdenticalLogExists(
-        db,
-        userid,
-        user_after_hash
-      );
-
-      if (identicalLogExists) {
-        return resolve("user unchanged");
-      }
-
-      const sql = `
+        const sql = `
         INSERT INTO logs_adminchanges(
-          changed_userid,
+          userid,
+          changed_by,
           changed_by_userid,
           user_before,
           user_after,
-          user_after_hash,
-          sysadmin,
+          hash_after,
           createdAt
         ) VALUES (
           ?,
@@ -274,28 +259,29 @@ exports.POST = async (req, res) => {
           ?,
           ?,
           ?,
-          UTC_TIMESTAMP()
+          UTC_TIMESTAMP
         )
       `;
 
-      db.query(
-        sql,
-        [
-          changed_userid,
-          changed_by_userid,
-          user_before,
-          user_after,
-          user_after_hash,
-          sysadmin,
-        ],
-        (error, result) => {
-          if (error) {
-            return reject(error);
-          }
+        db.query(
+          sql,
+          [
+            userid,
+            changed_by,
+            changed_by_userid,
+            user_before,
+            user_after,
+            hash_after,
+          ],
+          (error, result) => {
+            if (error) {
+              return reject(error);
+            }
 
-          return resolve("user updated");
-        }
-      );
+            return resolve("user updated");
+          }
+        );
+      });
     });
   };
 
@@ -661,17 +647,10 @@ exports.POST = async (req, res) => {
 
       const logResult = await logChange(db, newlog);
 
-      if (logResult === "user updated") {
-        return res.status(200).send({
-          msg: "user updated",
-          msgType: "success",
-        });
-      } else {
-        return res.status(200).send({
-          msg: logResult,
-          msgType: "error",
-        });
-      }
+      return res.status(200).send({
+        msg: logResult,
+        msgType: "error",
+      });
     }
   );
 };
