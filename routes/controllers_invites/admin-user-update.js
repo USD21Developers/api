@@ -196,6 +196,7 @@ exports.POST = async (req, res) => {
             return reject(error);
           }
 
+          newlog.user.after.churchid = churchid;
           newlog.user.after.country = country;
           newlog.user.after.lang = lang;
           newlog.user.after.firstname = firstname.trim();
