@@ -122,7 +122,7 @@ exports.POST = async (req, res) => {
   const user = await getUser(db, userid);
   const sysadmin = await getSysadmin(db, req.user.userid);
 
-  const changesToLog = {
+  const newlog = {
     user: {
       before: user,
       after: user,
@@ -196,13 +196,13 @@ exports.POST = async (req, res) => {
             return reject(error);
           }
 
-          changesToLog.user.after.country = country;
-          changesToLog.user.after.lang = lang;
-          changesToLog.user.after.firstname = firstname.trim();
-          changesToLog.user.after.lastname = lastname.trim();
-          changesToLog.user.after.email = email.trim().toLowerCase();
-          changesToLog.user.after.usertype = usertype;
-          changesToLog.churchEmailUnverified = churchEmailUnverified;
+          newlog.user.after.country = country;
+          newlog.user.after.lang = lang;
+          newlog.user.after.firstname = firstname.trim();
+          newlog.user.after.lastname = lastname.trim();
+          newlog.user.after.email = email.trim().toLowerCase();
+          newlog.user.after.usertype = usertype;
+          newlog.churchEmailUnverified = churchEmailUnverified;
 
           return resolve();
         }
@@ -238,13 +238,13 @@ exports.POST = async (req, res) => {
     });
   };
 
-  const logChange = (db, changesToLog) => {
+  const logChange = (db, newlog) => {
     return new Promise(async (resolve, reject) => {
-      const changed_userid = changesToLog.user.after.userid;
-      const changed_by_userid = changesToLog.sysadmin.userid;
-      const user_before = JSON.stringify(changesToLog.user.before);
-      const user_after = JSON.stringify(changesToLog.user.after);
-      const sysadmin = JSON.stringify(changesToLog.sysadmin);
+      const changed_userid = newlog.user.after.userid;
+      const changed_by_userid = newlog.sysadmin.userid;
+      const user_before = JSON.stringify(newlog.user.before);
+      const user_after = JSON.stringify(newlog.user.after);
+      const sysadmin = JSON.stringify(newlog.sysadmin);
       const user_after_hash = await require("./utils").hashStringAsync(
         user_after
       );
@@ -654,12 +654,12 @@ exports.POST = async (req, res) => {
         });
       }
 
-      changesToLog.user.after.churchid = churchid;
-      changesToLog.user.after.userstatus = userstatus;
-      changesToLog.user.after.canAuthorize = canAuthorize;
-      changesToLog.user.after.canAuthToAuth = canAuthToAuth;
+      newlog.user.after.churchid = churchid;
+      newlog.user.after.userstatus = userstatus;
+      newlog.user.after.canAuthorize = canAuthorize;
+      newlog.user.after.canAuthToAuth = canAuthToAuth;
 
-      const logResult = await logChange(db, changesToLog);
+      const logResult = await logChange(db, newlog);
 
       if (logResult === "user updated") {
         return res.status(200).send({
