@@ -239,7 +239,7 @@ exports.POST = async (req, res) => {
           return reject(error);
         }
 
-        if (result.length > 0) {
+        if (result.length === 1) {
           return resolve("user unchanged");
         }
 
