@@ -221,30 +221,6 @@ exports.POST = async (req, res) => {
       const hash_after = await require("./utils").hashStringAsync(user_after);
 
       const sql = `
-        SELECT
-          *
-        FROM
-          logs_adminchanges
-        WHERE
-          logid = (SELECT logid FROM logs_adminchanges WHERE userid = ? ORDER BY logid DESC LIMIT 1)
-        AND
-          hash_after = ?
-        ORDER BY
-          logid DESC
-        LIMIT 1
-        ;
-      `;
-
-      db.query(sql, [userid, hash_after], (error, result) => {
-        if (error) {
-          return reject(error);
-        }
-
-        if (result.length === 1) {
-          return resolve("user unchanged");
-        }
-
-        const sql = `
         INSERT INTO logs_adminchanges(
           userid,
           changed_by,
@@ -264,25 +240,24 @@ exports.POST = async (req, res) => {
         )
       `;
 
-        db.query(
-          sql,
-          [
-            userid,
-            changed_by,
-            changed_by_userid,
-            user_before,
-            user_after,
-            hash_after,
-          ],
-          (error, result) => {
-            if (error) {
-              return reject(error);
-            }
-
-            return resolve("user updated");
+      db.query(
+        sql,
+        [
+          userid,
+          changed_by,
+          changed_by_userid,
+          user_before,
+          user_after,
+          hash_after,
+        ],
+        (error, result) => {
+          if (error) {
+            return reject(error);
           }
-        );
-      });
+
+          return resolve("user updated");
+        }
+      );
     });
   };
 
@@ -646,10 +621,10 @@ exports.POST = async (req, res) => {
       newlog.user.after.canAuthorize = canAuthorize;
       newlog.user.after.canAuthToAuth = canAuthToAuth;
 
-      const logResult = await logChange(db, newlog);
+      logChange(db, newlog);
 
       return res.status(200).send({
-        msg: logResult,
+        msg: "user updated",
         msgType: "error",
       });
     }
