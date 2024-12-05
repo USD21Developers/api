@@ -225,6 +225,8 @@ exports.POST = async (req, res) => {
         FROM
           logs_adminchanges
         WHERE
+          logid = (SELECT logid FROM logs_adminchanges WHERE userid = ? ORDER BY logid DESC LIMIT 1)
+        AND
           hash_after = ?
         ORDER BY
           logid DESC
