@@ -221,11 +221,13 @@ exports.POST = async (req, res) => {
 
       const sql = `
         SELECT
-          MAX(logid)
+          *
         FROM
           logs_adminchanges
         WHERE
           hash_after = ?
+        ORDER BY
+          logid DESC
         LIMIT 1
         ;
       `;
