@@ -228,6 +228,7 @@ exports.POST = async (req, res) => {
           hash_after = ?
         ORDER BY
           logid DESC
+        LIMIT 1
         ;
       `;
 
