@@ -59,6 +59,8 @@ exports.POST = async (req, res) => {
         FROM
           users
         WHERE
+          userid <> ?
+        AND
           churchid = (SELECT churchid FROM users WHERE userid = ?)
         AND
           usertype = 'sysadmin'
@@ -69,7 +71,7 @@ exports.POST = async (req, res) => {
         ;
       `;
 
-      db.query(sql, [userid], (error, result) => {
+      db.query(sql, [userid, userid], (error, result) => {
         if (error) {
           return reject(error);
         }
