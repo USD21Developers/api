@@ -49,16 +49,23 @@ exports.POST = async (req, res) => {
     });
   }
 
-  const getRequesterEmail = (db, userid) => {
+  const getLocalAdmins = (db, userid) => {
     return new Promise((resolve, reject) => {
       const sql = `
         SELECT
-          email
+          gender,
+          lang,
+          userid
         FROM
           users
         WHERE
-          userid = ?
-        LIMIT 1
+          churchid = (SELECT churchid FROM users WHERE userid = ?)
+        AND
+          usertype = 'sysadmin'
+        AND
+          userstatus = 'registered'
+        ORDER BY
+          lang, userid
         ;
       `;
 
@@ -67,13 +74,13 @@ exports.POST = async (req, res) => {
           return reject(error);
         }
 
-        if (!result.length) {
-          return reject("no records found");
+        let admins = [];
+
+        if (result.length) {
+          admins = result;
         }
 
-        const email = result[0].email;
-
-        return resolve(email);
+        return resolve(admins);
       });
     });
   };
@@ -157,6 +164,8 @@ exports.POST = async (req, res) => {
 
   const user = await getUser(db, userid);
 
+  const localAdmins = await getLocalAdmins(db, userid);
+
   user.authorizedby = isNaN(user.authorizedby)
     ? null
     : await getAuthorizedBy(db, user.authorizedby);
@@ -165,6 +174,7 @@ exports.POST = async (req, res) => {
     msg: "user retrieved",
     msgType: "success",
     user: user,
+    localAdmins: localAdmins,
     editable: requesterIsSuperUser,
   });
 };
