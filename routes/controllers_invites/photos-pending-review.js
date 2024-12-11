@@ -17,7 +17,7 @@ exports.POST = (req, res) => {
   const db = isStaging
     ? require("../../database-invites-test")
     : require("../../database-invites");
-  
+
   const sql = `
     SELECT
       canAuthorize,
@@ -34,23 +34,23 @@ exports.POST = (req, res) => {
     if (error) {
       return res.status(500).send({
         msg: "unable to retrieve user",
-        msgType: "error"
+        msgType: "error",
       });
     }
 
     if (!result.length) {
       return res.status(404).send({
         msg: "user not found",
-        msgType: "error"
+        msgType: "error",
       });
     }
 
-    const {canAuthorize, canAuthToAuth, churchid} = result[0];
+    const { canAuthorize, canAuthToAuth, churchid } = result[0];
 
     if (canAuthorize === 0 && canAuthToAuth === 0) {
       return res.status(401).send({
         msg: "user not authorized to review photos",
-        msgType: "error"
+        msgType: "error",
       });
     }
 
@@ -64,7 +64,9 @@ exports.POST = (req, res) => {
         u.usertype,
         u.userstatus,
         u.createdAt,
-        u.updatedAt
+        u.updatedAt,
+        pr.createdAt AS photoAddedAt,
+        pr.updatedAt AS photoUpdatedAt
       FROM
         users u
       INNER JOIN photoreview pr ON u.userid = pr.userid
@@ -82,7 +84,7 @@ exports.POST = (req, res) => {
       if (error) {
         return res.status(500).send({
           msg: "unable to retrieve photos to review",
-          msgType: "error"
+          msgType: "error",
         });
       }
 
@@ -91,8 +93,8 @@ exports.POST = (req, res) => {
       return res.status(200).send({
         msg: "photos pending review retrieved",
         msgType: "success",
-        photos: photos
-      })
-    })
+        photos: photos,
+      });
+    });
   });
 };
