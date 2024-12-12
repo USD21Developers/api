@@ -72,6 +72,10 @@ exports.POST = (req, res) => {
       INNER JOIN photoreview pr ON u.userid = pr.userid
       WHERE
         u.churchid = ?
+      AND
+        u.isAuthorized = 1
+      AND
+        u.userstatus = 'registered'
       ORDER BY
         pr.createdAt DESC
       LIMIT 1
