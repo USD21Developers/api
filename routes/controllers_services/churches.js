@@ -6,6 +6,7 @@ exports.GET = (req, res) => {
   const sql = `
     SELECT 
       churchID,
+      isActive,
       CONVERT(CAST(church_name AS BINARY) USING utf8) AS church_name,
       church_URL,
       CONVERT(CAST(contact_name as BINARY) USING utf8) AS contact_name,
@@ -48,6 +49,7 @@ exports.GET = (req, res) => {
         church_URL,
         identifying_place,
         country_iso,
+        isActive,
       } = item;
 
       return {
@@ -56,6 +58,7 @@ exports.GET = (req, res) => {
         url: church_URL,
         place: identifying_place,
         country: country_iso,
+        isActive: isActive,
       };
     });
 
@@ -78,6 +81,7 @@ exports.FETCH = async () => {
   const sql = `
     SELECT 
       churchID,
+      isActive,
       CONVERT(CAST(church_name AS BINARY) USING utf8) AS church_name,
       church_URL,
       CONVERT(CAST(contact_name as BINARY) USING utf8) AS contact_name,

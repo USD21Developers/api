@@ -18,6 +18,8 @@ exports.GET = (req, res) => {
       LCASE(country_iso) AS country_iso
     FROM 
       churches
+    WHERE
+      isActive = 1
     ORDER BY
       country_iso,
       identifying_place,
