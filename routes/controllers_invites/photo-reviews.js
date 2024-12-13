@@ -20,7 +20,20 @@ exports.POST = (req, res) => {
 
   // Parameters
   const userIdsApproved = req.body.userIdsApproved;
+  const userIdsFlagged = req.body.userIdsFlagged;
   const photosFlagged = req.body.photosFlagged;
+
+  // Variables
+  const genericPhotoUrls = {
+    male: "https://invites.mobi/_assets/img/profile-generic-male.png",
+    female: "https://invites.mobi/_assets/img/profile-generic-female.png",
+  };
+
+  const notifyFlaggedUser = (user) => {
+    return new Promise((resolve, reject) => {
+      const { userid, reason, other, gender } = user;
+    });
+  };
 
   const processApprovals = (userids) => {
     return new Promise((resolve, reject) => {
@@ -49,25 +62,62 @@ exports.POST = (req, res) => {
     });
   };
 
-  const processFlags = (photosFlagged) => {
+  const processFlags = (photosFlagged, userIdsFlagged) => {
     return new Promise((resolve, reject) => {
       if (!Array.isArray(photosFlagged)) {
         return reject(new Error("photosFlagged must be an array"));
       }
 
-      if (!photosFlagged.length) {
+      if (!photosFlagged.length || !userIdsFlagged.length) {
         return resolve();
       }
 
-      // TODO:  change user's "profilephoto" field to a generic version, and store flagged photo in "profilephoto_flagged" field
-      // TODO:  e-mail user asking for revision to their photo (include both flagged and generic photo, flagged by user, reason for flagging, URL to revise photo)
+      let caseProfilePhotoFlagged = "CASE ";
+      let caseProfilePhoto = "CASE ";
+
+      photosFlagged.forEach((user) => {
+        notifyFlaggedUser(user);
+
+        caseProfilePhotoFlagged += `WHEN userid = ${user.userid} THEN profilephoto `;
+        caseProfilePhoto += `WHEN userid = ${user.userid} THEN 
+          (CASE 
+              WHEN gender = 'male' THEN '${genericPhotoUrls.male}' 
+              WHEN gender = 'female' THEN '${genericPhotoUrls.female}' 
+              ELSE profilephoto 
+          END) `;
+      });
+
+      caseProfilePhotoFlagged += "END";
+      caseProfilePhoto += "END";
+
+      const sql = `
+        UPDATE
+          users
+        SET
+          profilephoto_flagged = ${caseProfilePhotoFlagged},
+          profilephoto = ${caseProfilePhoto}
+        WHERE
+          userid IN (${userIdsFlagged.join(", ")})
+        ;
+      `;
+
+      db.query(sql, [], (error, result) => {
+        if (error) {
+          console.log(error);
+          return reject(error);
+        }
+
+        return resolve(result);
+      });
     });
   };
 
   Promise.all(
     processApprovals(userIdsApproved),
-    processFlags(photosFlagged)
+    processFlags(photosFlagged, userIdsFlagged)
   ).then((results) => {
+    // TODO:  e-mail user asking for revision to their photo (include both flagged and generic photo, flagged by user, reason for flagging, URL to revise photo)
+
     return res.status(200).send({
       msg: "photo reviews processed successfully",
       msgType: "success",
