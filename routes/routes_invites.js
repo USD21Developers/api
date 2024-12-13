@@ -269,4 +269,7 @@ router.post(
   photosPendingReview.POST
 );
 
+const photoReviews = require("./controllers_invites/photo-reviews");
+router.post("/photo-reviews", authenticateToken, photoReviews.POST);
+
 module.exports = router;
