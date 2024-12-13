@@ -1,7 +1,7 @@
 exports.POST = (req, res) => {
   // Enforce authorization
   const usertype = req.user.usertype;
-  const allowedUsertypes = ["sysadmin", "user"];
+  const allowedUsertypes = ["sysadmin"];
   let isAuthorized = false;
   if (allowedUsertypes.includes(usertype)) isAuthorized = true;
   if (!isAuthorized) {
