@@ -6,6 +6,7 @@ exports.GET = (req, res) => {
   const sql = `
     SELECT 
       churchID,
+      isActive,
       church_name AS church_name,
       church_URL,
       contact_name AS contact_name,
