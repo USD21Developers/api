@@ -1095,6 +1095,8 @@ exports.storeProfileImage = async (
         Bucket: process.env.INVITES_AWS_BUCKET_NAME,
         Key: fileName400,
         Body: fileContent400,
+        ContentType: "image/jpeg",
+        ACL: "public-read",
       };
 
       s3.upload(params, (err, data) => {
@@ -1117,6 +1119,8 @@ exports.storeProfileImage = async (
         Bucket: process.env.INVITES_AWS_BUCKET_NAME,
         Key: fileName140,
         Body: fileContent140,
+        ContentType: "image/jpeg",
+        ACL: "public-read",
       };
 
       s3.upload(params, (err, data) => {
