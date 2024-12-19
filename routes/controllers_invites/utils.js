@@ -1072,7 +1072,8 @@ exports.storeProfileImage = async (
   userid,
   profileImage400,
   profileImage140,
-  db
+  db,
+  storageEnvironment
 ) => {
   return new Promise(async (resolve, reject) => {
     const uuid = crypto.randomUUID();
@@ -1083,16 +1084,20 @@ exports.storeProfileImage = async (
       logger: null,
     });
 
-    await require("./utils").deleteProfileImage(userid, db);
+    await require("./utils").deleteProfileImage(userid, db, storageEnvironment);
 
     const fileName400 = `profiles/${userid}__${uuid}__400.jpg`;
     const fileContent400 = new Buffer.from(
       profileImage400.replace(/^data:image\/\w+;base64,/, ""),
       "base64"
     );
+    const awsBucket =
+      storageEnvironment === "staging"
+        ? process.env.INVITES_AWS_BUCKET_NAME_STAGING
+        : process.env.INVITES_AWS_BUCKET_NAME;
     const upload400 = new Promise((resolve400, reject400) => {
       const params = {
-        Bucket: process.env.INVITES_AWS_BUCKET_NAME,
+        Bucket: awsBucket,
         Key: fileName400,
         Body: fileContent400,
         ContentType: "image/jpeg",
@@ -1114,8 +1119,12 @@ exports.storeProfileImage = async (
       "base64"
     );
     const upload140 = new Promise((resolve140, reject140) => {
+      const awsBucket =
+        storageEnvironment === "staging"
+          ? process.env.INVITES_AWS_BUCKET_NAME_STAGING
+          : process.env.INVITES_AWS_BUCKET_NAME;
       const params = {
-        Bucket: process.env.INVITES_AWS_BUCKET_NAME,
+        Bucket: awsBucket,
         Key: fileName140,
         Body: fileContent140,
         ContentType: "image/jpeg",
@@ -1191,7 +1200,7 @@ exports.storeProfileImage = async (
   });
 };
 
-exports.deleteProfileImage = async (userid, db) => {
+exports.deleteProfileImage = async (userid, db, storageEnvironment) => {
   return new Promise((resolve, reject) => {
     const AWS = require("aws-sdk");
     const s3 = new AWS.S3({
@@ -1241,8 +1250,12 @@ exports.deleteProfileImage = async (userid, db) => {
 
       const fileName400 = match[0];
       const delete400 = new Promise((resolve400, reject400) => {
+        const awsBucket =
+          storageEnvironment === "staging"
+            ? process.env.INVITES_AWS_BUCKET_NAME_STAGING
+            : process.env.INVITES_AWS_BUCKET_NAME;
         const params = {
-          Bucket: process.env.INVITES_AWS_BUCKET_NAME,
+          Bucket: awsBucket,
           Key: fileName400,
         };
 

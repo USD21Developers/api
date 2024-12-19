@@ -1,3 +1,5 @@
+const { storage } = require("googleapis/build/src/apis/storage");
+
 exports.unconfirmedAccounts = (schedule, cronOptions) => {
   const cron = require("node-cron");
 
@@ -62,10 +64,15 @@ exports.unconfirmedAccounts = (schedule, cronOptions) => {
               const deletedUsers = [];
 
               userids.forEach((userid) => {
+                const storageEnvironment = isStaging
+                  ? "staging"
+                  : process.env.INVITES_AWS_BUCKET_NAME;
                 const deleteProfileImage =
                   require("../../../routes/controllers_invites/utils").deleteProfileImage;
 
-                deletedUsers.push(deleteProfileImage(userid, db));
+                deletedUsers.push(
+                  deleteProfileImage(userid, db, storageEnvironment)
+                );
               });
 
               Promise.all(deletedUsers).then(() => {

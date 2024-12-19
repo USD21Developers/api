@@ -34,11 +34,16 @@ exports.POST = async (req, res) => {
       .status(400)
       .send({ msg: "400x400 profile photo missing", msgType: "error" });
 
+  const storageEnvironment = isStaging
+    ? "staging"
+    : process.env.INVITES_AWS_BUCKET_NAME;
+
   await require("./utils").storeProfileImage(
     req.user.userid,
     profileImage400,
     profileImage140,
-    db
+    db,
+    storageEnvironment
   );
 
   const sql = `

@@ -418,11 +418,16 @@ exports.POST = (req, res) => {
                 forUrl.authorizedby = Number(preAuthorization.authorizedby);
               }
 
+              const storageEnvironment = isStaging
+                ? "staging"
+                : process.env.INVITES_AWS_BUCKET_NAME;
+
               require("./utils").storeProfileImage(
                 userid,
                 profileImage400,
                 profileImage140,
-                db
+                db,
+                storageEnvironment
               );
 
               const registrationToken = crypto.randomBytes(32).toString("hex");
