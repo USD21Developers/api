@@ -1083,7 +1083,7 @@ exports.storeProfileImage = async (
       logger: null,
     });
 
-    require("./utils").deleteProfileImage(userid, db);
+    await require("./utils").deleteProfileImage(userid, db);
 
     const fileName400 = `profiles/${userid}__${uuid}__400.jpg`;
     const fileContent400 = new Buffer.from(
@@ -1274,7 +1274,9 @@ exports.deleteProfileImage = async (userid, db) => {
       Promise.all([delete400, delete140]).then(() => {
         const sql = `
           UPDATE users
-          SET profilephoto = 'NULL'
+          SET
+            profilephoto = NULL,
+            profilephoto_flagged = NULL
           WHERE userid = ?
           ;
         `;
