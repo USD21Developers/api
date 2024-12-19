@@ -1083,7 +1083,7 @@ exports.storeProfileImage = async (
       logger: null,
     });
 
-    await require("./utils").deleteProfileImage(userid, db);
+    require("./utils").deleteProfileImage(userid, db);
 
     const fileName400 = `profiles/${userid}__${uuid}__400.jpg`;
     const fileContent400 = new Buffer.from(
@@ -1138,7 +1138,9 @@ exports.storeProfileImage = async (
 
       const sql = `
         UPDATE users
-        SET profilephoto = ?
+        SET
+          profilephoto = ?,
+          profilephoto_flagged = NULL
         WHERE userid = ?
         ;
       `;
@@ -1198,7 +1200,8 @@ exports.deleteProfileImage = async (userid, db) => {
 
     const sql = `
       SELECT
-        profilephoto
+        profilephoto,
+        profilephoto_flagged
       FROM
         users
       WHERE
@@ -1217,17 +1220,19 @@ exports.deleteProfileImage = async (userid, db) => {
       }
 
       if (!result.length) {
-        const msg = `cannot delete old profile photo of user id ${userid} (user not found)`;
+        const msg = `cannot delete existing profile photo of user id ${userid} (user not found)`;
         // console.log(msg);
         return resolve(new Error(msg));
       }
 
-      const url = result[0].profilephoto;
+      const url = result[0].profilephoto_flagged
+        ? result[0].profilephoto_flagged
+        : result[0].profilephoto;
       const regex = /profiles\/(.*?)\.jpg/;
       const match = url.match(regex);
 
       if (!match) {
-        const errorMessage = `cannot delete old profile photo of user id ${userid} (URL does not match required pattern)`;
+        const errorMessage = `cannot existing old profile photo of user id ${userid} (URL does not match required pattern)`;
         console.log(errorMessage);
         return reject(new Error(errorMessage));
       }
