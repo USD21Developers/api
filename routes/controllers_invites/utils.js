@@ -1271,8 +1271,12 @@ exports.deleteProfileImage = async (userid, db, storageEnvironment) => {
 
       const fileName140 = match[0].replace("400.jpg", "140.jpg");
       const delete140 = new Promise((resolve140, reject140) => {
+        const awsBucket =
+          storageEnvironment === "staging"
+            ? process.env.INVITES_AWS_BUCKET_NAME_STAGING
+            : process.env.INVITES_AWS_BUCKET_NAME;
         const params = {
-          Bucket: process.env.INVITES_AWS_BUCKET_NAME,
+          Bucket: awsBucket,
           Key: fileName140,
         };
 
