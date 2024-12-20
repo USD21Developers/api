@@ -184,6 +184,9 @@ exports.POST = (req, res) => {
       debugger;
 
       // TODO:  send e-mail
+
+      // TODO:  replace the following resolve() depending on the actual result
+      return resolve();
     });
   };
 
