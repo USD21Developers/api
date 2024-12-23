@@ -18,6 +18,28 @@ exports.POST = (req, res) => {
     ? require("../../database-invites-test")
     : require("../../database-invites");
 
+  /*
+      TODO:  PLAN FOR PROCESSING FLAGGED USERS:
+
+      1.  QUERY FOR ALL FLAGGED USERS.
+          Within the "processedFlags" method, query all users whose userid matches.
+          Select all data that will be needed for (A) flagging the user, and (B) notifying them.
+
+      2.  UPDATE ALL FLAGGED USERS.
+          Set each flagged user's profilephoto and profilephoto_flagged field according to flagged logic.
+
+      3.  NOTIFY ALL FLAGGED USERS.
+          Loop through the items in the returned SQL query.  Asynchronously call "notifyUser" to email them.
+          Do not await!  Just fire off "notifyUser" for each flagged user asynchronously.
+
+      4.  RESOLVE THE PROMISE.
+          The promise can resolve, regardless of the outcome of notifying the users (step 2).
+
+      5.  RESPOND TO THE CLIENT.
+          The "Promise.allSettled" will fire (probably can be Promise.all).
+          It's now safe to return a response to the client.
+  */
+
   // Parameters
   const userIdsApproved = req.body.userIdsApproved;
   const userIdsFlagged = req.body.userIdsFlagged;
@@ -32,15 +54,30 @@ exports.POST = (req, res) => {
     female: "https://invites.mobi/_assets/img/profile-generic-female.png",
   };
 
-  const notifyFlaggedUser = (
-    db,
-    user,
-    htmlYourPhotoWasFlagged,
-    emailPhrasesPhotoWasFlagged,
-    adminTimeZone
-  ) => {
+  const notifyFlaggedUser = (flagObject) => {
     return new Promise((resolve, reject) => {
-      const { userid, reason, other, gender } = user;
+      const {
+        userid,
+        firstname,
+        lastname,
+        email,
+        lang,
+        gender,
+        profilePhotoFlagged,
+        profilePhotoDate,
+        photoGeneric,
+        reason,
+        other,
+      } = user;
+      const profilePhotoDateFormatted = new Intl.DateTimeFormat(adminLocale, {
+        timeZone: adminTimeZone,
+        dateStyle: "full", // Can be 'full', 'long', 'medium', 'short'
+        timeStyle: "short", // Optional: Can also be 'full', 'long', 'medium', 'short'
+      }).format(new Date(profilePhotoDate));
+      const actualReason = other.length ? other : reason;
+
+      debugger;
+
       const {
         emailP1,
         emailP2,
@@ -59,7 +96,8 @@ exports.POST = (req, res) => {
         emailTimezone,
         emailMessageID,
         photoRules,
-      } = emailPhrasesPhotoWasFlagged;
+      } = emailPhrasesPhotoWasFlagged[lang];
+
       const {
         headlineRulesAboutPhotos,
         ruleMustShowYourFace,
@@ -71,6 +109,7 @@ exports.POST = (req, res) => {
         ruleMustBeAppropriate,
         explanationMustBeAppropriate,
       } = photoRules;
+
       const jsdom = require("jsdom");
       const { JSDOM } = jsdom;
       const { document } = new JSDOM(htmlYourPhotoWasFlagged).window;
@@ -79,104 +118,67 @@ exports.POST = (req, res) => {
       const uuid = require("uuid");
       const messageID = uuid.v4();
 
-      // TODO: query the DB to populate the userInfo object below, then continue
-
-      sql = `
-        SELECT
-          u.firstname,
-          u.lastname,
-          u.profilephoto,
-          pr.createdAt AS profilePhotoDate
-        FROM
-          users u
-        INNER JOIN photoreview pr ON u.userid = pr.userid
-        WHERE
-          u.userid = ?
-        LIMIT 1
-        ;
-      `;
-
-      db.query(sql, [userid], (error, result) => {
-        if (error) {
-          console.log(error);
-          return reject(error);
-        }
-
-        if (!result.length) {
-          return reject(new Error("user not found"));
-        }
-
-        const userInfo = {
-          firstName: result[0].firstname,
-          lastName: result[0].lastname,
-          profilephoto: result[0].profilephoto,
-          profilePhotoDate: result[0].profilePhotoDate,
-        };
-
-        document.title = emailSubject;
-        document.querySelector(
-          "[data-i18n='profile-photo-was-flagged']"
-        ).innerHTML = emailSubject;
-        document.querySelector("[data-i18n='emailP1']").innerHTML =
-          emailP1.replaceAll("{FIRST-NAME}", userInfo.firstName);
-        document.querySelector("[data-i18n='emailP2']").innerHTML = emailP2;
-        document.querySelector("[data-i18n='emailP3']").innerHTML = emailP3;
-        document
-          .querySelector("[data-i18n='emailP3']")
-          .parentElement.querySelector("strong").innerHTML = reason;
-        document.querySelector(
-          "[data-i18n='headlineRulesAboutPhotos']"
-        ).innerHTML = headlineRulesAboutPhotos;
-        document.querySelector("[data-i18n='ruleMustShowYourFace']").innerHTML =
-          ruleMustShowYourFace;
-        document.querySelector(
-          "[data-i18n='explanationMustShowYourFace']"
-        ).innerHTML = explanationMustShowYourFace;
-        document.querySelector(
-          "[data-i18n='ruleFaceMustBeProminent']"
-        ).innerHTML = ruleFaceMustBeProminent;
-        document.querySelector(
-          "[data-i18n='explanationFaceMustBeProminent']"
-        ).innerHTML = explanationFaceMustBeProminent;
-        document.querySelector("[data-i18n='ruleOnlyYou']").innerHTML =
-          ruleOnlyYou;
-        document.querySelector("[data-i18n='explanationOnlyYou']").innerHTML =
-          explanationOnlyYou;
-        document.querySelector(
-          "[data-i18n='ruleMustBeAppropriate']"
-        ).innerHTML = ruleMustBeAppropriate;
-        document.querySelector(
-          "[data-i18n='explanationMustBeAppropriate']"
-        ).innerHTML = explanationMustBeAppropriate;
-        document.querySelector("[data-i18n='emailP4']").innerHTML = emailP4;
-        document.querySelector("[data-i18n='emailP5']").innerHTML = emailP5;
-        document
-          .querySelector("#flaggedPhoto")
-          .setAttribute("src", userInfo.profilephoto);
-        document.querySelector("[data-i18n='addedOn']").innerHTML =
-          photoAddedOn.replaceAll("{DATE}", userInfo.profilePhotoDate);
-        document.querySelector("[data-i18n='emailP6']").innerHTML = emailP6;
-        document.querySelector("[data-i18n='emailP7']").innerHTML = emailP7;
-        document
-          .querySelector("#temporaryPhoto")
-          .setAttribute("src", tempPhotoURL);
-        document.querySelector("[data-i18n='emailP8']").innerHTML = emailP8;
-        document.querySelector("[data-i18n='emailUpdatePhotoLink']").innerHTML =
-          emailUpdatePhotoLink;
-        document.querySelector("[data-i18n='emailP10']").innerHTML = emailP10;
-        document.querySelector("[data-i18n='emailSincerely']").innerHTML =
-          emailSincerely;
-        document.querySelector(
-          "[data-i18n='emailTheCyberministry']"
-        ).innerHTML = emailTheCyberministry;
-        document.querySelector("[data-i18n='emailAboutApp']").innerHTML =
-          emailAboutApp;
-        document.querySelector("[data-i18n='emailTimezone']").innerHTML =
-          emailTimezone.replaceAll("{ADMIN-TIMEZONE}", adminTimeZone);
-        document.querySelector("[data-i18n='emailMessageID']").innerHTML =
-          emailMessageID;
-        document.querySelector("[data-var='messageID']").innerHTML = messageID;
-      });
+      document.title = emailSubject;
+      document.querySelector(
+        "[data-i18n='profile-photo-was-flagged']"
+      ).innerHTML = emailSubject;
+      document.querySelector("[data-i18n='emailP1']").innerHTML =
+        emailP1.replaceAll("{FIRST-NAME}", firstname);
+      document.querySelector("[data-i18n='emailP2']").innerHTML = emailP2;
+      document.querySelector("[data-i18n='emailP3']").innerHTML = emailP3;
+      document
+        .querySelector("[data-i18n='emailP3']")
+        .parentElement.querySelector("strong").innerHTML = actualReason;
+      document.querySelector(
+        "[data-i18n='headlineRulesAboutPhotos']"
+      ).innerHTML = headlineRulesAboutPhotos;
+      document.querySelector("[data-i18n='ruleMustShowYourFace']").innerHTML =
+        ruleMustShowYourFace;
+      document.querySelector(
+        "[data-i18n='explanationMustShowYourFace']"
+      ).innerHTML = explanationMustShowYourFace;
+      document.querySelector(
+        "[data-i18n='ruleFaceMustBeProminent']"
+      ).innerHTML = ruleFaceMustBeProminent;
+      document.querySelector(
+        "[data-i18n='explanationFaceMustBeProminent']"
+      ).innerHTML = explanationFaceMustBeProminent;
+      document.querySelector("[data-i18n='ruleOnlyYou']").innerHTML =
+        ruleOnlyYou;
+      document.querySelector("[data-i18n='explanationOnlyYou']").innerHTML =
+        explanationOnlyYou;
+      document.querySelector("[data-i18n='ruleMustBeAppropriate']").innerHTML =
+        ruleMustBeAppropriate;
+      document.querySelector(
+        "[data-i18n='explanationMustBeAppropriate']"
+      ).innerHTML = explanationMustBeAppropriate;
+      document.querySelector("[data-i18n='emailP4']").innerHTML = emailP4;
+      document.querySelector("[data-i18n='emailP5']").innerHTML = emailP5;
+      document
+        .querySelector("#flaggedPhoto")
+        .setAttribute("src", profilePhotoFlagged);
+      document.querySelector("[data-i18n='addedOn']").innerHTML =
+        photoAddedOn.replaceAll("{DATE}", profilePhotoDateFormatted);
+      document.querySelector("[data-i18n='emailP6']").innerHTML = emailP6;
+      document.querySelector("[data-i18n='emailP7']").innerHTML = emailP7;
+      document
+        .querySelector("#temporaryPhoto")
+        .setAttribute("src", tempPhotoURL);
+      document.querySelector("[data-i18n='emailP8']").innerHTML = emailP8;
+      document.querySelector("[data-i18n='emailUpdatePhotoLink']").innerHTML =
+        emailUpdatePhotoLink;
+      document.querySelector("[data-i18n='emailP10']").innerHTML = emailP10;
+      document.querySelector("[data-i18n='emailSincerely']").innerHTML =
+        emailSincerely;
+      document.querySelector("[data-i18n='emailTheCyberministry']").innerHTML =
+        emailTheCyberministry;
+      document.querySelector("[data-i18n='emailAboutApp']").innerHTML =
+        emailAboutApp;
+      document.querySelector("[data-i18n='emailTimezone']").innerHTML =
+        emailTimezone.replaceAll("{ADMIN-TIMEZONE}", adminTimeZone);
+      document.querySelector("[data-i18n='emailMessageID']").innerHTML =
+        emailMessageID;
+      document.querySelector("[data-var='messageID']").innerHTML = messageID;
 
       const html = document.innerHTML;
 
@@ -217,7 +219,7 @@ exports.POST = (req, res) => {
     });
   };
 
-  const processFlags = (photosFlagged, userIdsFlagged) => {
+  const processFlags = (photosFlagged) => {
     return new Promise((resolve, reject) => {
       if (!Array.isArray(photosFlagged)) {
         return reject(new Error("photosFlagged must be an array"));
@@ -227,63 +229,103 @@ exports.POST = (req, res) => {
         return resolve();
       }
 
-      const notificationPromises = [];
-
-      photosFlagged.forEach((user) => {
-        const notificationPromise = notifyFlaggedUser(
-          db,
-          user,
-          htmlYourPhotoWasFlagged,
-          emailPhrasesPhotoWasFlagged,
-          adminTimeZone
-        );
-        notificationPromises.push(notificationPromise);
-      });
-
-      let caseProfilePhotoFlagged = "CASE ";
-      let caseProfilePhoto = "CASE ";
-
-      Promise.allSettled(notificationPromises).then((results) => {
-        caseProfilePhotoFlagged += `WHEN userid = ${user.userid} THEN profilephoto `;
-        caseProfilePhoto += `WHEN userid = ${user.userid} THEN 
-          (CASE 
-              WHEN gender = 'male' THEN '${genericPhotoUrls.male}' 
-              WHEN gender = 'female' THEN '${genericPhotoUrls.female}' 
-              ELSE profilephoto 
-          END) `;
-      });
-
-      caseProfilePhotoFlagged += "END";
-      caseProfilePhoto += "END";
+      const userIdsFlagged = photosFlagged.map((item) => item.userid);
 
       const sql = `
-        UPDATE
-          users
-        SET
-          profilephoto_flagged = ${caseProfilePhotoFlagged},
-          profilephoto = ${caseProfilePhoto}
+        SELECT
+          u.userid,
+          u.firstname,
+          u.lastname,
+          u.email,
+          u.gender,
+          u.profilephoto,
+          pr.createdAt AS profilePhotoDate
+        FROM
+          users u
+        INNER JOIN photoreview pr ON u.userid = pr.userid
         WHERE
-          userid IN (${userIdsFlagged.join(", ")})
+          userid IN (?)
+        LIMIT 1
         ;
       `;
 
-      db.query(sql, [], (error, result) => {
+      db.query(sql, [[userIdsFlagged]], (error, result) => {
         if (error) {
-          console.log(error);
           return reject(error);
         }
 
-        return resolve(result);
+        let caseProfilePhotoFlagged = "CASE ";
+        let caseProfilePhoto = "CASE ";
+
+        result.forEach((item) => {
+          const {
+            userid,
+            firstname,
+            lastname,
+            email,
+            gender,
+            profilephoto,
+            profilePhotoDate,
+          } = item;
+          const { reason, other } = photosFlagged.find(
+            (photo) => (photo.userid = userid)
+          );
+          const genericPhotoUrl = `https://invites.mobi/_assets/img/profile-generic-${gender}.png`;
+
+          const flagObject = {
+            userid: userid,
+            firstname: firstname,
+            lastname: lastname,
+            email: email,
+            gender: gender,
+            profilePhotoFlagged: profilephoto,
+            profilePhotoDate: profilePhotoDate,
+            photoGeneric: genericPhotoUrl,
+            reason: reason,
+            other: other,
+          };
+
+          notifyFlaggedUser(flagObject);
+
+          caseProfilePhotoFlagged += `WHEN userid = ${userid} THEN profilephoto `;
+          caseProfilePhoto += `WHEN userid = ${userid} THEN 
+            (CASE 
+                WHEN gender = 'male' THEN '${genericPhotoUrls.male}' 
+                WHEN gender = 'female' THEN '${genericPhotoUrls.female}' 
+                ELSE profilephoto 
+            END) `;
+
+          caseProfilePhotoFlagged += "END";
+          caseProfilePhoto += "END";
+        });
+
+        const sql = `
+          UPDATE
+            users
+          SET
+            profilephoto_flagged = ${caseProfilePhotoFlagged},
+            profilephoto = ${caseProfilePhoto}
+          WHERE
+            userid IN (${userIdsFlagged.join(", ")})
+          ;
+        `;
+
+        db.query(sql, [], (error, result) => {
+          if (error) {
+            console.log(error);
+            return reject(error);
+          }
+
+          return resolve();
+        });
       });
     });
   };
 
-  Promise.all(
-    processApprovals(userIdsApproved),
-    processFlags(photosFlagged, userIdsFlagged)
-  ).then((results) => {
-    // TODO:  e-mail user asking for revision to their photo (include both flagged and generic photo, flagged by user, reason for flagging, URL to revise photo)
+  const processedApprovals = processApprovals(userIdsApproved);
+  const processedFlags = processFlags(photosFlagged);
 
+  Promise.allSettled([processedApprovals, processedFlags]).then((results) => {
     return res.status(200).send({
       msg: "photo reviews processed successfully",
       msgType: "success",

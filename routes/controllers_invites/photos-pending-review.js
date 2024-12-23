@@ -60,6 +60,7 @@ exports.POST = (req, res) => {
         u.profilephoto,
         u.firstname,
         u.lastname,
+        u.lang,
         u.gender,
         u.usertype,
         u.userstatus,
