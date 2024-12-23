@@ -62,7 +62,7 @@ exports.POST = (req, res) => {
   }
 
   const notifyFlaggedUser = (flagObject) => {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       const {
         userid,
         firstname,
@@ -124,6 +124,7 @@ exports.POST = (req, res) => {
       const { document } = dom.window;
       const uuid = require("uuid");
       const messageID = uuid.v4();
+      const ds = document.querySelector;
 
       document.querySelector("html").setAttribute("lang", lang);
       document.title = emailSubject;
@@ -136,7 +137,8 @@ exports.POST = (req, res) => {
       document.querySelector("[data-i18n='emailP3']").innerHTML = emailP3;
       document
         .querySelector("[data-i18n='emailP3']")
-        .parentElement.querySelector("strong").innerHTML = actualReason;
+        .parentElement.querySelector(".invitesFlaggedReason").innerHTML =
+        actualReason;
       document.querySelector(
         "[data-i18n='headlineRulesAboutPhotos']"
       ).innerHTML = headlineRulesAboutPhotos;
@@ -193,7 +195,15 @@ exports.POST = (req, res) => {
 
       const html = dom.serialize();
 
-      // TODO:  send e-mail
+      const emailRecipient = `${firstname} ${lastname} <${email}>`;
+      const emailSender = "invites.mobi";
+
+      const emailResult = await require("./utils").sendEmail(
+        emailRecipient,
+        emailSender,
+        emailSubject,
+        html
+      );
 
       // TODO:  replace the following resolve() depending on the actual result
       return resolve();
