@@ -13,6 +13,7 @@ exports.POST = (req, res) => {
   }
 
   // Set database
+  const isLocal = req.headers.referer.indexOf("localhost") >= 0 ? true : false;
   const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
   const db = isStaging
     ? require("../../database-invites-test")
@@ -42,7 +43,6 @@ exports.POST = (req, res) => {
 
   // Parameters
   const userIdsApproved = req.body.userIdsApproved;
-  const userIdsFlagged = req.body.userIdsFlagged;
   const photosFlagged = req.body.photosFlagged;
   const htmlYourPhotoWasFlagged = req.body.htmlYourPhotoWasFlagged;
   const emailPhrasesPhotoWasFlagged = req.body.emailPhrasesPhotoWasFlagged;
@@ -54,6 +54,13 @@ exports.POST = (req, res) => {
     female: "https://invites.mobi/_assets/img/profile-generic-female.png",
   };
 
+  let updateProfilePhotoURL = "https://invites.mobi/profile/photo/";
+  if (isLocal) {
+    updateProfilePhotoURL = "http://localhost:5555/profile/photo/";
+  } else if (isStaging) {
+    updateProfilePhotoURL = "https://staging.invites.mobi/profile/photo/";
+  }
+
   const notifyFlaggedUser = (flagObject) => {
     return new Promise((resolve, reject) => {
       const {
@@ -62,21 +69,21 @@ exports.POST = (req, res) => {
         lastname,
         email,
         lang,
+        country,
         gender,
         profilePhotoFlagged,
         profilePhotoDate,
         photoGeneric,
         reason,
         other,
-      } = user;
-      const profilePhotoDateFormatted = new Intl.DateTimeFormat(adminLocale, {
+      } = flagObject;
+      const userLocale = `${lang.toLowerCase()}-${country.toUpperCase()}`;
+      const profilePhotoDateFormatted = new Intl.DateTimeFormat(userLocale, {
         timeZone: adminTimeZone,
-        dateStyle: "full", // Can be 'full', 'long', 'medium', 'short'
-        timeStyle: "short", // Optional: Can also be 'full', 'long', 'medium', 'short'
+        dateStyle: "short",
+        timeStyle: "short",
       }).format(new Date(profilePhotoDate));
       const actualReason = other.length ? other : reason;
-
-      debugger;
 
       const {
         emailP1,
@@ -87,6 +94,7 @@ exports.POST = (req, res) => {
         emailP6,
         emailP7,
         emailP8,
+        emailP9,
         emailUpdatePhotoLink,
         emailP10,
         emailSincerely,
@@ -112,12 +120,12 @@ exports.POST = (req, res) => {
 
       const jsdom = require("jsdom");
       const { JSDOM } = jsdom;
-      const { document } = new JSDOM(htmlYourPhotoWasFlagged).window;
-      const tempPhotoURL =
-        gender === "female" ? genericPhotoUrls.female : genericPhotoUrls.male;
+      const dom = new JSDOM(htmlYourPhotoWasFlagged);
+      const { document } = dom.window;
       const uuid = require("uuid");
       const messageID = uuid.v4();
 
+      document.querySelector("html").setAttribute("lang", lang);
       document.title = emailSubject;
       document.querySelector(
         "[data-i18n='profile-photo-was-flagged']"
@@ -157,16 +165,19 @@ exports.POST = (req, res) => {
       document
         .querySelector("#flaggedPhoto")
         .setAttribute("src", profilePhotoFlagged);
-      document.querySelector("[data-i18n='addedOn']").innerHTML =
-        photoAddedOn.replaceAll("{DATE}", profilePhotoDateFormatted);
-      document.querySelector("[data-i18n='emailP6']").innerHTML = emailP6;
+      document.querySelector("[data-i18n='emailP6']").innerHTML =
+        emailP6.replaceAll("{DATE}", profilePhotoDateFormatted);
       document.querySelector("[data-i18n='emailP7']").innerHTML = emailP7;
+      document.querySelector("[data-i18n='emailP8']").innerHTML = emailP8;
       document
         .querySelector("#temporaryPhoto")
-        .setAttribute("src", tempPhotoURL);
-      document.querySelector("[data-i18n='emailP8']").innerHTML = emailP8;
+        .setAttribute("src", photoGeneric);
+      document.querySelector("[data-i18n='emailP9']").innerHTML = emailP9;
       document.querySelector("[data-i18n='emailUpdatePhotoLink']").innerHTML =
         emailUpdatePhotoLink;
+      document
+        .querySelector("[data-i18n='emailUpdatePhotoLink']")
+        .setAttribute("href", updateProfilePhotoURL);
       document.querySelector("[data-i18n='emailP10']").innerHTML = emailP10;
       document.querySelector("[data-i18n='emailSincerely']").innerHTML =
         emailSincerely;
@@ -180,10 +191,7 @@ exports.POST = (req, res) => {
         emailMessageID;
       document.querySelector("[data-var='messageID']").innerHTML = messageID;
 
-      const html = document.innerHTML;
-
-      // TODO:  make sure that the "html" variable contains the full HTML document
-      debugger;
+      const html = dom.serialize();
 
       // TODO:  send e-mail
 
@@ -225,7 +233,7 @@ exports.POST = (req, res) => {
         return reject(new Error("photosFlagged must be an array"));
       }
 
-      if (!photosFlagged.length || !userIdsFlagged.length) {
+      if (!photosFlagged.length) {
         return resolve();
       }
 
@@ -237,14 +245,17 @@ exports.POST = (req, res) => {
           u.firstname,
           u.lastname,
           u.email,
+          u.lang,
+          c.country,
           u.gender,
           u.profilephoto,
           pr.createdAt AS profilePhotoDate
         FROM
           users u
         INNER JOIN photoreview pr ON u.userid = pr.userid
+        INNER JOIN churches c ON u.churchid = c.remoteid
         WHERE
-          userid IN (?)
+          u.userid IN (?)
         LIMIT 1
         ;
       `;
@@ -263,6 +274,8 @@ exports.POST = (req, res) => {
             firstname,
             lastname,
             email,
+            lang,
+            country,
             gender,
             profilephoto,
             profilePhotoDate,
@@ -277,6 +290,8 @@ exports.POST = (req, res) => {
             firstname: firstname,
             lastname: lastname,
             email: email,
+            lang: lang,
+            country: country,
             gender: gender,
             profilePhotoFlagged: profilephoto,
             profilePhotoDate: profilePhotoDate,
