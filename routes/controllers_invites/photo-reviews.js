@@ -237,6 +237,76 @@ exports.POST = (req, res) => {
     });
   };
 
+  const processFlag = (db, flagObject) => {
+    return new Promise((resolve, reject) => {
+      const userid = flagObject.userid;
+
+      const sql = `
+        SELECT
+          gender,
+          profilephoto,
+          profilephoto_flagged
+        FROM
+          users
+        WHERE
+          userid = ?
+        LIMIT 1
+        ;
+      `;
+
+      db.query(sql, [userid], (error, result) => {
+        if (error) {
+          return reject(error);
+        }
+
+        if (!result.length) {
+          return reject(new Error("user not found"));
+        }
+
+        const { profilephoto, profilephoto_flagged } = result[0];
+
+        const isUsingFlaggedPhoto = profilephoto.indexOf("__400.jpg" >= 0)
+          ? true
+          : false;
+
+        const genericPhoto =
+          gender === "female" ? genericPhotoUrls.female : genericPhotoUrls.male;
+
+        const sql = `
+          UPDATE
+            users
+          SET
+            profilephoto = ?,
+            profilephoto_flagged = ?
+          WHERE
+            userid = ?
+          ;
+        `;
+
+        let sqlParams;
+
+        if (isUsingFlaggedPhoto) {
+          sqlParams = [genericPhoto, profilephoto, userid];
+        } else {
+          sqlParams = [genericPhoto, profilephoto_flagged, userid];
+        }
+
+        db.query(sql, sqlParams, (error, result) => {
+          if (error) {
+            console.log(
+              `Could not set user's flagged profile photo to a generic version (userid ${userid})`
+            );
+            return reject(error);
+          }
+
+          notifyFlaggedUser(flagObject);
+
+          return resolve();
+        });
+      });
+    });
+  };
+
   const processFlags = (photosFlagged) => {
     return new Promise((resolve, reject) => {
       if (!Array.isArray(photosFlagged)) {
@@ -247,103 +317,9 @@ exports.POST = (req, res) => {
         return resolve();
       }
 
-      const userIdsFlagged = photosFlagged.map((item) => item.userid);
+      photosFlagged.map((flagObject) => processFlag(db, flagObject));
 
-      const sql = `
-        SELECT
-          u.userid,
-          u.firstname,
-          u.lastname,
-          u.email,
-          u.lang,
-          c.country,
-          u.gender,
-          u.profilephoto,
-          pr.createdAt AS profilePhotoDate
-        FROM
-          users u
-        INNER JOIN photoreview pr ON u.userid = pr.userid
-        INNER JOIN churches c ON u.churchid = c.remoteid
-        WHERE
-          u.userid IN (?)
-        LIMIT 1
-        ;
-      `;
-
-      db.query(sql, [[userIdsFlagged]], (error, result) => {
-        if (error) {
-          return reject(error);
-        }
-
-        let caseProfilePhotoFlagged = "CASE ";
-        let caseProfilePhoto = "CASE ";
-
-        result.forEach((item) => {
-          const {
-            userid,
-            firstname,
-            lastname,
-            email,
-            lang,
-            country,
-            gender,
-            profilephoto,
-            profilePhotoDate,
-          } = item;
-          const { reason, other } = photosFlagged.find(
-            (photo) => (photo.userid = userid)
-          );
-          const genericPhotoUrl = `https://invites.mobi/_assets/img/profile-generic-${gender}.png`;
-
-          const flagObject = {
-            userid: userid,
-            firstname: firstname,
-            lastname: lastname,
-            email: email,
-            lang: lang,
-            country: country,
-            gender: gender,
-            profilePhotoFlagged: profilephoto,
-            profilePhotoDate: profilePhotoDate,
-            photoGeneric: genericPhotoUrl,
-            reason: reason,
-            other: other,
-          };
-
-          notifyFlaggedUser(flagObject);
-
-          caseProfilePhotoFlagged += `WHEN userid = ${userid} THEN profilephoto `;
-          caseProfilePhoto += `WHEN userid = ${userid} THEN 
-            (CASE 
-                WHEN gender = 'male' THEN '${genericPhotoUrls.male}' 
-                WHEN gender = 'female' THEN '${genericPhotoUrls.female}' 
-                ELSE profilephoto 
-            END) `;
-
-          caseProfilePhotoFlagged += "END";
-          caseProfilePhoto += "END";
-        });
-
-        const sql = `
-          UPDATE
-            users
-          SET
-            profilephoto_flagged = ${caseProfilePhotoFlagged},
-            profilephoto = ${caseProfilePhoto}
-          WHERE
-            userid IN (${userIdsFlagged.join(", ")})
-          ;
-        `;
-
-        db.query(sql, [], (error, result) => {
-          if (error) {
-            console.log(error);
-            return reject(error);
-          }
-
-          return resolve();
-        });
-      });
+      return resolve();
     });
   };
 
