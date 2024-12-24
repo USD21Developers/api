@@ -1225,27 +1225,39 @@ exports.deleteProfileImage = async (userid, db, storageEnvironment) => {
 
     db.query(sql, [userid], (error, result) => {
       if (error) {
-        const errorMessage = `cannot query for profile photo of user id ${userid}`;
+        const errorMessage = `cannot query for profile photo (user id ${userid})`;
         console.log(errorMessage);
         return reject(new Error(errorMessage));
       }
 
       if (!result.length) {
-        const msg = `cannot delete existing profile photo of user id ${userid} (user not found)`;
+        const msg = `cannot delete existing profile photo (user id ${userid}); user not found`;
         // console.log(msg);
         return resolve(new Error(msg));
       }
 
-      const url = result[0].profilephoto_flagged
-        ? result[0].profilephoto_flagged
-        : result[0].profilephoto;
+      const { profilephoto, profilephoto_flagged } = result[0];
+
+      if (profilephoto_flagged.indexOf("profile-generic") >= 0) {
+        const errorMessage =
+          "Generic photo URL was erroneously saved as flagged photo";
+        console.log(errorMessage);
+        return resolve(new Error(errorMessage));
+      }
+
+      let url = profilephoto;
+
+      if (profilephoto.indexOf("profile-generic") >= 0) {
+        url = profilephoto_flagged;
+      }
+
       const regex = /profiles\/(.*?)\.jpg/;
       const match = url.match(regex);
 
       if (!match) {
-        const errorMessage = `cannot existing old profile photo of user id ${userid} (URL does not match required pattern)`;
+        const errorMessage = `cannot delete existing profile photo (user id ${userid}); URL does not match required pattern`;
         console.log(errorMessage);
-        return reject(new Error(errorMessage));
+        return resolve(new Error(errorMessage));
       }
 
       const fileName400 = match[0];
