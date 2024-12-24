@@ -19,28 +19,6 @@ exports.POST = (req, res) => {
     ? require("../../database-invites-test")
     : require("../../database-invites");
 
-  /*
-      TODO:  PLAN FOR PROCESSING FLAGGED USERS:
-
-      1.  QUERY FOR ALL FLAGGED USERS.
-          Within the "processedFlags" method, query all users whose userid matches.
-          Select all data that will be needed for (A) flagging the user, and (B) notifying them.
-
-      2.  UPDATE ALL FLAGGED USERS.
-          Set each flagged user's profilephoto and profilephoto_flagged field according to flagged logic.
-
-      3.  NOTIFY ALL FLAGGED USERS.
-          Loop through the items in the returned SQL query.  Asynchronously call "notifyUser" to email them.
-          Do not await!  Just fire off "notifyUser" for each flagged user asynchronously.
-
-      4.  RESOLVE THE PROMISE.
-          The promise can resolve, regardless of the outcome of notifying the users (step 2).
-
-      5.  RESPOND TO THE CLIENT.
-          The "Promise.allSettled" will fire (probably can be Promise.all).
-          It's now safe to return a response to the client.
-  */
-
   // Parameters
   const userIdsApproved = req.body.userIdsApproved;
   const photosFlagged = req.body.photosFlagged;
@@ -61,7 +39,7 @@ exports.POST = (req, res) => {
     updateProfilePhotoURL = "https://staging.invites.mobi/profile/photo/";
   }
 
-  const notifyFlaggedUser = (flagObject) => {
+  const notifyFlaggedUser = (flag) => {
     return new Promise(async (resolve, reject) => {
       const {
         userid,
@@ -76,8 +54,14 @@ exports.POST = (req, res) => {
         photoGeneric,
         reason,
         other,
-      } = flagObject;
+      } = flag;
       const userLocale = `${lang.toLowerCase()}-${country.toUpperCase()}`;
+      const utcDateNow = new Date().toISOString();
+      const dateNow = new Intl.DateTimeFormat(userLocale, {
+        timeZone: adminTimeZone,
+        dateStyle: "short",
+        timeStyle: "short",
+      }).format(new Date(utcDateNow));
       const profilePhotoDateFormatted = new Intl.DateTimeFormat(userLocale, {
         timeZone: adminTimeZone,
         dateStyle: "short",
@@ -88,6 +72,8 @@ exports.POST = (req, res) => {
       const {
         emailP1,
         emailP2,
+        dateUploadedLabel,
+        dateFlaggedLabel,
         emailP3,
         emailP4,
         emailP5,
@@ -124,21 +110,21 @@ exports.POST = (req, res) => {
       const { document } = dom.window;
       const uuid = require("uuid");
       const messageID = uuid.v4();
-      const ds = document.querySelector;
 
       document.querySelector("html").setAttribute("lang", lang);
       document.title = emailSubject;
-      document.querySelector(
-        "[data-i18n='profile-photo-was-flagged']"
-      ).innerHTML = emailSubject;
       document.querySelector("[data-i18n='emailP1']").innerHTML =
         emailP1.replaceAll("{FIRST-NAME}", firstname);
       document.querySelector("[data-i18n='emailP2']").innerHTML = emailP2;
+      document.querySelector("[data-i18n='dateUploadedLabel']").innerHTML =
+        dateUploadedLabel;
+      document.querySelector("#dateUploaded").innerHTML =
+        profilePhotoDateFormatted;
+      document.querySelector("[data-i18n='dateFlaggedLabel']").innerHTML =
+        dateFlaggedLabel;
+      document.querySelector("#dateFlagged").innerHTML = dateNow;
       document.querySelector("[data-i18n='emailP3']").innerHTML = emailP3;
-      document
-        .querySelector("[data-i18n='emailP3']")
-        .parentElement.querySelector(".invitesFlaggedReason").innerHTML =
-        actualReason;
+      document.querySelector("#actualReason").innerHTML = actualReason;
       document.querySelector(
         "[data-i18n='headlineRulesAboutPhotos']"
       ).innerHTML = headlineRulesAboutPhotos;
@@ -237,19 +223,28 @@ exports.POST = (req, res) => {
     });
   };
 
-  const processFlag = (db, flagObject) => {
+  const processFlag = (db, flag) => {
     return new Promise((resolve, reject) => {
-      const userid = flagObject.userid;
+      const userid = flag.userid;
 
       const sql = `
         SELECT
-          gender,
-          profilephoto,
-          profilephoto_flagged
+          u.userid,
+          u.firstname,
+          u.lastname,
+          u.email,
+          u.lang,
+          u.gender,
+          u.profilephoto,
+          u.profilephoto_flagged,
+          pr.createdAt AS profilePhotoDate,
+          c.country
         FROM
-          users
+          users u
+        INNER JOIN photoreview pr ON pr.userid = u.userid
+        INNER JOIN churches c ON u.churchid = c.remoteid
         WHERE
-          userid = ?
+          u.userid = ?
         LIMIT 1
         ;
       `;
@@ -263,14 +258,49 @@ exports.POST = (req, res) => {
           return reject(new Error("user not found"));
         }
 
-        const { profilephoto, profilephoto_flagged } = result[0];
+        const {
+          userid,
+          firstname,
+          lastname,
+          email,
+          lang,
+          gender,
+          profilephoto,
+          profilephoto_flagged,
+          profilePhotoDate,
+          country,
+        } = result[0];
+
+        const photoGeneric =
+          gender === "female" ? genericPhotoUrls.female : genericPhotoUrls.male;
+
+        let profilePhotoFlagged = profilephoto;
+
+        const profilePhotoIsAlreadyFlagged =
+          profilephoto.indexOf("profile-generic") >= 0;
+
+        if (profilePhotoIsAlreadyFlagged) {
+          profilePhotoFlagged = profilephoto_flagged;
+        }
+
+        const flagObject = {
+          userid: userid,
+          firstname: firstname,
+          lastname: lastname,
+          email: email,
+          lang: lang,
+          country: country,
+          gender: gender,
+          profilePhotoFlagged: profilePhotoFlagged,
+          profilePhotoDate: profilePhotoDate,
+          photoGeneric: photoGeneric,
+          reason: flag.reason,
+          other: flag.other,
+        };
 
         const isUsingFlaggedPhoto = profilephoto.indexOf("__400.jpg" >= 0)
           ? true
           : false;
-
-        const genericPhoto =
-          gender === "female" ? genericPhotoUrls.female : genericPhotoUrls.male;
 
         const sql = `
           UPDATE
@@ -286,9 +316,9 @@ exports.POST = (req, res) => {
         let sqlParams;
 
         if (isUsingFlaggedPhoto) {
-          sqlParams = [genericPhoto, profilephoto, userid];
+          sqlParams = [photoGeneric, profilephoto, userid];
         } else {
-          sqlParams = [genericPhoto, profilephoto_flagged, userid];
+          sqlParams = [photoGeneric, profilephoto_flagged, userid];
         }
 
         db.query(sql, sqlParams, (error, result) => {
@@ -301,7 +331,22 @@ exports.POST = (req, res) => {
 
           notifyFlaggedUser(flagObject);
 
-          return resolve();
+          const sql = `
+            DELETE FROM
+              photoreview
+            WHERE
+              userid = ?
+            ;
+          `;
+
+          db.query(sql, [userid], (error, result) => {
+            if (error) {
+              console.log(error);
+              return reject(error);
+            }
+
+            return resolve();
+          });
         });
       });
     });
@@ -317,7 +362,7 @@ exports.POST = (req, res) => {
         return resolve();
       }
 
-      photosFlagged.map((flagObject) => processFlag(db, flagObject));
+      photosFlagged.map((flag) => processFlag(db, flag));
 
       return resolve();
     });

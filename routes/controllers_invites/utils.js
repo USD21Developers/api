@@ -1084,7 +1084,7 @@ exports.storeProfileImage = async (
       logger: null,
     });
 
-    await require("./utils").deleteProfileImage(userid, db, storageEnvironment);
+    require("./utils").deleteProfileImage(userid, db, storageEnvironment);
 
     const fileName400 = `profiles/${userid}__${uuid}__400.jpg`;
     const fileContent400 = new Buffer.from(
@@ -1192,7 +1192,7 @@ exports.storeProfileImage = async (
               return reject(err);
             }
 
-            return resolve();
+            return resolve(profile400Url);
           });
         });
       });
@@ -1227,23 +1227,16 @@ exports.deleteProfileImage = async (userid, db, storageEnvironment) => {
       if (error) {
         const errorMessage = `cannot query for profile photo (user id ${userid})`;
         console.log(errorMessage);
-        return reject(new Error(errorMessage));
+        return resolve(errorMessage);
       }
 
       if (!result.length) {
-        const msg = `cannot delete existing profile photo (user id ${userid}); user not found`;
-        // console.log(msg);
-        return resolve(new Error(msg));
+        const errorMessage = `cannot delete existing profile photo (user id ${userid}); user not found`;
+        // console.log(errorMessage);
+        return resolve(errorMessage);
       }
 
       const { profilephoto, profilephoto_flagged } = result[0];
-
-      if (profilephoto_flagged.indexOf("profile-generic") >= 0) {
-        const errorMessage =
-          "Generic photo URL was erroneously saved as flagged photo";
-        console.log(errorMessage);
-        return resolve(new Error(errorMessage));
-      }
 
       let url = profilephoto;
 
@@ -1256,8 +1249,8 @@ exports.deleteProfileImage = async (userid, db, storageEnvironment) => {
 
       if (!match) {
         const errorMessage = `cannot delete existing profile photo (user id ${userid}); URL does not match required pattern`;
-        console.log(errorMessage);
-        return resolve(new Error(errorMessage));
+        // console.log(errorMessage);
+        return resolve(errorMessage);
       }
 
       const fileName400 = match[0];
