@@ -79,7 +79,6 @@ exports.POST = (req, res) => {
         u.userstatus = 'registered'
       ORDER BY
         pr.createdAt DESC
-      LIMIT 1
       ;
     `;
 
