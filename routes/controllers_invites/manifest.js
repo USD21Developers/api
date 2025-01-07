@@ -67,7 +67,9 @@ exports.GET = (req, res) => {
 
   let preferredLanguage = req.headers["accept-language"];
 
-  let favoriteLanguages = preferredLanguage.split(",");
+  let favoriteLanguages = preferredLanguage
+    ? preferredLanguage.split(",")
+    : "en";
 
   favoriteLanguages.reverse();
 
