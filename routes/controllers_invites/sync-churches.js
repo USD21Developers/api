@@ -4,7 +4,7 @@ exports.GET = async (req, res) => {
   const cache = new NodeCache();
 
   // Set database
-  const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
+  const isStaging = req?.headers?.referer?.indexOf("staging") >= 0 || false;
   const db = isStaging
     ? require("../../database-invites-test")
     : require("../../database-invites");
