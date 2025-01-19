@@ -16,7 +16,7 @@ exports.GET = (req, res) => {
       .toLowerCase()
       .trim()}/countries.json`);
   } catch (e) {
-    console.log(e);
+    // console.log(e);
     lang = "en";
     data = require(`world_countries_lists/data/countries/${lang}/countries.json`);
   }
