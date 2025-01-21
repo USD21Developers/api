@@ -182,8 +182,8 @@ router.post(
 const newChurch = require("./controllers_invites/new-church");
 router.post("/new-church", authenticateToken, newChurch.POST);
 
-const churchesWithUsers = require("./controllers_invites/churches-with-users");
-router.get("/churches-with-users", authenticateToken, churchesWithUsers);
+// const churchesWithUsers = require("./controllers_invites/churches-with-users");
+// router.get("/churches-with-users", authenticateToken, churchesWithUsers);
 
 // INVITES
 
