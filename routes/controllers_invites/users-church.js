@@ -44,31 +44,45 @@ exports.POST = async (req, res) => {
   // Fetch data
   const sql = `
     SELECT
-      userid,
-      firstname,
-      lastname,
-      gender,
-      profilephoto,
-      lang,
-      cameToFaithViaApp,
-      usertype,
-      canAuthorize,
-      canAuthToAuth,
-      userstatus,
-      createdAt,
-      updatedAt
+      u.userid,
+      u.firstname,
+      u.lastname,
+      u.gender,
+      u.profilephoto,
+      u.lang,
+      u.cameToFaithViaApp,
+      u.usertype,
+      u.canAuthorize,
+      u.canAuthToAuth,
+      u.userstatus,
+      u.createdAt,
+      u.updatedAt,
+      MAX(i.invitedAt) AS lastInvitationDate
     FROM
-      users
+      users u
+    LEFT OUTER JOIN invitations i ON u.userid = i.userid
     WHERE
-      churchid = ?
-    AND
-      isAuthorized = 1
-    AND
-      userstatus = 'registered'
+      u.churchid = ?
+      AND u.isAuthorized = 1
+      AND u.userstatus = 'registered'
+    GROUP BY
+      u.userid,
+      u.firstname,
+      u.lastname,
+      u.gender,
+      u.profilephoto,
+      u.lang,
+      u.cameToFaithViaApp,
+      u.usertype,
+      u.canAuthorize,
+      u.canAuthToAuth,
+      u.userstatus,
+      u.createdAt,
+      u.updatedAt
     ORDER BY
-      createdAt DESC,
-      lastname,
-      firstname
+      u.createdAt DESC,
+      u.lastname,
+      u.firstname;
     ;
   `;
 
