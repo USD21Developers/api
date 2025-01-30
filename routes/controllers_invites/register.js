@@ -290,6 +290,12 @@ exports.POST = (req, res) => {
 
       console.log(require("util").inspect(superUsers, true, 7, true));
 
+      return res.status(200).send({
+        msg: "debugging",
+        msgType: "success",
+        superUsers: superUsers,
+      });
+
       const superUserEmails = superUsers.map((item) => item.email);
       if (superUserEmails.includes(email)) {
         usertype = "sysadmin";
