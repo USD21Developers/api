@@ -61,8 +61,6 @@ exports.GET = (req, res) => {
     const authcode = preAuthArray[2];
 
     manifest.start_url = `${manifest.start_url}&churchid=${churchid}&authorizedby=${authorizedby}&authcode=${authcode}`;
-
-    console.log(`start_url: ${manifest.start_url}`);
   }
 
   let preferredLanguage = req.headers["accept-language"];
