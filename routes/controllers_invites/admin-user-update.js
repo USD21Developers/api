@@ -29,10 +29,10 @@ exports.POST = async (req, res) => {
   const firstname = req.body.firstname || null;
   const lastname = req.body.lastname || null;
   const email = req.body.email || null;
-  const usertypeNew = req.body.usertype || null;
-  const userstatus = req.body.userstatus || null;
-  const canAuthorize = req.body.canAuthorize || 0;
-  const canAuthToAuth = req.body.canAuthToAuth || 0;
+  let usertypeNew = req.body.usertype || null;
+  let userstatus = req.body.userstatus || null;
+  let canAuthorize = req.body.canAuthorize || 0;
+  let canAuthToAuth = req.body.canAuthToAuth || 0;
 
   const getUser = (db, userid) => {
     return new Promise((resolve, reject) => {
@@ -509,32 +509,20 @@ exports.POST = async (req, res) => {
     }
 
     if (isSuperUser) {
-      if (usertypeNew !== "sysadmin") {
-        return res.status(400).send({
-          msg: "insufficient permissions to downgrade usertype for this user",
-          msgType: "error",
-        });
+      if (user.usertype === "sysadmin" && usertypeNew !== "sysadmin") {
+        usertypeNew = "sysadmin";
       }
 
-      if (userstatus === "frozen") {
-        return res.status(400).send({
-          msg: "insufficient permissions to set userstatus to frozen for this user",
-          msgType: "error",
-        });
+      if (user.userstatus !== "frozen" && userstatus === "frozen") {
+        userstatus = user.userstatus;
       }
 
       if (Number(canAuthorize) !== 1) {
-        return res.status(400).send({
-          msg: "insufficient permissions to downgrade canAuthorize for this user",
-          msgType: "error",
-        });
+        canAuthorize = 1;
       }
 
       if (Number(canAuthToAuth) !== 1) {
-        return res.status(400).send({
-          msg: "insufficient permissions to downgrade canAuthToAuth for this user",
-          msgType: "error",
-        });
+        canAuthToAuth = 1;
       }
 
       const isPrivilegedEmailAccount =
