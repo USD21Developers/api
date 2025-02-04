@@ -18,7 +18,6 @@ exports.POST = async (req, res) => {
     ? require("../../database-invites-test")
     : require("../../database-invites");
 
-  const isSuperUser = await require("./utils").isSuperUser(db, req.user.userid);
   let churchEmailUnverified = 0;
 
   // Params
@@ -75,7 +74,7 @@ exports.POST = async (req, res) => {
     });
   };
 
-  const getSysadmin = (db, userid) => {
+  const getSysadminMe = (db, userid) => {
     return new Promise((resolve, reject) => {
       const sql = `
         SELECT
@@ -119,15 +118,21 @@ exports.POST = async (req, res) => {
     });
   };
 
+  const isSuperUserMe = await require("./utils").isSuperUser(
+    db,
+    req.user.userid
+  );
+  const sysAdminMe = getSysadminMe(db, req.user.userid);
+
   const user = await getUser(db, userid);
-  const sysadmin = await getSysadmin(db, req.user.userid);
+  const isSuperUser = await require("./utils").isSuperUser(db, userid);
 
   const newlog = {
     user: {
       before: user,
       after: user,
     },
-    sysadmin: sysadmin,
+    sysadmin: sysAdminMe,
   };
 
   churchEmailUnverified = user.churchEmailUnverified;
@@ -346,19 +351,24 @@ exports.POST = async (req, res) => {
     });
   }
 
-  if (isSuperUser) {
+  /*******************************
+   *  BEGIN SUPER USERS SECTION  *
+   *******************************/
+  if (isSuperUserMe) {
     if (!country) {
       return res.status(400).send({
         msg: "country is required",
         msgType: "error",
       });
     }
+
     if (typeof country !== "string") {
       return res.status(400).send({
         msg: "country must be a string",
         msgType: "error",
       });
     }
+
     if (country.length !== 2) {
       return res.status(400).send({
         msg: "country must be exactly 2 characters",
@@ -372,12 +382,14 @@ exports.POST = async (req, res) => {
         msgType: "error",
       });
     }
+
     if (typeof lang !== "string") {
       return res.status(400).send({
         msg: "lang must be a string",
         msgType: "error",
       });
     }
+
     if (lang.length !== 2) {
       return res.status(400).send({
         msg: "lang must be exactly 2 characters",
@@ -391,18 +403,21 @@ exports.POST = async (req, res) => {
         msgType: "error",
       });
     }
+
     if (typeof firstname !== "string") {
       return res.status(400).send({
         msg: "firstname must be a string",
         msgType: "error",
       });
     }
+
     if (!firstname.trim().length) {
       return res.status(400).send({
         msg: "firstname is required",
         msgType: "error",
       });
     }
+
     if (firstname.length > 255) {
       return res.status(400).send({
         msg: "firstname must not exceed 255 characters",
@@ -416,18 +431,21 @@ exports.POST = async (req, res) => {
         msgType: "error",
       });
     }
+
     if (typeof lastname !== "string") {
       return res.status(400).send({
         msg: "lastname must be a string",
         msgType: "error",
       });
     }
+
     if (!lastname.trim().length) {
       return res.status(400).send({
         msg: "lastname is required",
         msgType: "error",
       });
     }
+
     if (lastname.length > 255) {
       return res.status(400).send({
         msg: "lastname must not exceed 255 characters",
@@ -441,18 +459,21 @@ exports.POST = async (req, res) => {
         msgType: "error",
       });
     }
+
     if (typeof email !== "string") {
       return res.status(400).send({
         msg: "email must be a string",
         msgType: "error",
       });
     }
+
     if (!email.trim().length) {
       return res.status(400).send({
         msg: "email is required",
         msgType: "error",
       });
     }
+
     if (email.length > 255) {
       return res.status(400).send({
         msg: "email must not exceed 255 characters",
@@ -476,18 +497,21 @@ exports.POST = async (req, res) => {
         msgType: "error",
       });
     }
+
     if (typeof usertypeNew !== "string") {
       return res.status(400).send({
         msg: "usertype must be a string",
         msgType: "error",
       });
     }
+
     if (!usertypeNew.trim().length) {
       return res.status(400).send({
         msg: "usertype is required",
         msgType: "error",
       });
     }
+
     if (!["sysadmin", "user"].includes(usertypeNew)) {
       return res.status(400).send({
         msg: "usertype is invalid",
@@ -508,19 +532,24 @@ exports.POST = async (req, res) => {
       });
     }
 
-    if (isSuperUser) {
+    // If super user is editing their own record
+    if (req.user.userid === userid) {
+      // Super user can't downgrade his own usertype
       if (user.usertype === "sysadmin" && usertypeNew !== "sysadmin") {
         usertypeNew = "sysadmin";
       }
 
+      // Super user can't freeze himself
       if (user.userstatus !== "frozen" && userstatus === "frozen") {
         userstatus = user.userstatus;
       }
 
+      // Super user can't set canAuthorize to false
       if (Number(canAuthorize) !== 1) {
         canAuthorize = 1;
       }
 
+      // Super user can't set canAuthToAuth to false
       if (Number(canAuthToAuth) !== 1) {
         canAuthToAuth = 1;
       }
@@ -530,6 +559,7 @@ exports.POST = async (req, res) => {
       const currentEmailIsPrivileged = isPrivilegedEmailAccount(user.email);
       const newEmailIsPrivileged = isPrivilegedEmailAccount(email);
 
+      // Super user can't just claim to have a USD21 e-mail address (relevant in case "super user" status is later revoked)
       if (newEmailIsPrivileged && !currentEmailIsPrivileged) {
         churchEmailUnverified = 1;
       }
@@ -537,7 +567,11 @@ exports.POST = async (req, res) => {
 
     await updateAsSuperUser(db);
   }
+  /*****************************
+   *  END SUPER USERS SECTION  *
+   *****************************/
 
+  // If admin is editing his own record
   if (user.userid === req.user.userid) {
     if (user.usertype === "sysadmin" && usertypeNew !== "sysadmin") {
       return res.status(400).send({
@@ -570,8 +604,9 @@ exports.POST = async (req, res) => {
     }
   }
 
-  if (req.user.usertype === "sysadmin" && !isSuperUser) {
-    if (sysadmin.churchid !== user.churchid) {
+  // Admins that are not super users cannot edit users from other congregations
+  if (!isSuperUser) {
+    if (sysAdminMe.churchid !== user.churchid) {
       return res.status(400).send({
         msg: "insufficient permissions to modify a user from another congregation",
         msgType: "error",
