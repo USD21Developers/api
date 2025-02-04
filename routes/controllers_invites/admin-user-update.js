@@ -648,7 +648,7 @@ exports.POST = async (req, res) => {
 
       return res.status(200).send({
         msg: "user updated",
-        msgType: "error",
+        msgType: "success",
       });
     }
   );
