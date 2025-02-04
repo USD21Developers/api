@@ -605,8 +605,8 @@ exports.POST = async (req, res) => {
   }
 
   // Admins that are not super users cannot edit users from other congregations
-  if (!isSuperUser) {
-    if (sysAdminMe.churchid != user.churchid) {
+  if (!isSuperUserMe) {
+    if (sysAdminMe.churchid !== user.churchid) {
       return res.status(400).send({
         msg: "insufficient permissions to modify a user from another congregation",
         msgType: "error",
