@@ -192,7 +192,7 @@ exports.POST = async (req, res) => {
           firstname.trim(),
           lastname.trim(),
           email.trim().toLowerCase(),
-          usertype,
+          usertypeNew,
           churchEmailUnverified,
           userid,
         ],
