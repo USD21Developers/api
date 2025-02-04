@@ -18,6 +18,28 @@ exports.POST = async (req, res) => {
     ? require("../../database-invites-test")
     : require("../../database-invites");
 
+  /****************************************************************
+   *
+   *  BUSINESS LOGIC:
+   *
+   *  ADMINS can edit the following settings:
+   *  1. churchid
+   *  2. userstatus
+   *  3. canAuth
+   *  4. canAuthToAuth
+   *
+   *  SUPER USERS can edit all of the above plus the following:
+   *  5. country
+   *  6. language
+   *  7. firstname
+   *  8. lastname
+   *  9. email
+   *  10. usertype
+   *
+   *  Also, SUPER USERS' privileges cannot be downgraded
+   *
+   ***************************************************************/
+
   let churchEmailUnverified = 0;
 
   // Params
