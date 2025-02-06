@@ -14,11 +14,12 @@ const routes_services = require("./routes/routes_services");
 const requestIp = require("request-ip");
 
 const allowedOrigins = [
-  "https://firstprinciples.mobi",
-  "https://staging.firstprinciples.mobi",
+  "http://localhost:5555",
   "https://invites.mobi",
   "https://staging.invites.mobi",
-  "http://localhost:5555",
+  "https://firstprinciples.mobi",
+  "https://staging.firstprinciples.mobi",
+  "https://usd21.org",
 ];
 
 const corsOptions = {
