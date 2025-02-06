@@ -27,6 +27,7 @@ function getChurches() {
 
   return new Promise((resolve, reject) => {
     fetch(endpoint, {
+      mode: "no-cors",
       cache: "no-store",
       keepalive: true,
     })
