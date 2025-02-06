@@ -14,6 +14,8 @@ const routes_services = require("./routes/routes_services");
 const requestIp = require("request-ip");
 
 const allowedOrigins = [
+  "https://firstprinciples.mobi",
+  "https://staging.firstprinciples.mobi",
   "https://invites.mobi",
   "https://staging.invites.mobi",
   "http://localhost:5555",
