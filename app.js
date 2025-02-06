@@ -20,6 +20,8 @@ const allowedOrigins = [
   "https://firstprinciples.mobi",
   "https://staging.firstprinciples.mobi",
   "https://usd21.org",
+  "https://phxicc.org",
+  "https://cityofangelsicc.org",
 ];
 
 const corsOptions = {
