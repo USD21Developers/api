@@ -260,6 +260,10 @@ router.post("/map-evangelism", authenticateToken, mapEvangelism.POST);
 const mapsApiKeys = require("./controllers_invites/maps-api-keys");
 router.post("/maps-api-keys", authenticateToken, mapsApiKeys.POST);
 
+// LATEST NEWS
+const latestNews = require("./controllers_invites/latest-news");
+router.post("/latest-news", authenticateToken, latestNews.POST);
+
 // ADMIN
 
 const adminUserSearch = require("./controllers_invites/admin-user-search");
