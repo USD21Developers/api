@@ -46,6 +46,9 @@ app.use(cors(corsOptions));
 // Handle preflight requests properly
 app.options("*", (req, res) => {
   const origin = req.headers.origin;
+
+  console.log("CORS Preflight Origin:", origin); // Debugging line
+
   if (allowedOrigins.includes(origin)) {
     res.set("Access-Control-Allow-Origin", origin);
     res.set("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
