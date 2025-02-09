@@ -4,7 +4,7 @@ exports.syncChurches = (schedule, cronOptions) => {
   cron.schedule(
     schedule,
     () => {
-      console.log("syncChurches cron job beginning...");
+      // console.log("syncChurches cron job beginning...");
 
       // Set databases
       const dbInvites = require("../../../database-invites-test");
@@ -172,7 +172,7 @@ exports.syncChurches = (schedule, cronOptions) => {
         // Designate local churches as deleted (if missing from remote)
         deleteChurchesLocal(dbInvites, deletedIds);
 
-        console.log("syncChurches cron job ending...");
+        // console.log("syncChurches cron job ending...");
       });
     },
     cronOptions
