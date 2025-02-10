@@ -13,20 +13,14 @@ const routes_glc = require("./routes/routes_glc");
 const routes_services = require("./routes/routes_services");
 const requestIp = require("request-ip");
 
-const allowedOrigins = [
-  "http://localhost:5555",
-  "https://invites.mobi",
-  "https://staging.invites.mobi",
-  "https://firstprinciples.mobi",
-  "https://staging.firstprinciples.mobi",
-  "https://usd21.org",
-  "https://phxicc.org",
-  "https://cityofangelsicc.org",
-];
-
 const corsOptions = {
-  origin: true, // Reflects the request's origin, allowing all
-  credentials: true, // Allows cookies and authorization headers
+  origin: function (origin, callback) {
+    if (!origin) {
+      return callback(null, true);
+    }
+    callback(null, true);
+  },
+  credentials: true,
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
@@ -34,22 +28,22 @@ const corsOptions = {
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
-// Apply CORS middleware
 app.use(cors(corsOptions));
 
-// Handle preflight requests properly
 app.options("*", (req, res) => {
-  const origin = req.headers.origin;
+  const origin = req?.headers?.origin;
 
-  if (origin) {
+  if (!origin) {
+    res.set("Access-Control-Allow-Origin", "*");
+  } else {
     res.set("Access-Control-Allow-Origin", origin);
-    res.set("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-    res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    res.set("Access-Control-Allow-Credentials", "true");
-    res.set("Access-Control-Max-Age", "86400");
-    return res.sendStatus(204);
   }
-  res.sendStatus(403);
+
+  res.set("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.set("Access-Control-Allow-Credentials", "true");
+  res.set("Access-Control-Max-Age", "86400");
+  res.sendStatus(204);
 });
 
 app.use(express.json({ limit: "50mb" }));
