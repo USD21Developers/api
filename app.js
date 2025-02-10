@@ -25,14 +25,8 @@ const allowedOrigins = [
 ];
 
 const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(null, false); // Instead of throwing an error, just block it
-    }
-  },
-  credentials: true,
+  origin: true, // Reflects the request's origin, allowing all
+  credentials: true, // Allows cookies and authorization headers
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
@@ -47,16 +41,15 @@ app.use(cors(corsOptions));
 app.options("*", (req, res) => {
   const origin = req.headers.origin;
 
-  console.log("CORS Preflight Origin:", origin); // Debugging line
-
-  if (allowedOrigins.includes(origin)) {
+  if (origin) {
     res.set("Access-Control-Allow-Origin", origin);
     res.set("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
     res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
     res.set("Access-Control-Allow-Credentials", "true");
+    res.set("Access-Control-Max-Age", "86400");
     return res.sendStatus(204);
   }
-  res.sendStatus(403); // Forbidden for disallowed origins
+  res.sendStatus(403);
 });
 
 app.use(express.json({ limit: "50mb" }));
