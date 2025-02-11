@@ -13,12 +13,24 @@ const routes_glc = require("./routes/routes_glc");
 const routes_services = require("./routes/routes_services");
 const requestIp = require("request-ip");
 
+const allowedOrigins = [
+  "http://localhost:5555",
+  "https://invites.mobi",
+  "https://staging.invites.mobi",
+  "https://firstprinciples.mobi",
+  "https://staging.firstprinciples.mobi",
+  "https://usd21.org",
+  "https://phxicc.org",
+  "https://cityofangelsicc.org",
+];
+
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin) {
-      return callback(null, true);
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, origin || "*"); // Allow requests without an origin
+    } else {
+      callback(new Error("CORS not allowed"));
     }
-    callback(null, true);
   },
   credentials: true,
   methods: ["GET", "POST", "OPTIONS"],
