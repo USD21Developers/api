@@ -26,15 +26,23 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: function (origin, callback) {
+    console.log("CORS Request Origin:", origin); // ✅ DEBUGGING
+
     if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, origin || "*"); // Allow requests without an origin
+      callback(null, origin);
     } else {
+      console.error("Blocked CORS Origin:", origin); // ✅ DEBUGGING
       callback(new Error("CORS not allowed"));
     }
   },
   credentials: true,
   methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "Accept",
+  ],
 };
 
 app.set("views", path.join(__dirname, "views"));
