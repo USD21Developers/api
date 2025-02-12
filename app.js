@@ -26,25 +26,18 @@ const allowedOrigins = [
 ];
 
 const corsOptions = {
-  origin: function (origin, callback) {
-    console.log("CORS Request Origin:", origin); // DEBUGGING
-
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, origin || "*"); // Allow if no origin is present
-    } else {
-      console.error("Blocked CORS Origin:", origin);
-      callback(new Error("CORS not allowed"));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "OPTIONS"],
+  origin: "*", // Allow requests from all domains
+  credentials: true, // Allow sending cookies or Authorization headers
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Allow all common HTTP methods
   allowedHeaders: [
     "Content-Type",
     "Authorization",
     "X-Requested-With",
     "Accept",
-  ],
+  ], // Allow all necessary headers
 };
+
+app.use(cors(corsOptions));
 
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
@@ -52,18 +45,11 @@ app.set("view engine", "ejs");
 app.use(cors(corsOptions));
 
 app.options("*", (req, res) => {
-  const origin = req?.headers?.origin;
-
-  if (!origin) {
-    res.set("Access-Control-Allow-Origin", "*");
-  } else {
-    res.set("Access-Control-Allow-Origin", origin);
-  }
-
-  res.set("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
   res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.set("Access-Control-Allow-Credentials", "true");
-  res.set("Access-Control-Max-Age", "86400");
+  res.set("Access-Control-Max-Age", "86400"); // Cache preflight requests for 24 hours
   res.sendStatus(204);
 });
 
