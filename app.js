@@ -22,16 +22,17 @@ const allowedOrigins = [
   "https://usd21.org",
   "https://phxicc.org",
   "https://cityofangelsicc.org",
+  "https://www.orlandoicc.org",
 ];
 
 const corsOptions = {
   origin: function (origin, callback) {
-    console.log("CORS Request Origin:", origin); // ✅ DEBUGGING
+    console.log("CORS Request Origin:", origin); // DEBUGGING
 
     if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, origin);
+      callback(null, origin || "*"); // Allow if no origin is present
     } else {
-      console.error("Blocked CORS Origin:", origin); // ✅ DEBUGGING
+      console.error("Blocked CORS Origin:", origin);
       callback(new Error("CORS not allowed"));
     }
   },
