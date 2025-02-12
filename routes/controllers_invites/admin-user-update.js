@@ -247,6 +247,9 @@ exports.POST = async (req, res) => {
       const user_after = JSON.stringify(newlog.user.after);
       const hash_after = await require("./utils").hashStringAsync(user_after);
 
+      if (!userid) return resolve();
+      if (!changed_by_userid) return resolve();
+
       const sql = `
         INSERT INTO logs_adminchanges(
           userid,
