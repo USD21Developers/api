@@ -145,10 +145,11 @@ exports.POST = (req, res) => {
           decryptedDEK += decipher.final("base64");
           dek = new Buffer.from(decryptedDEK, "base64");
         } catch (err) {
-          console.log(err);
+          console.log("invalid login");
           return res.status(404).send({
             msg: "invalid login",
             msgType: "error",
+            error: err,
           });
         }
 
