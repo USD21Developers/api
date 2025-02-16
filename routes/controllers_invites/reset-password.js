@@ -155,9 +155,29 @@ exports.POST = (req, res) => {
               });
             }
 
-            return res
-              .status(200)
-              .send({ msg: "password updated", msgType: "success" });
+            const sql = `
+              UPDATE
+                notes
+              SET
+                isLockedByChangedPassword = 1
+              WHERE
+                userid = ?
+              ;
+            `;
+
+            db.query(sql, [req.user.userid], (error, result) => {
+              if (error) {
+                console.log(error);
+                return res.status(500).send({
+                  msg: "unable to set notes as locked",
+                  msgType: "error",
+                });
+              }
+
+              return res
+                .status(200)
+                .send({ msg: "password updated", msgType: "success" });
+            });
           });
         });
       }
