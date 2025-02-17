@@ -165,7 +165,7 @@ exports.POST = (req, res) => {
               ;
             `;
 
-            db.query(sql, [req.user.userid], (error, result) => {
+            db.query(sql, [userid], (error, result) => {
               if (error) {
                 console.log(error);
                 return res.status(500).send({
