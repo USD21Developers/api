@@ -159,6 +159,8 @@ exports.POST = (req, res) => {
         INNER JOIN invitations i ON i.invitationid = n.invitationid
         WHERE
           n.userid = ?
+        AND
+          n.isLockedByChangedPassword = 0
         ORDER BY
           n.createdAt ASC
         ;

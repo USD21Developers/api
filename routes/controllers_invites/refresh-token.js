@@ -50,6 +50,8 @@ exports.POST = (req, res) => {
           users
         WHERE
           userid = ?
+        AND
+          userstatus <> 'frozen'
         ;
       `;
       db.query(sql, [userid], (err, result) => {
