@@ -54,6 +54,8 @@ exports.GET = async (req, res) => {
       AND
         u.userstatus = 'registered'
       AND
+        u.isAuthorized = 1
+      AND
         c.isDeleted <> 1
       ORDER BY
         country, place, name
