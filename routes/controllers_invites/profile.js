@@ -26,6 +26,7 @@ exports.POST = async (req, res) => {
   const email = req.body.email || null;
   const firstname = req.body.firstname || null;
   const lastname = req.body.lastname || null;
+  const nameDisplayedOnInvite = req.body.nameDisplayedOnInvite || null;
   const password = req.body.password || null;
   const datakey = req.body.datakey || null;
   const emailSenderText = req.body.emailSenderText || "";
@@ -317,6 +318,12 @@ exports.POST = async (req, res) => {
       msgType: "error",
     });
   }
+  if (!nameDisplayedOnInvite || !nameDisplayedOnInvite.length) {
+    return res.status(400).send({
+      msg: "nameDisplayedOnInvite is required",
+      msgType: "error",
+    });
+  }
   if (password && password.length) {
     const isValidPassword = require("./utils").validateNewPassword(password);
     if (!isValidPassword) {
@@ -353,7 +360,8 @@ exports.POST = async (req, res) => {
       email = ?,
       churchEmailUnverified = ?,
       firstname = ?,
-      lastname = ?
+      lastname = ?,
+      nameDisplayedOnInvite = ?
     WHERE
       userid = ?
     ;
@@ -367,6 +375,7 @@ exports.POST = async (req, res) => {
       churchEmailUnverified,
       firstname,
       lastname,
+      nameDisplayedOnInvite,
       req.user.userid,
     ],
     async (error, result) => {
@@ -396,6 +405,7 @@ exports.POST = async (req, res) => {
           usertype,
           firstname,
           lastname,
+          nameDisplayedOnInvite,
           email,
           churchEmailUnverified,
           username,
@@ -438,6 +448,7 @@ exports.POST = async (req, res) => {
           usertype,
           firstname,
           lastname,
+          nameDisplayedOnInvite,
           email,
           churchEmailUnverified,
           username,
@@ -459,6 +470,7 @@ exports.POST = async (req, res) => {
             usertype: usertype,
             firstname: firstname,
             lastname: lastname,
+            nameDisplayedOnInvite: nameDisplayedOnInvite,
             email: email,
             churchEmailUnverified: churchEmailUnverified,
             username: username,

@@ -35,6 +35,7 @@ exports.POST = (req, res) => {
           churchid,
           firstname,
           lastname,
+          nameDisplayedOnInvite,
           email,
           username,
           usertype,
@@ -71,6 +72,7 @@ exports.POST = (req, res) => {
         const churchid = result[0].churchid;
         const firstname = result[0].firstname;
         const lastname = result[0].lastname;
+        const nameDisplayedOnInvite = result[0].nameDisplayedOnInvite;
         const email = result[0].email;
         const username = result[0].username;
         const usertype = result[0].usertype;
@@ -93,6 +95,7 @@ exports.POST = (req, res) => {
             usertype: usertype,
             firstname: firstname,
             lastname: lastname,
+            nameDisplayedOnInvite: nameDisplayedOnInvite,
             email: email,
             username: username,
             gender: gender,

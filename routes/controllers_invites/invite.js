@@ -150,6 +150,7 @@ exports.POST = (req, res) => {
           churchid,
           firstname,
           lastname,
+          nameDisplayedOnInvite,
           email,
           gender,
           profilephoto,

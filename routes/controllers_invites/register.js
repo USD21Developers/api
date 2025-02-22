@@ -74,6 +74,7 @@ exports.POST = (req, res) => {
   const email = req.body.email || "";
   const firstname = req.body.firstname || "";
   const lastname = req.body.lastname || "";
+  const nameDisplayedOnInvite = req.body.firstname || "";
   const gender = req.body.gender || "";
   const profileImage140 = req.body.profileImage140 || "";
   const profileImage400 = req.body.profileImage400 || "";
@@ -367,9 +368,9 @@ exports.POST = (req, res) => {
 
           const sql = `
             INSERT INTO users(
-              churchid, username, password, firstname, lastname, gender, email, usertype, lang, country, cameToFaithViaApp, datakey, isAuthorized, canAuthorize, canAuthToAuth, authorizedby, settings, createdAt
+              churchid, username, password, firstname, lastname, nameDisplayedOnInvite, gender, email, usertype, lang, country, cameToFaithViaApp, datakey, isAuthorized, canAuthorize, canAuthToAuth, authorizedby, settings, createdAt
             ) VALUES (
-              ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, utc_timestamp()
+              ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, utc_timestamp()
             );
           `;
           db.query(
@@ -380,6 +381,7 @@ exports.POST = (req, res) => {
               passwordObj,
               firstname,
               lastname,
+              nameDisplayedOnInvite,
               gender,
               email,
               usertype,
