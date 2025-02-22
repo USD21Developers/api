@@ -58,7 +58,7 @@ exports.POST = (req, res) => {
     const passwordFromDB = JSON.parse(result[0].password);
     const firstname = result[0].firstname || "";
     const lastname = result[0].lastname || "";
-    const nameDisplayedOnInvite = result[0] || "";
+    const nameDisplayedOnInvite = result[0].nameDisplayedOnInvite || "";
     const email = result[0].email || "";
     const username = result[0].username || "";
     const gender = result[0].gender || "";
