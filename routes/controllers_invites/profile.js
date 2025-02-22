@@ -26,7 +26,7 @@ exports.POST = async (req, res) => {
   const email = req.body.email || null;
   const firstname = req.body.firstname || null;
   const lastname = req.body.lastname || null;
-  const nameDisplayedOnInvite = req.body.nameDisplayedOnInvite || null;
+  let nameDisplayedOnInvite = req.body.nameDisplayedOnInvite || null;
   const password = req.body.password || null;
   const datakey = req.body.datakey || null;
   const emailSenderText = req.body.emailSenderText || "";
@@ -319,10 +319,7 @@ exports.POST = async (req, res) => {
     });
   }
   if (!nameDisplayedOnInvite || !nameDisplayedOnInvite.length) {
-    return res.status(400).send({
-      msg: "nameDisplayedOnInvite is required",
-      msgType: "error",
-    });
+    nameDisplayedOnInvite = firstname;
   }
   if (password && password.length) {
     const isValidPassword = require("./utils").validateNewPassword(password);
