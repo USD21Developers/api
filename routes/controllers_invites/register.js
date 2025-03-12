@@ -489,10 +489,17 @@ exports.POST = (req, res) => {
                 const recipient = `"${firstname} ${lastname}" <${email}>`;
                 require("./utils")
                   .sendEmail(recipient, emailSenderText, emailSubject, body)
-                  .then((result) => {
+                  .then(async (result) => {
+                    const pendingConfirmationToken =
+                      await require("./utils").getPendingConfirmationToken(
+                        db,
+                        username
+                      );
+
                     return res.status(result[0].statusCode || 200).send({
                       msg: "confirmation e-mail sent",
                       msgType: "success",
+                      pendingConfirmationToken: pendingConfirmationToken,
                     });
                   })
                   .catch((err) => {

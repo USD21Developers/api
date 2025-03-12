@@ -24,6 +24,70 @@ exports.authenticateToken = (req, res, next) => {
   );
 };
 
+exports.getPendingConfirmationToken = (db, username) => {
+  return new Promise((resolve, reject) => {
+    if (!db) return reject(new Error("db argument is required"));
+    if (!username) return reject(new Error("username argument is required"));
+
+    const sql = `
+      SELECT
+        firstname,
+        lastname,
+        email,
+        userid,
+        username,
+        createdAt,
+        updatedAt
+      FROM
+        users
+      WHERE
+        username = ?
+      AND
+        userstatus = 'pending confirmation'
+      LIMIT 1
+      ;
+    `;
+
+    db.query(sql, [username], (error, result) => {
+      if (error) {
+        return reject(error);
+      }
+
+      if (!result.length) {
+        return reject("user not found");
+      }
+
+      const {
+        firstname,
+        lastname,
+        email,
+        userid,
+        username,
+        createdAt,
+        updatedAt,
+      } = result[0];
+
+      const jsonwebtoken = require("jsonwebtoken");
+
+      const pendingConfirmationToken = jsonwebtoken.sign(
+        {
+          firstname: firstname,
+          lastname: lastname,
+          email: email,
+          userid: userid,
+          username: username,
+          createdAt: createdAt,
+          updatedAt: updatedAt,
+        },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: "1d" }
+      );
+
+      return resolve(pendingConfirmationToken);
+    });
+  });
+};
+
 exports.hashString = (input) => {
   return crypto.createHash("sha256").update(input).digest("hex");
 };

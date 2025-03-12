@@ -17,7 +17,11 @@ const registerConfirm = require("./controllers_invites/register-confirm");
 router.post("/register-confirm", registerConfirm.POST);
 
 const registerResendConfirmation = require("./controllers_invites/register-resend-confirmation");
-router.post("/register-resend-confirmation", registerResendConfirmation.POST);
+router.post(
+  "/register-resend-confirmation",
+  authenticateToken,
+  registerResendConfirmation.POST
+);
 
 // SECURITY
 

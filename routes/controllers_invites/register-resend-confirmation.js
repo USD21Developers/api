@@ -1,12 +1,20 @@
 const crypto = require("crypto");
 const emailValidator = require("email-validator");
+const { getPendingConfirmationToken } = require("./utils");
 
 exports.POST = (req, res) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  if (!token)
+    return res
+      .status(400)
+      .send({ msg: "missing access token", msgType: "error" });
+
   const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
   const db = isStaging
     ? require("../../database-invites-test")
     : require("../../database-invites");
-  const email = req.body.email || "";
+  const email = req.user.email || "";
   const emailSenderText = req.body.emailSenderText || null;
   const emailSubject = req.body.emailSubject || null;
   const emailParagraph1 = req.body.emailParagraph1 || null;
@@ -93,7 +101,7 @@ exports.POST = (req, res) => {
 
   const sql = `
     SELECT
-      userid, email, userstatus, createdAt, updatedAt
+      userid, churchid, authorizedby, firstname, lastname, email, userstatus, createdAt, updatedAt
     FROM
       users
     WHERE
@@ -102,7 +110,7 @@ exports.POST = (req, res) => {
     ;
   `;
 
-  db.query(sql, [email], (error, result) => {
+  db.query(sql, [email], async (error, result) => {
     if (error) {
       return res.status(500).send({
         msg: "unable to query for registrant",
@@ -152,6 +160,18 @@ exports.POST = (req, res) => {
 
     const userid = result[0].userid;
 
+    const churchid = result[0].churchid;
+
+    const authorizedby = result[0].authorizedby ? result[0].authorizedby : "";
+
+    const firstname = result[0].firstname;
+
+    const lastname = result[0].lastname;
+
+    const createdAt = result[0].createdAt;
+
+    const updatedAt = result[0].updatedAt;
+
     const registrationToken = crypto.randomBytes(32).toString("hex");
 
     const sql = `
@@ -170,18 +190,30 @@ exports.POST = (req, res) => {
       );
     `;
 
+    const pendingConfirmationToken = await getPendingConfirmationToken(
+      db,
+      req.user.username
+    );
+
     db.query(sql, [registrationToken, userid], (err, result) => {
       if (err) {
         // console.log(err);
         return res.status(500).send({
           msg: "unable to insert registration token",
           msgType: "error",
+          pendingConfirmationToken: pendingConfirmationToken,
         });
       }
 
       const uuid = require("crypto").randomUUID();
 
-      const confirmationUrl = `${protocol}//${host}/register/confirm/#${registrationToken}`;
+      const forUrl = {
+        churchid: churchid,
+        authorizedby: authorizedby,
+        authcode: "",
+      };
+
+      const confirmationUrl = `${protocol}//${host}/register/confirm/#/${forUrl.churchid}/${forUrl.authorizedby}/${forUrl.authcode}/${registrationToken}`;
 
       const body = `
         <p>
@@ -217,6 +249,7 @@ exports.POST = (req, res) => {
             email: email,
             createdAt: createdAt,
             updatedAt: updatedAt,
+            pendingConfirmationToken: pendingConfirmationToken,
           });
         })
         .catch((err) => {

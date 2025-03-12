@@ -40,7 +40,7 @@ exports.POST = (req, res) => {
       1
     ;
   `;
-  db.query(sql, [username], (err, result) => {
+  db.query(sql, [username], async (err, result) => {
     if (err) {
       console.log(err);
       return res.status(500).send({
@@ -78,6 +78,17 @@ exports.POST = (req, res) => {
 
     if (userstatus !== "registered") {
       decryptOK = false;
+
+      if (userstatus === "pending confirmation") {
+        const pendingConfirmationToken =
+          await require("./utils").getPendingConfirmationToken(db, username);
+
+        return res.status(400).send({
+          msg: "user status is not registered",
+          msgType: "error",
+          pendingConfirmationToken: pendingConfirmationToken,
+        });
+      }
 
       return res.status(400).send({
         msg: "user status is not registered",
