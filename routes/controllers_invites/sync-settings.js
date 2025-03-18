@@ -31,6 +31,55 @@ exports.POST = async (req, res) => {
     unsyncedSettings.customInviteText = truncatedText.trim();
   }
 
+  // Validate customizing contact info in events by followed users
+  if (
+    unsyncedSettings &&
+    unsyncedSettings.hasOwnProperty("eventsByFollowedUsers")
+  ) {
+    if (unsyncedSettings.eventsByFollowedUsers.hasOwnProperty("contactInfo")) {
+      const { override, firstName, phone, phoneCountryData, email } =
+        unsyncedSettings.eventsByFollowedUsers.contactInfo;
+
+      const dontUseCustomContactInfo = () =>
+        (unsyncedSettings.eventsByFollowedUsers.contactInfo.override = false);
+
+      if (override) {
+        if (!firstName.trim().length) {
+          dontUseCustomContactInfo();
+        }
+
+        if (!phone.trim().length && !email.trim().length) {
+          dontUseCustomContactInfo();
+        }
+
+        const emailValidator = require("email-validator");
+        if (!emailValidator.validate(email)) {
+          dontUseCustomContactInfo();
+        }
+
+        if (phone.trim().length) {
+          if (!phoneCountryData) dontUseCustomContactInfo();
+          if (!phoneCountryData.hasOwnProperty("iso2")) {
+            const phoneValidationResults = require("./utils").validatePhone(
+              phone,
+              phoneCountryData.iso2
+            );
+            const {
+              isPossibleNumber,
+              isValidForRegion,
+              isValidSmsType,
+              e164Format,
+            } = phoneValidationResults;
+            if (!isPossibleNumber) dontUseCustomContactInfo();
+            if (!isValidForRegion) dontUseCustomContactInfo();
+            if (!e164Format) dontUseCustomContactInfo();
+            // if (!isValidSmsType) dontUseCustomContactInfo();
+          }
+        }
+      }
+    }
+  }
+
   const update = (db, unsyncedSettings) => {
     return new Promise((resolve, reject) => {
       const sql = `
