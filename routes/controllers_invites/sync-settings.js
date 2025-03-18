@@ -40,8 +40,9 @@ exports.POST = async (req, res) => {
       const { override, firstName, phone, phoneCountryData, email } =
         unsyncedSettings.eventsByFollowedUsers.contactInfo;
 
-      const dontUseCustomContactInfo = () =>
-        (unsyncedSettings.eventsByFollowedUsers.contactInfo.override = false);
+      const dontUseCustomContactInfo = () => {
+        unsyncedSettings.eventsByFollowedUsers.contactInfo.override = false;
+      };
 
       if (override) {
         if (!firstName.trim().length) {
