@@ -155,9 +155,10 @@ exports.POST = (req, res) => {
           gender,
           profilephoto,
           lang,
-          country
+          country,
+          settings
         FROM
-          users
+          users u
         WHERE
           userid = ?
         ;
@@ -673,6 +674,22 @@ exports.POST = (req, res) => {
       delete event.startdateNext;
     }
     const user = userid ? await getUser(db, userid).catch(() => null) : null;
+
+    // Enable overriding event contact info
+    if (user.settings) {
+      const settings = JSON.parse(user.settings);
+
+      if (settings.hasOwnProperty("eventsByFollowedUsers")) {
+        if (settings.eventsByFollowedUsers.hasOwnProperty("contactInfo")) {
+          if (settings.eventsByFollowedUsers.contactInfo.override) {
+            user.contactInfo = settings.eventsByFollowedUsers.contactInfo;
+          }
+        }
+      }
+
+      delete user.settings;
+    }
+
     const recipient =
       eventid && userid && recipientid
         ? await getRecipient(db, eventid, userid, recipientid).catch(() => null)
