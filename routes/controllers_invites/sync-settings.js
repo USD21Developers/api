@@ -40,26 +40,30 @@ exports.POST = async (req, res) => {
       const { override, firstName, phone, phoneCountryData, email } =
         unsyncedSettings.eventsByFollowedUsers.contactInfo;
 
-      const dontUseCustomContactInfo = () => {
+      const dontOverride = () => {
         unsyncedSettings.eventsByFollowedUsers.contactInfo.override = false;
       };
 
       if (override) {
         if (!firstName.trim().length) {
-          dontUseCustomContactInfo();
+          dontOverride();
         }
 
         if (!phone.trim().length && !email.trim().length) {
-          dontUseCustomContactInfo();
+          dontOverride();
         }
 
         const emailValidator = require("email-validator");
-        if (!emailValidator.validate(email)) {
-          dontUseCustomContactInfo();
+        if (email.trim().length) {
+          if (!emailValidator.validate(email)) {
+            dontOverride();
+          }
         }
 
         if (phone.trim().length) {
-          if (!phoneCountryData) dontUseCustomContactInfo();
+          if (!phoneCountryData) {
+            dontOverride();
+          }
           if (!phoneCountryData.hasOwnProperty("iso2")) {
             const phoneValidationResults = require("./utils").validatePhone(
               phone,
@@ -71,10 +75,16 @@ exports.POST = async (req, res) => {
               isValidSmsType,
               e164Format,
             } = phoneValidationResults;
-            if (!isPossibleNumber) dontUseCustomContactInfo();
-            if (!isValidForRegion) dontUseCustomContactInfo();
-            if (!e164Format) dontUseCustomContactInfo();
-            // if (!isValidSmsType) dontUseCustomContactInfo();
+            if (!isPossibleNumber) {
+              dontOverride();
+            }
+            if (!isValidForRegion) {
+              dontOverride();
+            }
+            if (!e164Format) {
+              dontOverride();
+            }
+            // if (!isValidSmsType) dontOverride();
           }
         }
       }
