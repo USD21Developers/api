@@ -315,7 +315,7 @@ exports.POST = (req, res) => {
       } else if (isStaging) {
         domain = "https://staging.invites.mobi";
       }
-      followUpLinkPrefix = `${domain}/r/#`;
+      followUpLinkPrefix = `${domain}/r/?utm_source=email#`;
       const followUpLink = `${followUpLinkPrefix}/${recipientObj.invitationid}`;
 
       if (isRecurringEvent) {
