@@ -92,7 +92,7 @@ exports.POST = (req, res) => {
   let preAuth = req.body.preAuth || null;
   const authCode = req.body.authCode || null;
   const settings = JSON.stringify({
-    openingPage: "home",
+    openingPage: "send an invite",
     customInviteText: "",
     enableEmailNotifications: true,
     enablePushNotifications: false,
