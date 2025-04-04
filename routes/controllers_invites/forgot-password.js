@@ -109,10 +109,18 @@ exports.POST = (req, res) => {
               .replace("${firstname}", `${firstname}`)
               .replace("${lastname}", `${lastname}`)}
           </p>
-          <p>
-            ${hereIsYourUsername}<br>
-            <strong>${username}</strong>
-          </p>
+        `;
+
+        if (hereIsYourUsername && hereIsYourUsername.length) {
+          body += `
+            <p>
+              ${hereIsYourUsername}<br>
+              <strong>${username}</strong>
+            </p>
+          `;
+        }
+
+        body += `
           <p style="margin: 30px 0">
             <strong><big><a href="${resetUrl}" style="text-decoration: underline">${emailParagraph2}</a></big></strong>
           </p>
