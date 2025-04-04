@@ -9,6 +9,7 @@ exports.POST = (req, res) => {
   let emailParagraph1 = req.body.emailParagraph1 || "";
   const emailParagraph2 = req.body.emailParagraph2 || "";
   const emailParagraph3 = req.body.emailParagraph3 || "";
+  const hereIsYourUsername = req.body.hereIsYourUsername || "";
   let protocol = "https:";
   let host;
   switch (process.env.ENV) {
@@ -64,6 +65,7 @@ exports.POST = (req, res) => {
       return res.status(404).send({ msg: "user not found", msgType: "error" });
     const moment = require("moment");
     const userid = result[0].userid;
+    const username = result[0].username;
     const firstname = result[0].firstname;
     const lastname = result[0].lastname;
     const recipientEmail = result[0].email;
@@ -102,10 +104,18 @@ exports.POST = (req, res) => {
         const uuid = require("crypto").randomUUID();
         const subject = emailSubject;
         const body = `
-          <p>${emailParagraph1
-            .replace("${firstname}", `${firstname}`)
-            .replace("${lastname}", `${lastname}`)}</p>
-          <p style="margin: 30px 0"><strong><big><a href="${resetUrl}" style="text-decoration: underline">${emailParagraph2}</a></big></strong></p>
+          <p>
+            ${emailParagraph1
+              .replace("${firstname}", `${firstname}`)
+              .replace("${lastname}", `${lastname}`)}
+          </p>
+          <p>
+            ${hereIsYourUsername}<br>
+            <strong>${username}</strong>
+          </p>
+          <p style="margin: 30px 0">
+            <strong><big><a href="${resetUrl}" style="text-decoration: underline">${emailParagraph2}</a></big></strong>
+          </p>
           <p>${emailParagraph3}</p>
           <br>
           <br>
