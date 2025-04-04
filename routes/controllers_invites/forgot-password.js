@@ -103,7 +103,7 @@ exports.POST = (req, res) => {
         const senderEmail = `${emailSenderText} <fp-admin@usd21.org>`;
         const uuid = require("crypto").randomUUID();
         const subject = emailSubject;
-        const body = `
+        let body = `
           <p>
             ${emailParagraph1
               .replace("${firstname}", `${firstname}`)
