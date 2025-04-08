@@ -40,13 +40,6 @@ exports.POST = (req, res) => {
 
   const churchIdsLength = churchids.length;
 
-  if (!churchIdsLength) {
-    return res.status(400).send({
-      msg: "quantity of churchids must be at least 1",
-      msgType: "error",
-    });
-  }
-
   if (churchIdsLength > 1000) {
     return res.status(400).send({
       msg: "quantity of churchids must be 1000 or less",
@@ -131,6 +124,28 @@ exports.POST = (req, res) => {
       ?
     ;
   `;
+
+  if (!churchIdsLength) {
+    sql = `
+      SELECT
+        userid,
+        churchid,
+        firstName,
+        lastName,
+        gender,
+        createdAt,
+        profilePhoto
+      FROM
+        users
+      WHERE
+        userstatus = 'registered'
+      ORDER BY
+        createdAt DESC
+      LIMIT
+        ?
+      ;
+    `;
+  }
 
   db.query(sql, [[churchids], maxQuantity], (error, result) => {
     if (error) {
