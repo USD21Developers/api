@@ -98,7 +98,7 @@ exports.POST = (req, res) => {
       i.invitationid,
       u.userid,
       u.churchid,
-      e.type,
+      e.type AS eventtype,
       u.firstname,
       u.lastname,
       u.gender,
