@@ -48,29 +48,19 @@ exports.POST = (req, res) => {
   }
 
   let churchIdsAllNumeric = true;
-  let churchIdsAllPositive = true;
+  let allChurches = false;
   for (let i = 0; i < churchIdsLength; i++) {
     const churchid = churchids[i];
     const notNumeric = isNaN(churchid);
-    let notPositive = Math.sign(churchid) !== 1 ? true : false;
     if (notNumeric) {
       churchIdsAllNumeric = false;
       break;
     }
-    if (notPositive) {
-      churchIdsAllPositive = false;
-      break;
-    }
+    if (churchid == 0) allChurches = true;
   }
   if (!churchIdsAllNumeric) {
     return res.status(400).send({
       msg: "every value of churchids must be numeric",
-      msgType: "error",
-    });
-  }
-  if (!churchIdsAllPositive) {
-    return res.status(400).send({
-      msg: "every value of churchids must be positive",
       msgType: "error",
     });
   }
@@ -125,7 +115,7 @@ exports.POST = (req, res) => {
     ;
   `;
 
-  if (!churchIdsLength) {
+  if (allChurches) {
     sql = `
       SELECT
         userid,

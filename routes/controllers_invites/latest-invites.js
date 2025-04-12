@@ -52,11 +52,11 @@ exports.POST = (req, res) => {
   for (let i = 0; i < churchIdsLength; i++) {
     const churchid = churchids[i];
     const notNumeric = isNaN(churchid);
-    if (i == 0) allChurches = true;
     if (notNumeric) {
       churchIdsAllNumeric = false;
       break;
     }
+    if (churchid == 0) allChurches = true;
   }
   if (!churchIdsAllNumeric) {
     return res.status(400).send({
