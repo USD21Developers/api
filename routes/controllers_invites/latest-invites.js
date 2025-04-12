@@ -123,6 +123,7 @@ exports.POST = (req, res) => {
       SELECT
         i.invitationid,
         u.userid,
+        u.churchid,
         e.type AS eventtype,
         u.firstname,
         u.lastname,
