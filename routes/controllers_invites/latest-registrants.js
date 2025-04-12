@@ -97,8 +97,8 @@ exports.POST = (req, res) => {
     SELECT
       userid,
       churchid,
-      firstName,
-      lastName,
+      firstname,
+      lastname,
       gender,
       createdAt,
       profilephoto
@@ -121,8 +121,8 @@ exports.POST = (req, res) => {
       SELECT
         userid,
         churchid,
-        firstName,
-        lastName,
+        firstname,
+        lastname,
         gender,
         createdAt,
         profilephoto
