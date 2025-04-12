@@ -114,6 +114,7 @@ exports.POST = (req, res) => {
       ?
     ;
   `;
+  let sqlParams = [[churchids], maxQuantity];
 
   if (allChurches) {
     sql = `
@@ -135,9 +136,10 @@ exports.POST = (req, res) => {
         ?
       ;
     `;
+    sqlParams = [maxQuantity];
   }
 
-  db.query(sql, [[churchids], maxQuantity], (error, result) => {
+  db.query(sql, sqlParams, (error, result) => {
     if (error) {
       console.log(error);
       return res.status(500).send({
