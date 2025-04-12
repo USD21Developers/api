@@ -97,6 +97,7 @@ exports.POST = (req, res) => {
     SELECT
       i.invitationid,
       u.userid,
+      u.churchid,
       e.type,
       u.firstname,
       u.lastname,
