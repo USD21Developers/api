@@ -262,6 +262,9 @@ router.post("/maps-api-keys", authenticateToken, mapsApiKeys.POST);
 
 // DASHBOARD
 
+const latestInvites = require("./controllers_invites/latest-invites");
+router.post("/latest-invites", authenticateToken, latestInvites.POST);
+
 const latestRegistrants = require("./controllers_invites/latest-registrants");
 router.post("/latest-registrants", authenticateToken, latestRegistrants.POST);
 
