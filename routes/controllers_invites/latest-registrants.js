@@ -101,7 +101,7 @@ exports.POST = (req, res) => {
       lastName,
       gender,
       createdAt,
-      profilePhoto
+      profilephoto
     FROM
       users
     WHERE
@@ -125,7 +125,7 @@ exports.POST = (req, res) => {
         lastName,
         gender,
         createdAt,
-        profilePhoto
+        profilephoto
       FROM
         users
       WHERE
