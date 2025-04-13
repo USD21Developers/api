@@ -111,6 +111,8 @@ exports.POST = (req, res) => {
     WHERE
       u.userstatus = 'registered'
     AND
+      i.isDeleted <> 1
+    AND
       u.churchid IN ?
     ORDER BY
       i.createdAt DESC
@@ -137,6 +139,8 @@ exports.POST = (req, res) => {
       INNER JOIN users u ON i.userid = u.userid
       WHERE
         u.userstatus = 'registered'
+      AND
+        i.isDeleted <> 1
       ORDER BY
         i.createdAt DESC
       LIMIT ?
