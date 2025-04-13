@@ -111,7 +111,7 @@ exports.POST = (req, res) => {
     WHERE
       u.userstatus = 'registered'
     AND
-      i.isDeleted <> 1
+      i.isDeleted = 0
     AND
       u.churchid IN ?
     ORDER BY
@@ -140,7 +140,7 @@ exports.POST = (req, res) => {
       WHERE
         u.userstatus = 'registered'
       AND
-        i.isDeleted <> 1
+        i.isDeleted = 0
       ORDER BY
         i.createdAt DESC
       LIMIT ?
