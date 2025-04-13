@@ -107,6 +107,8 @@ exports.POST = (req, res) => {
     WHERE
       userstatus = 'registered'
     AND
+      isAuthorized = 1
+    AND
       churchid IN ?
     ORDER BY
       createdAt DESC
