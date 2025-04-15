@@ -80,7 +80,7 @@ exports.GET = async (req, res) => {
             )
           )
         ) AS numEventsSharing,
-        (SELECT COUNT(*) FROM invitations WHERE userid = ? LIMIT 1) AS numInvitesSent
+        (SELECT COUNT(*) FROM invitations WHERE userid = ? AND isDeleted = 0 LIMIT 1) AS numInvitesSent
     FROM
         users
     WHERE
