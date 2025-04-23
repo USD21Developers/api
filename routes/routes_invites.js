@@ -33,6 +33,13 @@ router.post("/forgot-password", forgotPassword.POST);
 const resetPassword = require("./controllers_invites/reset-password");
 router.post("/reset-password", resetPassword.POST);
 
+const enableAccountRecovery = require("./controllers_invites/enable-account-recovery");
+router.post(
+  "/enable-account-recovery",
+  authenticateToken,
+  enableAccountRecovery.POST
+);
+
 /* const passwordMustChange = require("./controllers_invites/password-must-change");
 router.post(
   "/password-must-change",
