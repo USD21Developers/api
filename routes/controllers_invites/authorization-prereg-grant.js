@@ -245,12 +245,13 @@ exports.POST = async (req, res) => {
 
   const authCode = generateOTP(6);
 
-  let authUrl = `https://invites.mobi/a/${churchid}/${req.user.userid}/${authCode}`;
+  let authUrl = `https://invites.mobi/`;
+  const queryParams = `a/${churchid}/${req.user.userid}/${authCode}`;
 
   if (isLocal) {
-    authUrl = `http://localhost:5555/a/#/${churchid}/${req.user.userid}/${authCode}`;
+    authUrl = `http://localhost:5555/${queryParams}`;
   } else if (isStaging) {
-    authUrl = `https://staging.invites.mobi/a/${churchid}/${req.user.userid}/${authCode}`;
+    authUrl = `https://staging.invites.mobi/${queryParams}`;
   }
 
   const sql = `
@@ -315,6 +316,13 @@ exports.POST = async (req, res) => {
 
       // Text message/WhatsApp
       if (["textmessage", "whatsapp"].includes(methodOfSending)) {
+        if (isLocal) {
+          authCode = "http://localhost:5555/about/";
+        } else if (isStaging) {
+          authCode = "https://staging.invites.mobi/about/";
+        } else {
+          authCode = "https://invites.mobi/about/";
+        }
         return res.status(200).send({
           msg: "new user authorized",
           msgType: "success",
