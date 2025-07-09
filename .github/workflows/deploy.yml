@@ -10,26 +10,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Copy files to VPS
-      uses: appleboy/scp-action@v0.1.6
-      with:
-        host: ${{ secrets.VPS_HOST }}
-        username: ${{ secrets.VPS_USERNAME }}
-        key: ${{ secrets.VPS_DEPLOY_KEY }}
-        source: "."
-        target: "/var/www/api.invites.world"
-        strip_components: 1
+      - name: Copy files to VPS
+        uses: appleboy/scp-action@v0.1.6
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_DEPLOY_KEY }}
+          source: "."
+          target: "/var/www/api.invites.world"
+          strip_components: 1
 
-    - name: Restart PM2
-      uses: appleboy/ssh-action@v0.1.8
-      with:
-        host: ${{ secrets.VPS_HOST }}
-        username: ${{ secrets.VPS_USERNAME }}
-        key: ${{ secrets.VPS_DEPLOY_KEY }}
-        script: |
-          cd /var/www/api.invites.world
-          pm2 restart api-server --update-env
-
+      - name: Restart PM2
+        uses: appleboy/ssh-action@v0.1.8
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_DEPLOY_KEY }}
+          script: |
+            cd /var/www/api.invites.world
+            rm -rf node_modules package-lock.json
+            npm install --production
+            pm2 restart api-server --update-env
