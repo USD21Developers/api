@@ -22,4 +22,7 @@ router.post("/country-of-coordinates", countryOfCoordinates.POST);
 const sendgridEvent = require("./controllers_services/sendgrid-event");
 router.post("/sendgrid-event", sendgridEvent.POST);
 
+const googleSheetsTest = require("./controllers_services/google-sheets-test.js");
+router.get("/google-sheets-test", googleSheetsTest.GET);
+
 module.exports = router;
