@@ -1,7 +1,14 @@
 exports.GET = async (req, res) => {
+  const path = require("path");
   const { google } = require("googleapis");
+
+  const keyFilePath = path.resolve(
+    __dirname,
+    "../../../secure/google-service-account.json"
+  );
+
   const auth = new google.auth.GoogleAuth({
-    keyFile: "/var/www/secure/google-service-account.json",
+    keyFile: keyFilePath,
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
 
