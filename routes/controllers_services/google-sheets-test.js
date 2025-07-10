@@ -4,7 +4,7 @@ exports.GET = async (req, res) => {
 
   const keyFilePath = path.resolve(
     __dirname,
-    "../../../secure/google-service-account.json"
+    "../../../secure/google-service-account-test.json"
   );
 
   console.log(keyFilePath);
