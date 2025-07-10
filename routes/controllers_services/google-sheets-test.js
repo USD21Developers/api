@@ -1,4 +1,11 @@
 exports.GET = async (req, res) => {
+  console.log(
+    "Private Key Preview:",
+    process.env.GOOGLE_PRIVATE_KEY.slice(0, 50)
+  );
+
+  return res.status(200).send();
+
   const { google } = require("googleapis");
   const auth = new google.auth.GoogleAuth({
     credentials: {
