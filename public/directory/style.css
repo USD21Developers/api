@@ -43,9 +43,10 @@
 }
 
 #quantitiesPhrase {
+  font-size: 1.1rem;
   font-weight: bold;
+  margin-top: 1.4rem;
   margin-bottom: 1.2rem;
-  margin-top: 1.2rem;
 }
 
 @media (max-width: 400px) {
