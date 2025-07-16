@@ -24,7 +24,7 @@ const allowedOrigins = [
   "https://cityofangelsicc.org",
   "https://www.orlandoicc.org",
   "https://invites.world",
-  "https://api.inviates.world",
+  "https://api.invites.world",
 ];
 
 const corsOptions = {
