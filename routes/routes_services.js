@@ -22,4 +22,7 @@ router.post("/country-of-coordinates", countryOfCoordinates.POST);
 const sendgridEvent = require("./controllers_services/sendgrid-event");
 router.post("/sendgrid-event", sendgridEvent.POST);
 
+const scripture = require("./controllers_services/scripture");
+router.get("/scripture", scripture.GET);
+
 module.exports = router;
