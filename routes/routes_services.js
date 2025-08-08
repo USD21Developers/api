@@ -23,7 +23,7 @@ const sendgridEvent = require("./controllers_services/sendgrid-event");
 router.post("/sendgrid-event", sendgridEvent.POST);
 
 const scripture = require("./controllers_services/scripture");
-router.get("/scripture", scripture.POST);
+router.post("/scripture", scripture.POST);
 
 const googleSheetsTest = require("./controllers_services/google-sheets-test.js");
 router.get("/google-sheets-test", googleSheetsTest.GET);
