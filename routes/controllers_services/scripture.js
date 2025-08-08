@@ -14,7 +14,6 @@ exports.POST = (req, res) => {
     return res.status(400).send({
       msg: "book must be a string",
       msgType: "error",
-      params: req.params,
     });
   }
 
@@ -22,7 +21,6 @@ exports.POST = (req, res) => {
     return res.status(400).send({
       msg: "book must be a string with length",
       msgType: "error",
-      params: req.params,
     });
   }
 
@@ -30,7 +28,6 @@ exports.POST = (req, res) => {
     return res.status(400).send({
       msg: "chapter must be a number",
       msgType: "error",
-      params: req.params,
     });
   }
 
@@ -38,7 +35,6 @@ exports.POST = (req, res) => {
     return res.status(400).send({
       msg: "verseFrom must be a number",
       msgType: "error",
-      params: req.params,
     });
   }
 
@@ -46,7 +42,6 @@ exports.POST = (req, res) => {
     return res.status(400).send({
       msg: "verseTo must be a number",
       msgType: "error",
-      params: req.params,
     });
   }
 
