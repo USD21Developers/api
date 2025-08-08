@@ -1,3 +1,9 @@
+/* Hong Kong International Christian Church
+country_iso: hk (non-existent in countries array)
+
+Taipei International Christian Church
+country_iso: tw (non-existent in countries array) */
+
 function addSpinner() {
   const directory = document.querySelector("#global-church-directory");
   const spinnerHtml = `<div align="center"><img src="https://api.usd21.org/_assets/spinner.svg" width="100" height="100" style="max-width: 100%; margin-bottom: 40px" /></div>`;
@@ -16,7 +22,7 @@ function addStylesheet() {
 
 function getApiPrefix() {
   let host =
-    window.location.host === "localhost"
+    window.location.hostname === "localhost"
       ? "http://localhost:4000/services"
       : "https://api.usd21.org/services";
   return host;
@@ -53,6 +59,10 @@ function getCountries(lang) {
       .then((res) => res.json())
       .then((data) => {
         const countryData = data.countryNames;
+
+        countryData.names.push({ iso: "hk", name: "Hong Kong" });
+        countryData.names.push({ iso: "tw", name: "Taiwan" });
+
         localStorage.setItem("countries", JSON.stringify(countryData));
         return resolve(countryData);
       });
@@ -72,6 +82,7 @@ function getPhrases() {
       churchName: "اسم الكنيسة",
       country: "دولة",
       website: "موقع إلكتروني",
+      count: "{NUM_CHURCHES} كنيسة في {NUM_NATIONS} دولة",
     },
     zh: {
       language: "Chinese (Simplified)",
@@ -79,6 +90,7 @@ function getPhrases() {
       churchName: "教会名称",
       country: "国家",
       website: "网站",
+      count: "{NUM_CHURCHES} 个教会在 {NUM_NATIONS} 个国家",
     },
     en: {
       language: "English",
@@ -86,6 +98,7 @@ function getPhrases() {
       churchName: "Church name",
       country: "Country",
       website: "Web site",
+      count: "{NUM_CHURCHES} churches in {NUM_NATIONS} nations",
     },
     tl: {
       language: "Filipino/Tagalog",
@@ -93,6 +106,7 @@ function getPhrases() {
       churchName: "pangalan ng simbahan",
       country: "bansa",
       website: "Website",
+      count: "{NUM_CHURCHES} simbahan sa {NUM_NATIONS} bansa",
     },
     fr: {
       language: "French",
@@ -100,6 +114,7 @@ function getPhrases() {
       churchName: "church name",
       country: "nom de l'église",
       website: "Site Internet",
+      count: "{NUM_CHURCHES} églises dans {NUM_NATIONS} nations",
     },
     de: {
       language: "German",
@@ -107,6 +122,7 @@ function getPhrases() {
       churchName: "Kirchenname",
       country: "Land",
       website: "Webseite",
+      count: "{NUM_CHURCHES} Kirchen in {NUM_NATIONS} Nationen",
     },
     hi: {
       language: "Hindi",
@@ -114,6 +130,7 @@ function getPhrases() {
       churchName: "चर्च का नाम",
       country: "देश",
       website: "वेबसाइट",
+      count: "{NUM_CHURCHES} चर्च {NUM_NATIONS} देशों में",
     },
     it: {
       language: "Italian",
@@ -121,6 +138,7 @@ function getPhrases() {
       churchName: "nome della chiesa",
       country: "Paese",
       website: "Sito web",
+      count: "{NUM_CHURCHES} chiese in {NUM_NATIONS} nazioni",
     },
     ja: {
       language: "Japanese",
@@ -128,6 +146,7 @@ function getPhrases() {
       churchName: "教会名",
       country: "国",
       website: "Webサイト",
+      count: "{NUM_CHURCHES} の教会が {NUM_NATIONS} ヶ国にあります",
     },
     ko: {
       language: "Korean",
@@ -135,6 +154,7 @@ function getPhrases() {
       churchName: "교회 이름",
       country: "국가",
       website: "웹사이트",
+      count: "{NUM_CHURCHES}개의 교회가 {NUM_NATIONS}개 국가에 있습니다",
     },
     pl: {
       language: "Polish",
@@ -142,6 +162,7 @@ function getPhrases() {
       churchName: "nazwa kościoła",
       country: "kraj",
       website: "Strona internetowa",
+      count: "{NUM_CHURCHES} kościołów w {NUM_NATIONS} krajach",
     },
     pt: {
       language: "Portuguese",
@@ -149,6 +170,7 @@ function getPhrases() {
       churchName: "nome da igreja",
       country: "país",
       website: "Local na rede Internet",
+      count: "{NUM_CHURCHES} igrejas em {NUM_NATIONS} nações",
     },
     ru: {
       language: "Russian",
@@ -156,6 +178,7 @@ function getPhrases() {
       churchName: "церковное имя",
       country: "страна",
       website: "Веб-сайт",
+      count: "{NUM_CHURCHES} церквей в {NUM_NATIONS} странах",
     },
     es: {
       language: "Spanish",
@@ -163,6 +186,7 @@ function getPhrases() {
       churchName: "Nombre de la iglesia",
       country: "País",
       website: "Sitio web",
+      count: "{NUM_CHURCHES} iglesias en {NUM_NATIONS} naciones",
     },
     sw: {
       language: "Swahili",
@@ -170,6 +194,7 @@ function getPhrases() {
       churchName: "jina la kanisa",
       country: "nchi",
       website: "Tovuti",
+      count: "{NUM_CHURCHES} makanisa katika {NUM_NATIONS} mataifa",
     },
     sv: {
       language: "Swedish",
@@ -177,6 +202,7 @@ function getPhrases() {
       churchName: "kyrkonamn",
       country: "Land",
       website: "Hemsida",
+      count: "{NUM_CHURCHES} kyrkor i {NUM_NATIONS} nationer",
     },
     ta: {
       language: "Tamil",
@@ -184,6 +210,7 @@ function getPhrases() {
       churchName: "தேவாலயத்தின் பெயர்",
       country: "நாடு",
       website: "இணையதளம்",
+      count: "{NUM_CHURCHES} தேவாலயங்கள் {NUM_NATIONS} நாடுகளில்",
     },
     uk: {
       language: "Ukranian",
@@ -191,6 +218,7 @@ function getPhrases() {
       churchName: "церковна назва",
       country: "країна",
       website: "Веб-сайт",
+      count: "{NUM_CHURCHES} церков у {NUM_NATIONS} країнах",
     },
     vi: {
       language: "Vietnamese",
@@ -198,6 +226,7 @@ function getPhrases() {
       churchName: "tên nhà thờ",
       country: "quốc gia",
       website: "Trang mạng",
+      count: "{NUM_CHURCHES} nhà thờ tại {NUM_NATIONS} quốc gia",
     },
     xx: {
       language: "",
@@ -205,12 +234,43 @@ function getPhrases() {
       churchName: "church name",
       country: "country",
       website: "Website",
+      count: "{NUM_CHURCHES} churches in {NUM_NATIONS} nations",
     },
   };
+
   const lang = getLang();
   const returnObject = phrases[lang] ? phrases[lang] : phrases["en"];
 
   return returnObject;
+}
+
+function showQuantitiesPhrase() {
+  const mainEl = document.querySelector("#global-church-directory");
+  const churchEls = mainEl.querySelectorAll(".church");
+  const quantitiesPhraseEl = mainEl.querySelector("#quantitiesPhrase");
+  const phrases = getPhrases();
+  const churchids = [];
+  const countryids = [];
+  let num_churches = 0;
+  let num_countries = 0;
+  let quantitiesPhrase = phrases.count;
+
+  churchEls.forEach((item) => {
+    churchids.push(item.getAttribute("data-churchid"));
+  });
+
+  churchEls.forEach((item) => {
+    countryids.push(item.getAttribute("data-countryid"));
+  });
+
+  num_churches = new Set(churchids).size;
+  num_countries = new Set(countryids).size;
+
+  quantitiesPhrase = quantitiesPhrase
+    .replaceAll("{NUM_CHURCHES}", num_churches + "")
+    .replaceAll("{NUM_NATIONS}", num_countries + "");
+
+  quantitiesPhraseEl.innerHTML = quantitiesPhrase;
 }
 
 function getSortOptionsHtml(
@@ -218,6 +278,7 @@ function getSortOptionsHtml(
   sortByCountryChecked = ""
 ) {
   const { label, churchName, country } = getPhrases();
+
   return `
     <form id="churchDirectorySort">
       ${label} 
@@ -230,7 +291,7 @@ function getSortOptionsHtml(
         ${country}
       </label>
     </form>
-    <br>
+    <div id="quantitiesPhrase"></div>
   `;
 }
 
@@ -292,6 +353,8 @@ async function showChurchesAlphabetically() {
 
   churches.forEach((item) => {
     const {
+      churchID,
+      country_iso,
       contact_image,
       church_name,
       church_URL,
@@ -320,7 +383,7 @@ async function showChurchesAlphabetically() {
       : "";
 
     let churchHtml = `
-      <div class="church">
+      <div class="church" data-countryid="${country_iso}" data-churchid="${churchID}">
         <div class="photo">
           <img vspace="5" width="100" src="${contactImage}" ${lazyLoad} alt="Photo of ${contact_name
       .trim()
@@ -356,6 +419,8 @@ async function showChurchesAlphabetically() {
   churchesHtml = sortOptionsHTML + churchesHtml;
 
   directory.innerHTML = churchesHtml;
+
+  showQuantitiesPhrase();
 
   document.querySelector("#churchDirectorySortByName").checked = true;
 
@@ -440,6 +505,8 @@ async function showChurchesByCountry() {
 
     churchesInCountry.forEach((item) => {
       const {
+        churchID,
+        country_iso,
         contact_image,
         church_name,
         church_URL,
@@ -466,7 +533,7 @@ async function showChurchesByCountry() {
         : "";
       const name = contact_name.trim().replaceAll("&", "and");
       let churchHtml = `
-        <div class="church">
+        <div class="church" data-countryid="${country_iso}" data-churchid="${churchID}">
           <div class="photo">
             <img vspace="5" width="100" src="${contactImage}" ${lazyLoad} alt="Photo of ${name}" onerror="this.onerror=null;this.src='https://www.upsidedown21.org/1.1/images/church_leaders/usd21.jpg';" />
           </div>
@@ -500,6 +567,8 @@ async function showChurchesByCountry() {
   churchesHtml = sortOptionsHTML + churchesHtml;
 
   directory.innerHTML = churchesHtml;
+
+  showQuantitiesPhrase();
 
   document.querySelector("#churchDirectorySortByCountry").checked = true;
 

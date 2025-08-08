@@ -25,4 +25,7 @@ router.post("/sendgrid-event", sendgridEvent.POST);
 const scripture = require("./controllers_services/scripture");
 router.get("/scripture", scripture.GET);
 
+const googleSheetsTest = require("./controllers_services/google-sheets-test.js");
+router.get("/google-sheets-test", googleSheetsTest.GET);
+
 module.exports = router;

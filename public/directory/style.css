@@ -42,7 +42,14 @@
   margin-left: 1rem;
 }
 
-@media (max-width: 400px) {
+#quantitiesPhrase {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-top: 1.2rem;
+  margin-bottom: 1.4rem;
+}
+
+@media (max-width: 640px) {
   #churchDirectorySort,
   #churchDirectorySort * {
     text-align: left;
@@ -54,5 +61,38 @@
   #churchDirectorySort label {
     display: block;
     margin-left: unset;
+  }
+
+  #global-church-directory .church {
+    display: block;
+    text-align: center;
+  }
+
+  #global-church-directory .info {
+    display: inline-block;
+    padding-bottom: 50px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    text-align: start;
+  }
+
+  #global-church-directory .photo {
+    display: block;
+    padding-bottom: 0;
+    text-align: center;
+    max-width: unset;
+    width: 100%;
+  }
+
+  #global-church-directory .photo img {
+    max-width: 250px;
+  }
+
+  #global-church-directory .photo img[src$="/church_leaders/123.jpg"],
+  #global-church-directory .photo img[src$="/church_leaders/134.jpg"],
+  #global-church-directory .photo img[src$="/church_leaders/135.jpg"],
+  #global-church-directory .photo img[src$="/usd21.jpg"],
+  #global-church-directory .photo img[errored] {
+    width: 140px;
   }
 }
