@@ -1,8 +1,10 @@
-exports.GET = (req, res) => {
-  let book = req.params["book"] || "";
-  let chapter = req.params["chapter"] || "";
-  let verseFrom = req.params["verseFrom"] || "";
-  let verseTo = req.params["verseFrom"] || "";
+exports.POST = (req, res) => {
+  const book = req.body.book || "";
+  const chapter = req.body.chapter || "";
+  const verseFrom = req.body.verseFrom || "";
+  const verseTo = req.body.verseTo || "";
+
+  // Set database
 
   const db = require("../../database-bible");
 
