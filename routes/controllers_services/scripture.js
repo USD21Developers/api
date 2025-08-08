@@ -49,7 +49,7 @@ exports.POST = (req, res) => {
 
   const sql = `
     SELECT
-      *
+      book, chapter, verse, text
     FROM
       niv
     WHERE
