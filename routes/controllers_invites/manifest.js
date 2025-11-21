@@ -67,7 +67,7 @@ exports.GET = (req, res) => {
 
   let favoriteLanguages = preferredLanguage
     ? preferredLanguage.split(",")
-    : "en";
+    : ["en"];
 
   favoriteLanguages.reverse();
 
