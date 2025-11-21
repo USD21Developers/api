@@ -1,4 +1,11 @@
 const crypto = require("crypto");
+const path = require("path");
+const fs = require("fs");
+
+const PROFILE_DIR = "/var/www/html/public/profiles";
+let PROFILE_URL_BASE = "https://api.usd21.org/profiles";
+
+if (process.env.ENV === "development") PROFILE_URL_BASE = "http://localhost:4000/profiles";
 
 // Use the following middleware function on all protected routes
 exports.authenticateToken = (req, res, next) => {
@@ -1077,123 +1084,81 @@ exports.storeProfileImage = async (
 ) => {
   return new Promise(async (resolve, reject) => {
     const uuid = crypto.randomUUID();
-    const AWS = require("aws-sdk");
-    const s3 = new AWS.S3({
-      accessKeyId: process.env.INVITES_AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.INVITES_AWS_SECRET_ACCESS_KEY,
-      logger: null,
-    });
 
-    require("./utils").deleteProfileImage(userid, db, storageEnvironment);
+    // Delete any previous image
+    await require("./utils").deleteProfileImage(userid, db, storageEnvironment);
 
-    const fileName400 = `profiles/${userid}__${uuid}__400.jpg`;
-    const fileContent400 = new Buffer.from(
+    // Build file names
+    const fileName400 = `${userid}__${uuid}__400.jpg`;
+    const fileName140 = `${userid}__${uuid}__140.jpg`;
+
+    const filePath400 = path.join(PROFILE_DIR, fileName400);
+    const filePath140 = path.join(PROFILE_DIR, fileName140);
+
+    // Decode base64
+    const buf400 = Buffer.from(
       profileImage400.replace(/^data:image\/\w+;base64,/, ""),
       "base64"
     );
-    const awsBucket =
-      storageEnvironment === "staging"
-        ? process.env.INVITES_AWS_BUCKET_NAME_STAGING
-        : process.env.INVITES_AWS_BUCKET_NAME;
-    const upload400 = new Promise((resolve400, reject400) => {
-      const params = {
-        Bucket: awsBucket,
-        Key: fileName400,
-        Body: fileContent400,
-        ContentType: "image/jpeg",
-      };
-
-      s3.upload(params, (err, data) => {
-        if (err) {
-          console.log(err);
-          return reject400(err);
-        }
-
-        return resolve400(data.Location);
-      });
-    });
-
-    const fileName140 = `profiles/${userid}__${uuid}__140.jpg`;
-    const fileContent140 = new Buffer.from(
+    const buf140 = Buffer.from(
       profileImage140.replace(/^data:image\/\w+;base64,/, ""),
       "base64"
     );
-    const upload140 = new Promise((resolve140, reject140) => {
-      const awsBucket =
-        storageEnvironment === "staging"
-          ? process.env.INVITES_AWS_BUCKET_NAME_STAGING
-          : process.env.INVITES_AWS_BUCKET_NAME;
-      const params = {
-        Bucket: awsBucket,
-        Key: fileName140,
-        Body: fileContent140,
-        ContentType: "image/jpeg",
-      };
 
-      s3.upload(params, (err, data) => {
-        if (err) {
-          console.log(err);
-          return reject140(err);
-        }
+    // Write files
+    try {
+      await fs.promises.writeFile(filePath400, buf400);
+      await fs.promises.writeFile(filePath140, buf140);
+    } catch (err) {
+      console.log(err);
+      return reject(err);
+    }
 
-        return resolve140(data.Location);
-      });
-    });
+    const storedUrl400 = `${PROFILE_URL_BASE}/${fileName400}`;
 
-    Promise.all([upload400, upload140]).then((urls) => {
-      if (!Array.isArray(urls)) {
-        const err = `unable to store profile photo for user ${userid}`;
+    // Update DB (same as before)
+    const sql = `
+      UPDATE users
+      SET
+        profilephoto = ?,
+        profilephoto_flagged = NULL
+      WHERE userid = ?
+      ;
+    `;
+
+    db.query(sql, [storedUrl400, userid], (err) => {
+      if (err) {
         console.log(err);
         return reject(err);
       }
 
-      const sql = `
-        UPDATE users
-        SET
-          profilephoto = ?,
-          profilephoto_flagged = NULL
+      const sql2 = `
+        DELETE FROM photoreview
         WHERE userid = ?
         ;
       `;
 
-      const profile400Url = urls[0];
-
-      db.query(sql, [profile400Url, userid], (err, result) => {
+      db.query(sql2, [userid], (err) => {
         if (err) {
           console.log(err);
           return reject(err);
         }
 
-        const sql = `
-          DELETE FROM photoreview
-          WHERE userid = ?
-          ;
+        const sql3 = `
+          INSERT INTO photoreview(
+            userid, createdAt
+          ) VALUES (
+            ?, utc_timestamp()
+          )
         `;
 
-        db.query(sql, [userid], (err, result) => {
+        db.query(sql3, [userid], (err) => {
           if (err) {
             console.log(err);
             return reject(err);
           }
 
-          const sql = `
-            INSERT INTO photoreview(
-              userid,
-              createdAt
-            ) VALUES (
-              ?,
-              utc_timestamp()
-            ) 
-          `;
-
-          db.query(sql, [userid], (err, result) => {
-            if (err) {
-              console.log(err);
-              return reject(err);
-            }
-
-            return resolve(profile400Url);
-          });
+          return resolve(storedUrl400);
         });
       });
     });
@@ -1202,13 +1167,6 @@ exports.storeProfileImage = async (
 
 exports.deleteProfileImage = async (userid, db, storageEnvironment) => {
   return new Promise((resolve, reject) => {
-    const AWS = require("aws-sdk");
-    const s3 = new AWS.S3({
-      accessKeyId: process.env.INVITES_AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.INVITES_AWS_SECRET_ACCESS_KEY,
-      logger: null,
-    });
-
     const sql = `
       SELECT
         profilephoto,
@@ -1223,108 +1181,76 @@ exports.deleteProfileImage = async (userid, db, storageEnvironment) => {
       ;
     `;
 
-    db.query(sql, [userid], (error, result) => {
+    db.query(sql, [userid], async (error, result) => {
       if (error) {
-        const errorMessage = `cannot query for profile photo (user id ${userid})`;
-        console.log(errorMessage);
-        return resolve(errorMessage);
+        const msg = `cannot query for profile photo (user id ${userid})`;
+        console.log(msg);
+        return resolve(msg);
       }
 
       if (!result.length) {
-        const errorMessage = `cannot delete existing profile photo (user id ${userid}); user not found`;
-        // console.log(errorMessage);
-        return resolve(errorMessage);
+        const msg = `cannot delete existing profile photo (user id ${userid}); user not found`;
+        return resolve(msg);
       }
 
-      const { profilephoto, profilephoto_flagged } = result[0];
+      let { profilephoto, profilephoto_flagged } = result[0];
 
+      // For flagged case
       let url = profilephoto;
-
       if (profilephoto.indexOf("profile-generic") >= 0) {
         url = profilephoto_flagged;
       }
 
+      // Extract filename
       const regex = /profiles\/(.*?)\.jpg/;
       const match = url.match(regex);
-
       if (!match) {
-        const errorMessage = `cannot delete existing profile photo (user id ${userid}); URL does not match required pattern`;
-        // console.log(errorMessage);
-        return resolve(errorMessage);
+        const msg = `cannot delete existing profile photo (user id ${userid}); URL does not match pattern`;
+        return resolve(msg);
       }
 
-      const fileName400 = match[0];
-      const delete400 = new Promise((resolve400, reject400) => {
-        const awsBucket =
-          storageEnvironment === "staging"
-            ? process.env.INVITES_AWS_BUCKET_NAME_STAGING
-            : process.env.INVITES_AWS_BUCKET_NAME;
-        const params = {
-          Bucket: awsBucket,
-          Key: fileName400,
-        };
+      const file400 = match[1] + ".jpg";
+      const file140 = file400.replace("400.jpg", "140.jpg");
 
-        s3.deleteObject(params, (err, data) => {
-          if (err) {
-            console.log(err);
-            return reject400(err);
-          }
+      const path400 = path.join(PROFILE_DIR, file400);
+      const path140 = path.join(PROFILE_DIR, file140);
 
-          return resolve400();
-        });
-      });
+      // Delete local files
+      try {
+        if (fs.existsSync(path400)) await fs.promises.unlink(path400);
+        if (fs.existsSync(path140)) await fs.promises.unlink(path140);
+      } catch (err) {
+        console.log(err);
+        // still continue DB cleanup
+      }
 
-      const fileName140 = match[0].replace("400.jpg", "140.jpg");
-      const delete140 = new Promise((resolve140, reject140) => {
-        const awsBucket =
-          storageEnvironment === "staging"
-            ? process.env.INVITES_AWS_BUCKET_NAME_STAGING
-            : process.env.INVITES_AWS_BUCKET_NAME;
-        const params = {
-          Bucket: awsBucket,
-          Key: fileName140,
-        };
+      // Clear DB fields
+      const sql2 = `
+        UPDATE users
+        SET
+          profilephoto = NULL,
+          profilephoto_flagged = NULL
+        WHERE userid = ?
+        ;
+      `;
+      db.query(sql2, [userid], (err) => {
+        if (err) {
+          console.log(err);
+          return reject(err);
+        }
 
-        s3.deleteObject(params, (err, data) => {
-          if (err) {
-            console.log(err);
-            return reject140(err);
-          }
-
-          return resolve140(data.Location);
-        });
-      });
-
-      Promise.all([delete400, delete140]).then(() => {
-        const sql = `
-          UPDATE users
-          SET
-            profilephoto = NULL,
-            profilephoto_flagged = NULL
+        const sql3 = `
+          DELETE FROM photoreview
           WHERE userid = ?
           ;
         `;
 
-        db.query(sql, [userid], (err, result) => {
+        db.query(sql3, [userid], (err) => {
           if (err) {
             console.log(err);
             return reject(err);
           }
-
-          const sql = `
-            DELETE FROM photoreview
-            WHERE userid = ?
-            ;
-          `;
-
-          db.query(sql, [userid], (err, result) => {
-            if (err) {
-              console.log(err);
-              return reject(err);
-            }
-
-            return resolve();
-          });
+          return resolve();
         });
       });
     });
