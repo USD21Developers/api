@@ -1094,8 +1094,8 @@ exports.storeProfileImage = async (
   await exports.deleteProfileImage(userid, db);
 
   // Build file names
-  const fileName400 = `${userid}__${uuid}__400.jpg`;
-  const fileName140 = `${userid}__${uuid}__140.jpg`;
+  const fileName400 = `${userid}__${uuid}__400.webp`;
+  const fileName140 = `${userid}__${uuid}__140.webp`;
 
   const filePath400 = path.join(PROFILE_DIR, fileName400);
   const filePath140 = path.join(PROFILE_DIR, fileName140);
@@ -1165,11 +1165,11 @@ exports.deleteProfileImage = async (userid, db) => {
     ? profilephoto_flagged
     : profilephoto;
 
-  const match = url.match(/profiles\/(.*?)\.jpg/);
+  const match = url.match(/profiles\/(.*?)\.webp/);
   if (!match) return;
 
-  const file400 = path.join(PROFILE_DIR, match[1] + ".jpg");
-  const file140 = file400.replace("400.jpg", "140.jpg");
+  const file400 = path.join(PROFILE_DIR, match[1] + ".webp");
+  const file140 = file400.replace("400.webp", "140.webp");
 
   // Delete files (ignore errors)
   for (const f of [file400, file140]) {
