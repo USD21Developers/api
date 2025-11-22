@@ -2,10 +2,17 @@ const crypto = require("crypto");
 const path = require("path");
 const fs = require("fs");
 
-const PROFILE_DIR = "/var/www/html/public/profiles";
+let PROFILE_DIR = "/var/www/html/public/profiles";
 let PROFILE_URL_BASE = "https://api.usd21.org/profiles";
 
-if (process.env.ENV === "development") PROFILE_URL_BASE = "http://localhost:4000/profiles";
+if (process.env.ENV === "development") {
+  PROFILE_DIR = path.join(__dirname, "../../public/profiles");
+  PROFILE_URL_BASE = "http://localhost:4000/profiles";
+}
+
+if (!fs.existsSync(PROFILE_DIR)) {
+  fs.mkdirSync(PROFILE_DIR, { recursive: true });
+}
 
 // Use the following middleware function on all protected routes
 exports.authenticateToken = (req, res, next) => {
@@ -1079,180 +1086,106 @@ exports.storeProfileImage = async (
   userid,
   profileImage400,
   profileImage140,
-  db,
-  storageEnvironment
+  db
 ) => {
-  return new Promise(async (resolve, reject) => {
-    const uuid = crypto.randomUUID();
+  const uuid = crypto.randomUUID();
 
-    // Delete any previous image
-    await require("./utils").deleteProfileImage(userid, db, storageEnvironment);
+  // Delete any previous images
+  await exports.deleteProfileImage(userid, db);
 
-    // Build file names
-    const fileName400 = `${userid}__${uuid}__400.jpg`;
-    const fileName140 = `${userid}__${uuid}__140.jpg`;
+  // Build file names
+  const fileName400 = `${userid}__${uuid}__400.jpg`;
+  const fileName140 = `${userid}__${uuid}__140.jpg`;
 
-    const filePath400 = path.join(PROFILE_DIR, fileName400);
-    const filePath140 = path.join(PROFILE_DIR, fileName140);
+  const filePath400 = path.join(PROFILE_DIR, fileName400);
+  const filePath140 = path.join(PROFILE_DIR, fileName140);
 
-    // Decode base64
-    const buf400 = Buffer.from(
-      profileImage400.replace(/^data:image\/\w+;base64,/, ""),
-      "base64"
-    );
-    const buf140 = Buffer.from(
-      profileImage140.replace(/^data:image\/\w+;base64,/, ""),
-      "base64"
-    );
+  // Decode base64 images
+  const buf400 = Buffer.from(
+    profileImage400.replace(/^data:image\/\w+;base64,/, ""),
+    "base64"
+  );
+  const buf140 = Buffer.from(
+    profileImage140.replace(/^data:image\/\w+;base64,/, ""),
+    "base64"
+  );
 
-    // Write files
-    try {
-      await fs.promises.writeFile(filePath400, buf400);
-      await fs.promises.writeFile(filePath140, buf140);
-    } catch (err) {
-      console.log(err);
-      return reject(err);
-    }
+  try {
+    await fs.promises.writeFile(filePath400, buf400);
+    await fs.promises.writeFile(filePath140, buf140);
+  } catch (err) {
+    console.error("Failed to write profile images:", err);
+    throw err;
+  }
 
-    const storedUrl400 = `${PROFILE_URL_BASE}/${fileName400}`;
+  const storedUrl400 = `${PROFILE_URL_BASE}/${fileName400}`;
 
-    // Update DB (same as before)
-    const sql = `
-      UPDATE users
-      SET
-        profilephoto = ?,
-        profilephoto_flagged = NULL
-      WHERE userid = ?
-      ;
-    `;
-
+  // Update DB
+  const sql = `
+    UPDATE users
+    SET profilephoto = ?, profilephoto_flagged = NULL
+    WHERE userid = ?;
+  `;
+  await new Promise((resolve, reject) => {
     db.query(sql, [storedUrl400, userid], (err) => {
-      if (err) {
-        console.log(err);
-        return reject(err);
-      }
-
-      const sql2 = `
-        DELETE FROM photoreview
-        WHERE userid = ?
-        ;
-      `;
-
-      db.query(sql2, [userid], (err) => {
-        if (err) {
-          console.log(err);
-          return reject(err);
-        }
-
-        const sql3 = `
-          INSERT INTO photoreview(
-            userid, createdAt
-          ) VALUES (
-            ?, utc_timestamp()
-          )
-        `;
-
-        db.query(sql3, [userid], (err) => {
-          if (err) {
-            console.log(err);
-            return reject(err);
-          }
-
-          return resolve(storedUrl400);
-        });
-      });
+      if (err) return reject(err);
+      resolve();
     });
   });
+
+  const sql2 = `DELETE FROM photoreview WHERE userid = ?;`;
+  await new Promise((resolve, reject) => {
+    db.query(sql2, [userid], (err) => (err ? reject(err) : resolve()));
+  });
+
+  const sql3 = `INSERT INTO photoreview(userid, createdAt) VALUES (?, utc_timestamp());`;
+  await new Promise((resolve, reject) => {
+    db.query(sql3, [userid], (err) => (err ? reject(err) : resolve()));
+  });
+
+  return storedUrl400;
 };
 
-exports.deleteProfileImage = async (userid, db, storageEnvironment) => {
-  return new Promise((resolve, reject) => {
+exports.deleteProfileImage = async (userid, db) => {
+  // Get profile photo info
+  const result = await new Promise((resolve, reject) => {
     const sql = `
-      SELECT
-        profilephoto,
-        profilephoto_flagged
-      FROM
-        users
-      WHERE
-        userid = ?
-      AND
-        profilephoto IS NOT null
-      LIMIT 1
-      ;
+      SELECT profilephoto, profilephoto_flagged
+      FROM users
+      WHERE userid = ? AND profilephoto IS NOT NULL
+      LIMIT 1;
     `;
+    db.query(sql, [userid], (err, rows) => (err ? reject(err) : resolve(rows)));
+  });
 
-    db.query(sql, [userid], async (error, result) => {
-      if (error) {
-        const msg = `cannot query for profile photo (user id ${userid})`;
-        console.log(msg);
-        return resolve(msg);
-      }
+  if (!result.length) return; // Nothing to delete
 
-      if (!result.length) {
-        const msg = `cannot delete existing profile photo (user id ${userid}); user not found`;
-        return resolve(msg);
-      }
+  let { profilephoto, profilephoto_flagged } = result[0];
+  let url = profilephoto.includes("profile-generic")
+    ? profilephoto_flagged
+    : profilephoto;
 
-      let { profilephoto, profilephoto_flagged } = result[0];
+  const match = url.match(/profiles\/(.*?)\.jpg/);
+  if (!match) return;
 
-      // For flagged case
-      let url = profilephoto;
-      if (profilephoto.indexOf("profile-generic") >= 0) {
-        url = profilephoto_flagged;
-      }
+  const file400 = path.join(PROFILE_DIR, match[1] + ".jpg");
+  const file140 = file400.replace("400.jpg", "140.jpg");
 
-      // Extract filename
-      const regex = /profiles\/(.*?)\.jpg/;
-      const match = url.match(regex);
-      if (!match) {
-        const msg = `cannot delete existing profile photo (user id ${userid}); URL does not match pattern`;
-        return resolve(msg);
-      }
+  // Delete files (ignore errors)
+  for (const f of [file400, file140]) {
+    try {
+      await fs.promises.unlink(f);
+    } catch (e) {}
+  }
 
-      const file400 = match[1] + ".jpg";
-      const file140 = file400.replace("400.jpg", "140.jpg");
+  // Clear DB
+  const sql2 = `UPDATE users SET profilephoto = NULL, profilephoto_flagged = NULL WHERE userid = ?;`;
+  await new Promise((resolve, reject) => {
+    db.query(sql2, [userid], (err) => (err ? reject(err) : resolve()));
+  });
 
-      const path400 = path.join(PROFILE_DIR, file400);
-      const path140 = path.join(PROFILE_DIR, file140);
-
-      // Delete local files
-      try {
-        if (fs.existsSync(path400)) await fs.promises.unlink(path400);
-        if (fs.existsSync(path140)) await fs.promises.unlink(path140);
-      } catch (err) {
-        console.log(err);
-        // still continue DB cleanup
-      }
-
-      // Clear DB fields
-      const sql2 = `
-        UPDATE users
-        SET
-          profilephoto = NULL,
-          profilephoto_flagged = NULL
-        WHERE userid = ?
-        ;
-      `;
-      db.query(sql2, [userid], (err) => {
-        if (err) {
-          console.log(err);
-          return reject(err);
-        }
-
-        const sql3 = `
-          DELETE FROM photoreview
-          WHERE userid = ?
-          ;
-        `;
-
-        db.query(sql3, [userid], (err) => {
-          if (err) {
-            console.log(err);
-            return reject(err);
-          }
-          return resolve();
-        });
-      });
-    });
+  const sql3 = `DELETE FROM photoreview WHERE userid = ?;`;
+  await new Promise((resolve, reject) => {
+    db.query(sql3, [userid], (err) => (err ? reject(err) : resolve()));
   });
 };
