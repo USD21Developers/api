@@ -22,7 +22,6 @@
   "dependencies": {
     "@mysql/xdevapi": "8.0.22",
     "@sendgrid/mail": "^8.1.1",
-    "aws-sdk": "^2.1560.0",
     "axios": "^1.6.7",
     "bcrypt": "5.0.1",
     "cookie-parser": "1.4.5",
