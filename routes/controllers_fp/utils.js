@@ -88,6 +88,7 @@ sendEmailViaAPI = (recipientName, recipientEmail, senderName, subject, body) => 
     console.log("Sender email: ", process.env.SENDGRID_API_SENDER_EMAIL);
     console.log("Subject: ", subject);
     console.log("Body: ", body);
+
     const request = mailjet
       .post("send", { 'version': 'v3.1' })
       .request({
