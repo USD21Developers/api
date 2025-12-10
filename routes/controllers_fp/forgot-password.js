@@ -113,7 +113,7 @@ exports.POST = (req, res) => {
           <p>${emailParagraph3}</p>
         `;
         utils
-          .sendEmail(recipientEmail, senderEmail, subject, body)
+          .sendEmail(fullname, recipientEmail, emailSender, emailSubject, body)
           .then((result) => {
             return res.status(result[0].statusCode || 200).send({
               msg: "password reset e-mail sent",

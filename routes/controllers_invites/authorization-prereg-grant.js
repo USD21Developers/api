@@ -369,8 +369,9 @@ exports.POST = async (req, res) => {
         const senderEmail = `invites.mobi <fp-admin@usd21.org>`;
 
         const emailResult = await utils.sendEmail(
+          `${firstName} ${lastName}`,
           email,
-          senderEmail,
+          "invites.mobi",
           emailSubject,
           msg
         );

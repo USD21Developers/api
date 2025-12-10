@@ -188,7 +188,7 @@ exports.POST = async (req, res) => {
 
             const recipient = `"${firstname} ${lastname}" <${email}>`;
             require("./utils")
-              .sendEmail(recipient, emailSenderText, emailSubject, body)
+              .sendEmail(`${firstname}, ${lastname}`, email, emailSenderText, emailSubject, body)
               .then((result) => {
                 return resolve(result[0]);
               })

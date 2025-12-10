@@ -12,7 +12,7 @@ exports.POST = (req, res) => {
   const fullname = req.body.fullname || "";
   const email = req.body.email || "";
   const lang = req.body.lang || "en";
-  const emailSenderText = req.body.emailSenderText || "";
+  const emailSenderName = req.body.emailSenderText || "";
   const emailSubject = req.body.emailSubject || "";
   const emailParagraph1 = req.body.emailParagraph1 || "";
   const emailLinkText = req.body.emailLinkText || "";
@@ -239,10 +239,8 @@ exports.POST = (req, res) => {
                   <p>${emailSignature}</p>
                 `;
 
-                const recipient = `"${fullname}" <${email}>`;
-
                 require("./utils")
-                  .sendEmail(recipient, emailSenderText, emailSubject, body)
+                  .sendEmail(fullname, email, emailSenderName, emailSubject, body)
                   .then((result) => {
                     return res.status(result[0].statusCode || 200).send({
                       msg: "confirmation e-mail sent",

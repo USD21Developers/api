@@ -143,7 +143,7 @@ exports.POST = (req, res) => {
       const emailSubject = "Confirm your e-mail address";
 
       require("./utils")
-        .sendEmail(recipient, emailSenderText, emailSubject, body)
+        .sendEmail(fullname, email, emailSenderText, emailSubject, body)
         .then((result) => {
           return res.status(result[0].statusCode || 200).send({
             msg: "confirmation e-mail sent",

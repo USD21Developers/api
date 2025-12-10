@@ -106,8 +106,8 @@ exports.POST = (req, res) => {
         let body = `
           <p>
             ${emailParagraph1
-              .replace("${firstname}", `${firstname}`)
-              .replace("${lastname}", `${lastname}`)}
+            .replace("${firstname}", `${firstname}`)
+            .replace("${lastname}", `${lastname}`)}
           </p>
         `;
 
@@ -135,7 +135,7 @@ exports.POST = (req, res) => {
           </div>
         `;
         utils
-          .sendEmail(recipient, senderEmail, subject, body)
+          .sendEmail(`${firstname} ${lastname}`, recipientEmail, emailSenderText, subject, body)
           .then((result) => {
             return res.status(result[0].statusCode || 200).send({
               msg: "password reset e-mail sent",

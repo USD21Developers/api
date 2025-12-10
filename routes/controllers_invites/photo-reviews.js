@@ -185,7 +185,8 @@ exports.POST = (req, res) => {
       const emailSender = "invites.mobi";
 
       const emailResult = await require("./utils").sendEmail(
-        emailRecipient,
+        `${firstname} ${lastname}`,
+        email,
         emailSender,
         emailSubject,
         html

@@ -209,7 +209,7 @@ exports.POST = (req, res) => {
 
       const recipient = `"${firstname} ${lastname}" <${email}>`;
       require("./utils")
-        .sendEmail(recipient, emailSenderText, emailSubject, body)
+        .sendEmail(`${firstname} ${lastname}`, email, emailSenderText, emailSubject, body)
         .then((result) => {
           return res.status(result[0].statusCode || 200).send({
             msg: "confirmation e-mail sent again",
