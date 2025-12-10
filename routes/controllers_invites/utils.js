@@ -237,15 +237,68 @@ x = (recipient, emailSenderText, subject, body) => {
   });
 };
 
-exports.sendEmail = async (recipient, emailSenderText, subject, body) => {
+sendEmailViaAPI = (recipientName, recipientEmail, senderName, subject, body) => {
+  const Mailjet = require('node-mailjet');
+  const mailjet = Mailjet.apiConnect(
+    process.env.MAILJET_KEY_ID,
+    process.env.MAILJET_SECRET_KEY,
+  );
+  return new Promise((resolve, reject) => {
+    console.log("Recipient name: ", recipientName);
+    console.log("Recipient email: ", recipientEmail);
+    console.log("Sender name: ", senderName);
+    console.log("Sender email: ", process.env.SENDGRID_API_SENDER_EMAIL);
+    console.log("Subject: ", subject);
+    console.log("Body: ", body);
+
+    const request = mailjet
+      .post("send", { 'version': 'v3.1' })
+      .request({
+        "Messages": [
+          {
+            "From": {
+              "Email": `${process.env.SENDGRID_API_SENDER_EMAIL}`,
+              "Name": `${senderName}`
+            },
+            "To": [
+              {
+                "Email": `${recipientEmail}`,
+                "Name": `${recipientName}`
+              }
+            ],
+            "Subject": `${subject}`,
+            "HTMLPart": `${body}`,
+          }
+        ]
+      })
+    request
+      .then((result) => {
+        const { response } = result;
+        console.log(response);
+
+        const mailResponse = {
+          statusCode: 200,
+          statusText: response.statusText,
+        };
+
+        resolve(mailResponse);
+      })
+      .catch((err) => {
+        console.log(err);
+
+        const mailResponse = {
+          statusCode: 400,
+          statusText: "Failed to send email via MailJet",
+        };
+
+        resolve(mailResponse);
+      })
+  });
+};
+
+exports.sendEmail = async (recipientName, recipientEmail, senderName, subject, body) => {
   let result;
-  result = await sendEmailViaAPI(recipient, emailSenderText, subject, body);
-  /* try {
-    result = await sendEmailViaSMTP(recipient, emailSenderText, subject, body);
-  } catch (err) {
-    result =
-      (await sendEmailViaAPI(recipient, emailSenderText, subject, body)) || err;
-  } */
+  result = await sendEmailViaAPI(recipientName, recipientEmail, senderName, subject, body);
   return result;
 };
 
@@ -1175,7 +1228,7 @@ exports.deleteProfileImage = async (userid, db) => {
   for (const f of [file400, file140]) {
     try {
       await fs.promises.unlink(f);
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // Clear DB
