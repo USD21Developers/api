@@ -134,9 +134,9 @@ sendEmailViaAPI = (recipientName, recipientEmail, senderName, subject, body) => 
   });
 };
 
-exports.sendEmail = async (recipient, emailSenderText, subject, body) => {
+exports.sendEmail = async (recipientName, recipientEmail, senderName, subject, body) => {
   let result;
-  result = await sendEmailViaAPI(recipient, emailSenderText, subject, body);
+  result = await sendEmailViaAPI(recipientName, recipientEmail, senderName, subject, body);
   return result;
 };
 
