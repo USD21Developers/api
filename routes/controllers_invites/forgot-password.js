@@ -1,4 +1,5 @@
 exports.POST = (req, res) => {
+  console.log("forgot-password Invites API called");
   const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
   const db = isStaging
     ? require("../../database-invites-test")
