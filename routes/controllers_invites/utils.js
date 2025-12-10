@@ -297,8 +297,13 @@ sendEmailViaAPI = (recipientName, recipientEmail, senderName, subject, body) => 
 };
 
 exports.sendEmail = async (recipientName, recipientEmail, senderName, subject, body) => {
-  let result;
-  result = await sendEmailViaAPI(recipientName, recipientEmail, senderName, subject, body);
+  console.log("Recipient name: ", recipientName);
+  console.log("Recipient email: ", recipientEmail);
+  console.log("Sender name: ", senderName);
+  console.log("Sender email: ", process.env.SENDGRID_API_SENDER_EMAIL);
+  console.log("Subject: ", subject);
+  console.log("Body: ", body);
+  let result = await sendEmailViaAPI(recipientName, recipientEmail, senderName, subject, body);
   return result;
 };
 

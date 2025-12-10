@@ -606,7 +606,7 @@ exports.POST = (req, res) => {
             invitationid
           )
             .catch((err) => console.log(err))
-            .finally(() => {});
+            .finally(() => { });
         }
 
         if (!proceedWithEmailNotification) {
@@ -618,7 +618,7 @@ exports.POST = (req, res) => {
         const to = `${userObj.firstname} ${userObj.lastname} <${userObj.email}>`;
         const from = "invites.mobi";
 
-        const emailResult = await sendEmail(to, from, subject, html);
+        const emailResult = await sendEmail(`${userObj.firstname} ${userObj.lastname}`, userObj.email, from, subject, html);
         const emailSucceeded =
           emailResult[0].statusCode >= 200 && emailResult[0].statusCode < 300
             ? true
