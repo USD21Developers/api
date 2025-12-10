@@ -82,6 +82,12 @@ sendEmailViaAPI = (recipientName, recipientEmail, senderName, subject, body) => 
     process.env.MAILJET_SECRET_KEY,
   );
   return new Promise((resolve, reject) => {
+    console.log("Recipient name: ", recipientName);
+    console.log("Recipient email: ", recipientEmail);
+    console.log("Sender name: ", senderName);
+    console.log("Sender email: ", process.env.SENDGRID_API_SENDER_EMAIL);
+    console.log("Subject: ", subject);
+    console.log("Body: ", body);
     const request = mailjet
       .post("send", { 'version': 'v3.1' })
       .request({
