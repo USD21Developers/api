@@ -10,9 +10,9 @@ if (process.env.ENV === "development") {
   PROFILE_URL_BASE = "http://localhost:4000/profiles";
 }
 
-if (!fs.existsSync(PROFILE_DIR)) {
+/* if (!fs.existsSync(PROFILE_DIR)) {
   fs.mkdirSync(PROFILE_DIR, { recursive: true });
-}
+} */
 
 // Use the following middleware function on all protected routes
 exports.authenticateToken = (req, res, next) => {
