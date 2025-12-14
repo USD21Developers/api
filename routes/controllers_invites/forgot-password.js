@@ -1,11 +1,10 @@
 exports.POST = (req, res) => {
-  console.log("forgot-password Invites API called");
   const isStaging = req.headers.referer.indexOf("staging") >= 0 ? true : false;
   const db = isStaging
     ? require("../../database-invites-test")
     : require("../../database-invites");
   const email = req.body.email || "";
-  const emailSenderText = req.body.emailSenderText || "Invites";
+  const emailSenderName = req.body.emailSenderName || "Invites";
   const emailSubject = req.body.emailSubject || "Reset your password";
   let emailParagraph1 = req.body.emailParagraph1 || "";
   const emailParagraph2 = req.body.emailParagraph2 || "";
@@ -99,16 +98,16 @@ exports.POST = (req, res) => {
             msgType: "error",
           });
         }
-        const utils = require("./utils");
+
         const resetUrl = `${protocol}//${host}/login/reset/#${resetToken}`;
-        const senderEmail = `${emailSenderText} <fp-admin@usd21.org>`;
+        const senderEmail = `${emailSenderName} <${process.env.MAILJET_SENDER_EMAIL_INVITES}>`;
         const uuid = require("crypto").randomUUID();
         const subject = emailSubject;
         let body = `
           <p>
             ${emailParagraph1
-            .replace("${firstname}", `${firstname}`)
-            .replace("${lastname}", `${lastname}`)}
+              .replace("${firstname}", `${firstname}`)
+              .replace("${lastname}", `${lastname}`)}
           </p>
         `;
 
@@ -135,8 +134,17 @@ exports.POST = (req, res) => {
             </small></small>
           </div>
         `;
+
+        const utils = require("./utils");
+
         utils
-          .sendEmail(`${firstname} ${lastname}`, recipientEmail, emailSenderText, subject, body)
+          .sendEmail(
+            `${firstname} ${lastname}`,
+            recipientEmail,
+            emailSenderName,
+            subject,
+            body
+          )
           .then((result) => {
             return res.status(result[0].statusCode || 200).send({
               msg: "password reset e-mail sent",
