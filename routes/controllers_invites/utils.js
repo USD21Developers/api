@@ -185,7 +185,7 @@ exports.sendWhatsApp = (recipient, content) => {
   });
 };
 
-sendEmailViaSMTP = (recipient, emailSenderText, subject, body) => {
+exports.sendEmailViaSMTP = (recipient, emailSenderText, subject, body) => {
   const sender = `"${emailSenderText}" <${process.env.SMTP_SENDER_EMAIL}>`;
   return new Promise((resolve, reject) => {
     const nodemailer = require("nodemailer");
@@ -215,7 +215,7 @@ sendEmailViaSMTP = (recipient, emailSenderText, subject, body) => {
 };
 
 x = (recipient, emailSenderText, subject, body) => {
-  const sender = `${emailSenderText} <${process.env.SENDGRID_API_SENDER_EMAIL}>`;
+  const sender = `${emailSenderText} <${process.env.MAILJET_SENDER_EMAIL_INVITES}>`;
   const sgMail = require("@sendgrid/mail");
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
   const msg = {
@@ -237,40 +237,38 @@ x = (recipient, emailSenderText, subject, body) => {
   });
 };
 
-sendEmailViaAPI = (recipientName, recipientEmail, senderName, subject, body) => {
-  const Mailjet = require('node-mailjet');
+exports.sendEmailViaAPI = (
+  recipientName,
+  recipientEmail,
+  senderName,
+  subject,
+  body
+) => {
+  // THIS IS THE E-MAIL SENDER FOR THE INVITES APP!!!
+  const Mailjet = require("node-mailjet");
   const mailjet = Mailjet.apiConnect(
-    process.env.MAILJET_KEY_ID,
-    process.env.MAILJET_SECRET_KEY,
+    process.env.MAILJET_API_KEY,
+    process.env.MAILJET_SECRET_KEY
   );
   return new Promise((resolve, reject) => {
-    console.log("Recipient name: ", recipientName);
-    console.log("Recipient email: ", recipientEmail);
-    console.log("Sender name: ", senderName);
-    console.log("Sender email: ", process.env.SENDGRID_API_SENDER_EMAIL);
-    console.log("Subject: ", subject);
-    console.log("Body: ", body);
-
-    const request = mailjet
-      .post("send", { 'version': 'v3.1' })
-      .request({
-        "Messages": [
-          {
-            "From": {
-              "Email": `${process.env.SENDGRID_API_SENDER_EMAIL}`,
-              "Name": `${senderName}`
+    const request = mailjet.post("send", { version: "v3.1" }).request({
+      Messages: [
+        {
+          From: {
+            Email: `${process.env.MAILJET_SENDER_EMAIL_INVITES}`,
+            Name: `${senderName}`,
+          },
+          To: [
+            {
+              Email: `${recipientEmail}`,
+              Name: `${recipientName}`,
             },
-            "To": [
-              {
-                "Email": `${recipientEmail}`,
-                "Name": `${recipientName}`
-              }
-            ],
-            "Subject": `${subject}`,
-            "HTMLPart": `${body}`,
-          }
-        ]
-      })
+          ],
+          Subject: `${subject}`,
+          HTMLPart: `${body}`,
+        },
+      ],
+    });
     request
       .then((result) => {
         const { response } = result;
@@ -292,18 +290,25 @@ sendEmailViaAPI = (recipientName, recipientEmail, senderName, subject, body) => 
         };
 
         resolve(mailResponse);
-      })
+      });
   });
 };
 
-exports.sendEmail = async (recipientName, recipientEmail, senderName, subject, body) => {
-  console.log("Recipient name: ", recipientName);
-  console.log("Recipient email: ", recipientEmail);
-  console.log("Sender name: ", senderName);
-  console.log("Sender email: ", process.env.SENDGRID_API_SENDER_EMAIL);
-  console.log("Subject: ", subject);
-  console.log("Body: ", body);
-  let result = await sendEmailViaAPI(recipientName, recipientEmail, senderName, subject, body);
+exports.sendEmail = async (
+  recipientName,
+  recipientEmail,
+  senderName,
+  subject,
+  body
+) => {
+  // THIS IS THE E-MAIL SENDER FOR THE INVITES APP!!!
+  let result = await this.sendEmailViaAPI(
+    recipientName,
+    recipientEmail,
+    senderName,
+    subject,
+    body
+  );
   return result;
 };
 
@@ -1233,7 +1238,7 @@ exports.deleteProfileImage = async (userid, db) => {
   for (const f of [file400, file140]) {
     try {
       await fs.promises.unlink(f);
-    } catch (e) { }
+    } catch (e) {}
   }
 
   // Clear DB
