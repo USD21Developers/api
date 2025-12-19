@@ -146,15 +146,12 @@ exports.POST = (req, res) => {
             body
           )
           .then((result) => {
-            console.log("E-mail promise resolved");
-            console.log(result);
-            return res.status(result[0].statusCode || 200).send({
+            return res.status(200).send({
               msg: "password reset e-mail sent",
               msgType: "success",
             });
           })
           .catch((error) => {
-            console.log("E-mail promise rejected");
             console.log(error);
             return res.status(500).send({
               msg: "password reset e-mail could not be sent",

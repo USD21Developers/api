@@ -272,7 +272,6 @@ exports.sendEmailViaAPI = (
     request
       .then((result) => {
         const { response } = result;
-        console.log(response);
 
         const mailResponse = {
           statusCode: 200,
@@ -282,16 +281,10 @@ exports.sendEmailViaAPI = (
         resolve(mailResponse);
       })
       .catch((err) => {
-        const { response, body } = result;
-
-        const message = body.Messages[0];
-
-        console.log(err);
-
         if (message.Status !== "success") {
           reject([{
-            statusCode: response.statusCode,
-            errors: message.Errors
+            statusCode: 400,
+            err: err
           }]);
         }
 
