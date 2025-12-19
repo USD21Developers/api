@@ -284,9 +284,23 @@ exports.sendEmailViaAPI = (
       .catch((err) => {
         console.log(err);
 
+        const { response, body } = result;
+
+        const message = body.Messages[0];
+
+        if (message.Status !== "success") {
+          reject({
+            statusCode: response.statusCode,
+            errors: message.Errors
+          });
+        }
+
+        const statusCode = (message.Status !== "success") ? 400 : 200;
+
         const mailResponse = {
-          statusCode: 400,
-          statusText: "Failed to send email via MailJet",
+          statusCode: statusCode,
+          statusText: response.statusMessage,
+          mailjetStatus: body.Messages[0].Status
         };
 
         resolve(mailResponse);
@@ -1238,7 +1252,7 @@ exports.deleteProfileImage = async (userid, db) => {
   for (const f of [file400, file140]) {
     try {
       await fs.promises.unlink(f);
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // Clear DB
