@@ -282,26 +282,26 @@ exports.sendEmailViaAPI = (
         resolve(mailResponse);
       })
       .catch((err) => {
-        console.log(err);
-
         const { response, body } = result;
 
         const message = body.Messages[0];
 
+        console.log(err);
+
         if (message.Status !== "success") {
-          reject({
+          reject([{
             statusCode: response.statusCode,
             errors: message.Errors
-          });
+          }]);
         }
 
         const statusCode = (message.Status !== "success") ? 400 : 200;
 
-        const mailResponse = {
+        const mailResponse = [{
           statusCode: statusCode,
           statusText: response.statusMessage,
           mailjetStatus: body.Messages[0].Status
-        };
+        }];
 
         resolve(mailResponse);
       });
