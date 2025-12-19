@@ -106,8 +106,8 @@ exports.POST = (req, res) => {
         let body = `
           <p>
             ${emailParagraph1
-              .replace("${firstname}", `${firstname}`)
-              .replace("${lastname}", `${lastname}`)}
+            .replace("${firstname}", `${firstname}`)
+            .replace("${lastname}", `${lastname}`)}
           </p>
         `;
 
@@ -146,12 +146,16 @@ exports.POST = (req, res) => {
             body
           )
           .then((result) => {
+            console.log("E-mail promise resolved");
+            console.log(result);
             return res.status(result[0].statusCode || 200).send({
               msg: "password reset e-mail sent",
               msgType: "success",
             });
           })
           .catch((error) => {
+            console.log("E-mail promise rejected");
+            console.log(error);
             return res.status(500).send({
               msg: "password reset e-mail could not be sent",
               msgType: "error",
