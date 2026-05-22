@@ -527,7 +527,7 @@ exports.POST = (req, res) => {
         let settings = result[0].settings || null;
 
         if (settings) {
-          settings = JSON.parse(settings);
+          settings = settings;
         }
 
         let proceedWithEmailNotification = true;
@@ -618,7 +618,12 @@ exports.POST = (req, res) => {
         const to = `${userObj.firstname} ${userObj.lastname} <${userObj.email}>`;
         const from = "invites.mobi";
 
-        const emailResult = await sendEmail(
+        let emailResult = {
+          statusCode: null,
+          statusText: null,
+        };
+
+        emailResult = await sendEmail(
           `${userObj.firstname} ${userObj.lastname}`,
           userObj.email,
           from,
@@ -626,7 +631,7 @@ exports.POST = (req, res) => {
           html,
         );
         const emailSucceeded =
-          emailResult[0].statusCode >= 200 && emailResult[0].statusCode < 300
+          emailResult.statusCode >= 200 && emailResult.statusCode < 300
             ? true
             : false;
 
