@@ -26,7 +26,7 @@ exports.POST = async (req, res) => {
     const maxCharacterQuantity = 1000;
     const truncatedText = unsyncedSettings.customInviteText.substring(
       0,
-      maxCharacterQuantity
+      maxCharacterQuantity,
     );
     unsyncedSettings.customInviteText = truncatedText.trim();
   }
@@ -67,7 +67,7 @@ exports.POST = async (req, res) => {
           if (!phoneCountryData.hasOwnProperty("iso2")) {
             const phoneValidationResults = require("./utils").validatePhone(
               phone,
-              phoneCountryData.iso2
+              phoneCountryData.iso2,
             );
             const {
               isPossibleNumber,
@@ -175,7 +175,7 @@ exports.POST = async (req, res) => {
   const pushSubscriptionsPromise = getPushSubscriptions(db);
 
   Promise.all([settingsPromise, pushSubscriptionsPromise]).then((results) => {
-    const settings = JSON.parse(results[0].settings);
+    const settings = results[0].settings;
     const pushSubscriptions = results[1];
 
     return res.status(200).send({
