@@ -1,4 +1,4 @@
-const mysql = require("mysql");
+const mysql = require("mysql2");
 const util = require("util");
 const pool = mysql.createPool({
   connectionLimit: 10,
@@ -6,6 +6,7 @@ const pool = mysql.createPool({
   host: process.env.UPSIDEDOWN21_HOST,
   user: process.env.UPSIDEDOWN21_USER,
   password: process.env.UPSIDEDOWN21_PASS,
+  port: process.env.UPSIDEDOWN21_PORT || 3306,
 });
 
 pool.getConnection((err, connection) => {
