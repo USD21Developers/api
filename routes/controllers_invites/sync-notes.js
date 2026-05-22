@@ -74,7 +74,7 @@ exports.POST = (req, res) => {
             }
 
             return resolve(unsyncedNote);
-          }
+          },
         );
       } else if (action === "update") {
         const sql = `
@@ -99,7 +99,7 @@ exports.POST = (req, res) => {
             }
 
             return resolve(unsyncedNote);
-          }
+          },
         );
       }
     });
@@ -175,7 +175,7 @@ exports.POST = (req, res) => {
         const notes = result.map((item) => {
           const { date, lastModified, eventid, invitationid, noteid, note } =
             item;
-          const { recipient, summary, text, timezone } = JSON.parse(note);
+          const { recipient, summary, text, timezone } = note;
           const noteObj = {
             date: date,
             lastModified: lastModified,
