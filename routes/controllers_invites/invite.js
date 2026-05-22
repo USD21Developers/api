@@ -69,7 +69,7 @@ exports.POST = (req, res) => {
 
         if (!result.length) {
           return reject(
-            new Error("an invitation with this userid was not found")
+            new Error("an invitation with this userid was not found"),
           );
         }
 
@@ -83,7 +83,7 @@ exports.POST = (req, res) => {
             userid: userid,
           },
           secret,
-          { expiresIn: "100y" }
+          { expiresIn: "100y" },
         );
         const unsubscribeToken = Buffer.from(jwt).toString("base64");
 
@@ -224,7 +224,7 @@ exports.POST = (req, res) => {
     userid,
     timezone,
     loadedAlready,
-    isUser
+    isUser,
   ) {
     return new Promise((resolve, reject) => {
       const interactionType = "viewed invite";
@@ -263,7 +263,7 @@ exports.POST = (req, res) => {
           }
 
           return resolve(result);
-        }
+        },
       );
     });
   };
@@ -276,7 +276,7 @@ exports.POST = (req, res) => {
     emailHtml,
     emailPhrases,
     pushPhrases,
-    isUser
+    isUser,
   ) => {
     return new Promise(async (resolve, reject) => {
       if (!eventObj) return resolve();
@@ -444,7 +444,7 @@ exports.POST = (req, res) => {
       let subject = emailPhrases["email-subject-viewed-invite"];
       subject = subject.replaceAll(
         "{RECIPIENT-NAME}",
-        recipientObj.recipientname
+        recipientObj.recipientname,
       );
       subject = subject.replaceAll("{EVENT-TITLE}", eventObj.title);
       let body = document.body.innerHTML;
@@ -504,16 +504,16 @@ exports.POST = (req, res) => {
           console.log(error);
           return reject(
             new Error(
-              "unable to query for last time user was notified about this invite"
-            )
+              "unable to query for last time user was notified about this invite",
+            ),
           );
         }
 
         if (!result.length) {
           return reject(
             new Error(
-              `invite not found { eventid: ${eventObj.eventid}, userid: ${userObj.userid}, recipientid: ${recipientObj.recipientid} }`
-            )
+              `invite not found { eventid: ${eventObj.eventid}, userid: ${userObj.userid}, recipientid: ${recipientObj.recipientid} }`,
+            ),
           );
         }
 
@@ -579,11 +579,11 @@ exports.POST = (req, res) => {
         if (proceedWithPushNotification) {
           const pushInviteViewed = pushPhrases["push-invite-viewed"].replaceAll(
             "{RECIPIENT-NAME}",
-            recipientObj.recipientname
+            recipientObj.recipientname,
           );
           const pushFollowUp = pushPhrases["push-follow-up"].replaceAll(
             "{RECIPIENT-NAME}",
-            recipientObj.recipientname
+            recipientObj.recipientname,
           );
           let urlPrefix;
           if (isLocal) {
@@ -603,10 +603,10 @@ exports.POST = (req, res) => {
             {
               clickURL: pushFollowUpURL,
             },
-            invitationid
+            invitationid,
           )
             .catch((err) => console.log(err))
-            .finally(() => { });
+            .finally(() => {});
         }
 
         if (!proceedWithEmailNotification) {
@@ -618,7 +618,13 @@ exports.POST = (req, res) => {
         const to = `${userObj.firstname} ${userObj.lastname} <${userObj.email}>`;
         const from = "invites.mobi";
 
-        const emailResult = await sendEmail(`${userObj.firstname} ${userObj.lastname}`, userObj.email, from, subject, html);
+        const emailResult = await sendEmail(
+          `${userObj.firstname} ${userObj.lastname}`,
+          userObj.email,
+          from,
+          subject,
+          html,
+        );
         const emailSucceeded =
           emailResult[0].statusCode >= 200 && emailResult[0].statusCode < 300
             ? true
@@ -640,8 +646,8 @@ exports.POST = (req, res) => {
               console.log(error);
               return reject(
                 new Error(
-                  "unable to update invite with last time user was notified via e-mail"
-                )
+                  "unable to update invite with last time user was notified via e-mail",
+                ),
               );
             }
 
@@ -656,97 +662,123 @@ exports.POST = (req, res) => {
 
   // Main method
   (async (db, res) => {
-    const event = eventid
-      ? await getEvent(db, eventid).catch(() => null)
-      : null;
+    try {
+      const event = eventid
+        ? await getEvent(db, eventid).catch(() => null)
+        : null;
 
-    if (!event) {
-      return res.status(404).send({
-        msg: "event not found",
-        msgType: "error",
-      });
-    }
-
-    if (event.frequency !== "once") {
-      event.startDateOriginal =
-        moment(event.startdate).format("YYYY-MM-DDTHH:mm:ss") + "Z";
-      event.startdate = event.startdateNext;
-      delete event.startdateNext;
-    }
-    const user = userid ? await getUser(db, userid).catch(() => null) : null;
-
-    // Enable overriding event contact info
-    if (user.settings) {
-      const settings = JSON.parse(user.settings);
-
-      if (settings.hasOwnProperty("eventsByFollowedUsers")) {
-        if (settings.eventsByFollowedUsers.hasOwnProperty("contactInfo")) {
-          if (settings.eventsByFollowedUsers.contactInfo.override) {
-            user.contactInfo = settings.eventsByFollowedUsers.contactInfo;
-          }
-        }
+      if (!event) {
+        return res.status(404).send({
+          msg: "event not found",
+          msgType: "error",
+        });
       }
 
-      delete user.settings;
-    }
+      if (event.frequency !== "once") {
+        event.startDateOriginal =
+          moment(event.startdate).format("YYYY-MM-DDTHH:mm:ss") + "Z";
+        event.startdate = event.startdateNext;
+        delete event.startdateNext;
+      }
 
-    const recipient =
-      eventid && userid && recipientid
-        ? await getRecipient(db, eventid, userid, recipientid).catch(() => null)
-        : null;
-    // if (recipient) recipient.invitationid = recipientid;
+      const user = userid ? await getUser(db, userid).catch(() => null) : null;
 
-    // Record that invite was viewed
-    if (recipient) {
-      recordThatInviteWasViewed(
-        recipient.invitationid,
-        userid,
-        timezone,
-        loadedAlready,
-        isUser
-      );
-    }
+      if (user && user.settings) {
+        const settings = JSON.parse(user.settings);
 
-    // Notify sender
-    if (event && user && recipient) {
-      return notifySender(
-        event,
-        user,
-        recipient,
-        timezone,
-        emailHtml,
-        emailPhrases,
-        pushPhrases,
-        isUser
-      )
-        .catch((err) => {
-          console.log(err);
-        })
-        .finally(() => {
-          delete recipient.invitationid;
-          delete user.email;
-          delete user.lastname;
+        if (settings.hasOwnProperty("eventsByFollowedUsers")) {
+          if (settings.eventsByFollowedUsers.hasOwnProperty("contactInfo")) {
+            if (settings.eventsByFollowedUsers.contactInfo.override) {
+              user.contactInfo = settings.eventsByFollowedUsers.contactInfo;
+            }
+          }
+        }
 
-          res.status(200).send({
-            msg: "invite retrieved",
-            msgType: "success",
-            invite: {
-              event: event,
-              user: user,
-              recipient: recipient,
-            },
+        delete user.settings;
+      }
+
+      // Enable overriding event contact info
+      if (user.settings) {
+        const settings = JSON.parse(user.settings);
+
+        if (settings.hasOwnProperty("eventsByFollowedUsers")) {
+          if (settings.eventsByFollowedUsers.hasOwnProperty("contactInfo")) {
+            if (settings.eventsByFollowedUsers.contactInfo.override) {
+              user.contactInfo = settings.eventsByFollowedUsers.contactInfo;
+            }
+          }
+        }
+
+        delete user.settings;
+      }
+
+      const recipient =
+        eventid && userid && recipientid
+          ? await getRecipient(db, eventid, userid, recipientid).catch(
+              () => null,
+            )
+          : null;
+      // if (recipient) recipient.invitationid = recipientid;
+
+      // Record that invite was viewed
+      if (recipient) {
+        recordThatInviteWasViewed(
+          recipient.invitationid,
+          userid,
+          timezone,
+          loadedAlready,
+          isUser,
+        );
+      }
+
+      // Notify sender
+      if (event && user && recipient) {
+        return notifySender(
+          event,
+          user,
+          recipient,
+          timezone,
+          emailHtml,
+          emailPhrases,
+          pushPhrases,
+          isUser,
+        )
+          .catch((err) => {
+            console.log(err);
+          })
+          .finally(() => {
+            delete recipient.invitationid;
+            delete user.email;
+            delete user.lastname;
+
+            res.status(200).send({
+              msg: "invite retrieved",
+              msgType: "success",
+              invite: {
+                event: event,
+                user: user,
+                recipient: recipient,
+              },
+            });
           });
-        });
-    }
+      }
 
-    return res.status(200).send({
-      msg: "invite retrieved",
-      msgType: "success",
-      invite: {
-        event: event,
-        user: user,
-        recipient: recipient,
-      },
-    });
+      return res.status(200).send({
+        msg: "invite retrieved",
+        msgType: "success",
+        invite: {
+          event: event,
+          user: user,
+          recipient: recipient,
+        },
+      });
+    } catch (err) {
+      console.error("Unhandled error in invite handler:", err);
+      if (!res.headersSent) {
+        return res
+          .status(500)
+          .send({ msg: "internal server error", msgType: "error" });
+      }
+    }
   })(db, res);
 };
