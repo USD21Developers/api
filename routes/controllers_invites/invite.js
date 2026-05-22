@@ -684,7 +684,7 @@ exports.POST = (req, res) => {
       const user = userid ? await getUser(db, userid).catch(() => null) : null;
 
       if (user && user.settings) {
-        const settings = JSON.parse(user.settings);
+        const settings = user.settings;
 
         if (settings.hasOwnProperty("eventsByFollowedUsers")) {
           if (settings.eventsByFollowedUsers.hasOwnProperty("contactInfo")) {
