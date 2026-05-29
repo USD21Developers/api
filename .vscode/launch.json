@@ -7,11 +7,17 @@
     {
       "type": "pwa-node",
       "request": "launch",
-      "name": "Launch Program",
+      "name": "Launch API (debug)",
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "../api/app.js"
+      "program": "${workspaceFolder}/app.js",
+      // Load .env (mirrors the npm scripts), and open the SSH tunnel first.
+      "runtimeArgs": [
+        "-r",
+        "dotenv/config"
+      ],
+      "preLaunchTask": "tunnel"
     }
   ]
 }

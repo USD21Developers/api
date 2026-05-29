@@ -15,9 +15,6 @@ pool.getConnection((err, connection) => {
       case "PROTOCOL_CONNECTION_LOST":
         console.error("Database connection was closed.");
         break;
-      case "PROTOCOL_CONNECTION_LOST":
-        console.error("Database connection was closed.");
-        break;
       case "ER_CON_COUNT_ERROR":
         console.error("Database has too many connections.");
         break;

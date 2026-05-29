@@ -4,7 +4,9 @@
   "description": "API service for usd21.org",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon -r dotenv/config app.js",
+    "tunnel": "nc -z 127.0.0.1 3307 || ssh -f -N -L 3307:127.0.0.1:3306 usd21.org",
+    "start": "npm run tunnel && nodemon -r dotenv/config app.js",
+    "debug": "npm run tunnel && nodemon --inspect -r dotenv/config app.js",
     "ngrok": "ngrok http http://localhost:4000",
     "ssh:prod": "ssh root@api.usd21.org -p 1773 -i ~/.ssh/usd21/id_rsa",
     "deploy:prod": "ssh root@api.usd21.org -p 1773 -i ~/.ssh/usd21/id_rsa \"cd /var/www/html; ./pull.sh\""

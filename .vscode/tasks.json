@@ -1,0 +1,17 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      // Opens the SSH tunnel to the remote DB (idempotent). Used as the
+      // preLaunchTask for "Launch API (debug)". Requires WireGuard to be on.
+      "label": "tunnel",
+      "type": "shell",
+      "command": "npm run tunnel",
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
